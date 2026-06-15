@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:ping": "tsx --env-file=.env.local scripts/db-ping.mts"
+    "db:ping": "tsx --env-file=.env.local scripts/db-ping.mts",
+    "db:check": "tsx --env-file=.env.local scripts/check-profiles.mts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
