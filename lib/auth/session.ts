@@ -6,7 +6,12 @@ import { isEditor, isAdmin, type Role } from "@/lib/auth/roles";
 
 export async function getSessionUser() {
   const supabase = await createSupabaseServer();
-  const { data } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getUser();
+  // "AuthSessionMissingError" is the normal not-signed-in case — don't log it.
+  // Log only unexpected failures (network, invalid JWT) so they're observable.
+  if (error && error.name !== "AuthSessionMissingError") {
+    console.error("[auth] getUser error:", error.message);
+  }
   return data.user; // null if not signed in
 }
 
