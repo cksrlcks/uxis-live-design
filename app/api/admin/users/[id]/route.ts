@@ -15,6 +15,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
   const { id } = await params;
+  if (id === admin.id) {
+    return NextResponse.json({ error: "CANNOT_MODIFY_SELF" }, { status: 400 });
+  }
   const body = await req.json();
   const role = String(body.role);
   if (!ALLOWED.has(role)) return NextResponse.json({ error: "INVALID_ROLE" }, { status: 400 });

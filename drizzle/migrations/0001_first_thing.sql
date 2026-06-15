@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD CONSTRAINT "profiles_role_check" CHECK ("profiles"."role" in ('pending', 'editor', 'admin'));
