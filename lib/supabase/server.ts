@@ -13,7 +13,7 @@ export async function createSupabaseServer() {
           try {
             toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
           } catch {
-            // called from a Server Component — safe to ignore (middleware refreshes the session)
+            // called from a Server Component — safe to ignore (proxy refreshes the session)
           }
         },
       },
