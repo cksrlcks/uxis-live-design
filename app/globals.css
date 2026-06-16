@@ -139,3 +139,12 @@
     @apply font-sans;
   }
 }
+
+/* Hide scrollbar but keep scrollability — so a vertical scrollbar never eats
+   horizontal space and shrinks the native-1920 slide image. */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
