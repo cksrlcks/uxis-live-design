@@ -21,3 +21,11 @@ export async function removeObjects(paths: string[]) {
   const { error } = await supabase.storage.from(PROPOSALS_BUCKET).remove(paths);
   if (error) throw new Error(`storage remove failed: ${error.message}`);
 }
+
+// Object names (basenames) directly under a folder prefix, e.g. "<proposalId>/<versionId>".
+export async function listObjectNames(prefix: string): Promise<Set<string>> {
+  const supabase = createSupabaseService();
+  const { data, error } = await supabase.storage.from(PROPOSALS_BUCKET).list(prefix, { limit: 1000 });
+  if (error) throw new Error(`storage list failed: ${error.message}`);
+  return new Set((data ?? []).map((o) => o.name));
+}

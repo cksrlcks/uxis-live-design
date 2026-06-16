@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { proposals, proposalVersions, proposalPages } from "@/drizzle/schema";
 import { requireEditor } from "@/lib/auth/session";
+import { listObjectNames } from "@/lib/proposals/storage";
 
 type PageInput = { pageId: string; pageOrder: number; path: string; width: number; height: number };
 
@@ -25,6 +26,17 @@ export async function POST(
   const body = await req.json();
   const pages: PageInput[] = Array.isArray(body.pages) ? body.pages : [];
   if (pages.length === 0) return NextResponse.json({ error: "NO_PAGES" }, { status: 400 });
+
+  // Verify every page references a real uploaded object under this version's folder
+  // (spec §4 step 3) — don't trust client-supplied paths, and skip rows for failed uploads.
+  const prefix = `${id}/${vid}`;
+  const existing = await listObjectNames(prefix);
+  for (const p of pages) {
+    const name = String(p.path).startsWith(`${prefix}/`) ? String(p.path).slice(prefix.length + 1) : "";
+    if (!name || name.includes("/") || !existing.has(name)) {
+      return NextResponse.json({ error: "OBJECT_MISSING", path: p.path }, { status: 400 });
+    }
+  }
 
   await db.insert(proposalPages).values(
     pages.map((p) => ({
