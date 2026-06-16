@@ -13,14 +13,14 @@ export function defaultGuestName(seed: number): string {
   return `Guest ${(Math.abs(Math.trunc(seed)) % 9000) + 1000}`;
 }
 
-export type Profile = { name: string; color: string };
-
-export function parseProfile(raw: string | null): Profile | null {
+export function parseIdentity(raw: string | null): Identity | null {
   if (!raw) return null;
   try {
     const o = JSON.parse(raw);
-    if (o && typeof o.name === "string" && o.name && typeof o.color === "string" && o.color) {
-      return { name: o.name, color: o.color };
+    if (o && typeof o.id === "string" && o.id &&
+        typeof o.name === "string" && o.name &&
+        typeof o.color === "string" && o.color) {
+      return { id: o.id, name: o.name, color: o.color };
     }
   } catch {
     // fall through
@@ -28,39 +28,25 @@ export function parseProfile(raw: string | null): Profile | null {
   return null;
 }
 
-const TAB_ID_KEY = "uxis:tabId";    // per-tab (sessionStorage) → each tab is a distinct participant
-const PROFILE_KEY = "uxis:profile"; // persistent name/color (localStorage), shared across tabs
+// One identity per BROWSER (localStorage), shared across all tabs/windows → the same
+// person is a single realtime participant no matter how many tabs they open. The
+// provider's self-id cursor guard keeps your own cursor from rendering in your other tabs.
+const STORAGE_KEY = "uxis:identity";
 
-function newId(seed: number): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-  return `g-${seed}-${Math.floor(Math.random() * 1_000_000)}`;
-}
-
-// Browser-only. Identity id is per-tab so two tabs/windows are distinct realtime
-// participants; the display name/color persist across tabs and survive reloads.
-// `editorName`, when present (logged-in editor), overrides only the display name.
+// Browser-only: load the saved identity or create a fresh anonymous one.
+// `editorName`, when present (logged-in editor), overrides the display name.
 export function loadOrCreateIdentity(editorName: string | null): Identity {
-  let id = typeof sessionStorage !== "undefined" ? sessionStorage.getItem(TAB_ID_KEY) : null;
-  if (!id) {
-    id = newId(Math.floor(Math.random() * 1_000_000));
-    if (typeof sessionStorage !== "undefined") sessionStorage.setItem(TAB_ID_KEY, id);
-  }
-
-  let profile = typeof localStorage !== "undefined" ? parseProfile(localStorage.getItem(PROFILE_KEY)) : null;
-  if (!profile) {
+  let identity = typeof localStorage !== "undefined" ? parseIdentity(localStorage.getItem(STORAGE_KEY)) : null;
+  if (!identity) {
     const seed = Math.floor(Math.random() * 1_000_000);
-    profile = { name: defaultGuestName(seed), color: pickColor(seed) };
-    saveProfile(profile);
+    const id = (typeof crypto !== "undefined" && "randomUUID" in crypto) ? crypto.randomUUID() : String(seed);
+    identity = { id, name: defaultGuestName(seed), color: pickColor(seed) };
   }
-
-  return { id, name: editorName ?? profile.name, color: profile.color };
+  if (editorName) identity = { ...identity, name: editorName };
+  saveIdentity(identity);
+  return identity;
 }
 
-// Persist the (possibly renamed) display name + color so it carries across tabs/reloads.
 export function saveIdentity(identity: Identity): void {
-  saveProfile({ name: identity.name, color: identity.color });
-}
-
-function saveProfile(profile: Profile): void {
-  if (typeof localStorage !== "undefined") localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  if (typeof localStorage !== "undefined") localStorage.setItem(STORAGE_KEY, JSON.stringify(identity));
 }
