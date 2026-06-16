@@ -2,7 +2,7 @@ import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { proposals } from "@/drizzle/schema";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -12,7 +12,7 @@ export default async function ProposalsPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">시안</h1>
-        <Button render={<Link href="/dashboard/proposals/new">새 시안</Link>} />
+        <Link href="/dashboard/proposals/new" className={buttonVariants()}>새 시안</Link>
       </div>
       <Table className="mt-6">
         <TableHeader>
