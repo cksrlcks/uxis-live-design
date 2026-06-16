@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -15,7 +16,8 @@ export type ViewerGate = {
 
 // Single source of truth for public-viewer access, shared by the layout (to gate the
 // realtime shell) and the page (to gate content). One light proposal fetch per call.
-export async function resolveViewerGate(publicId: string): Promise<ViewerGate> {
+// React.cache() dedupes across layout + page within the same request — only one DB read.
+export const resolveViewerGate = cache(async (publicId: string): Promise<ViewerGate> => {
   const rows = await db.select().from(proposals).where(eq(proposals.publicId, publicId)).limit(1);
   const proposal = rows[0] ?? null;
   if (!proposal) return { proposal: null, decision: "forbidden", editorName: null };
@@ -37,4 +39,4 @@ export async function resolveViewerGate(publicId: string): Promise<ViewerGate> {
   });
 
   return { proposal, decision, editorName: editor ? (profile?.displayName ?? null) : null };
-}
+});
