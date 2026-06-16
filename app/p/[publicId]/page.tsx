@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { asc, eq } from "drizzle-orm";
+import { asc, count, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { proposals, proposalVariants, proposalPages } from "@/drizzle/schema";
 import type { ProposalVariant } from "@/drizzle/schema";
@@ -27,6 +27,20 @@ async function loadPages(versionId: string | null): Promise<PreviewPage[]> {
   return Promise.all(pages.map(async (pg) => ({
     id: pg.id, url: await createReadUrl(pg.storagePath), width: pg.width, height: pg.height,
   })));
+}
+
+async function loadThumb(versionId: string | null): Promise<{ thumb: PreviewPage | null; pageCount: number }> {
+  if (!versionId) return { thumb: null, pageCount: 0 };
+  const [counted] = await db.select({ n: count() }).from(proposalPages)
+    .where(eq(proposalPages.versionId, versionId));
+  const pageCount = Number(counted?.n ?? 0);
+  if (pageCount === 0) return { thumb: null, pageCount };
+  const [first] = await db.select().from(proposalPages)
+    .where(eq(proposalPages.versionId, versionId)).orderBy(asc(proposalPages.pageOrder)).limit(1);
+  const thumb = first
+    ? { id: first.id, url: await createReadUrl(first.storagePath), width: first.width, height: first.height }
+    : null;
+  return { thumb, pageCount };
 }
 
 export default async function PublicViewerPage({
@@ -125,8 +139,8 @@ export default async function PublicViewerPage({
   // 기본: 안 목록
   const items = await Promise.all(
     variants.map(async (vr) => {
-      const pages = await loadPages(vr.currentVersionId);
-      return { slug: vr.slug, label: vr.label, thumb: pages[0] ?? null, pageCount: pages.length };
+      const { thumb, pageCount } = await loadThumb(vr.currentVersionId);
+      return { slug: vr.slug, label: vr.label, thumb, pageCount };
     }),
   );
   return <VariantList publicId={publicId} items={items} />;
