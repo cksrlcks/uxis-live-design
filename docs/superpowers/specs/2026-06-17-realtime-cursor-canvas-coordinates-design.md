@@ -39,13 +39,13 @@
 | 3 | 아이콘 크기 | **`scale(1/배율)` 역보정**, `transformOrigin` 커서 끝 | 줌에 무관하게 화면상 일정 크기(피그마 동작) |
 | 4 | 화면 밖 커서 | **래퍼 `overflow:hidden` 자연 클리핑** | 별도 엣지 인디케이터 없음(피그마 코어와 동일) |
 | 5 | 캡처/렌더 소유 | **CanvasView로 이동**, RealtimeShell의 `<CursorOverlay/>` 제거 | 캡처(콘텐츠 rect+scale)와 렌더 모두 transform 컨텍스트가 필요 → 한 곳에서 소유 |
-| 6 | scale 추적 | **`onTransformed` → CSS 변수 `--inv-scale` DOM 직접 write** | 매 프레임 React 리렌더 없이 모든 커서가 역보정값 공유 |
+| 6 | scale 추적 | **`onInit`+`onTransform` → CSS 변수 `--inv-scale` DOM 직접 write** | 매 프레임 React 리렌더 없이 모든 커서가 역보정값 공유. 안정적 부모에 두면 늦게 마운트된 커서도 즉시 상속 |
 
 ## 3. 아키텍처 / 데이터 흐름
 
 ```
 CanvasView (?view=canvas 에서만 마운트 → 게이팅 자동)
-  └─ TransformWrapper  (onTransformed → 레이어에 --inv-scale = 1/scale write)
+  └─ TransformWrapper  (onInit/onTransform → contentRef에 --inv-scale = 1/scale write)
        └─ TransformComponent
             └─ contentRef div  (페이지 가로열 + 커서 레이어, 좌상단 = 원점)
                  ├─ <img> 페이지들 …
@@ -79,7 +79,7 @@ CanvasView (?view=canvas 에서만 마운트 → 게이팅 자동)
 
 ### 4.3 캡처+렌더 이동
 - **신규** `components/realtime/canvas-cursors.tsx` (또는 CanvasView 내부 컴포넌트): 콘텐츠 ref + 현재 scale을 받아 캡처(pointermove→sendCursor)와 렌더(CursorLayer)를 모두 담당
-- [components/preview/canvas-view.tsx](../../components/preview/canvas-view.tsx): contentRef 부여, `onTransformed`에서 `--inv-scale` write, 콘텐츠 div 안에 커서 레이어 마운트
+- [components/preview/canvas-view.tsx](../../components/preview/canvas-view.tsx): contentRef 부여, `onInit`/`onTransform`에서 `--inv-scale` write, 콘텐츠 div 안에 커서 레이어 마운트
 - [components/realtime/realtime-shell.tsx](../../components/realtime/realtime-shell.tsx): `<CursorOverlay/>` 제거
 - [components/realtime/cursor-overlay.tsx](../../components/realtime/cursor-overlay.tsx): 삭제 또는 canvas-cursors로 대체
 
@@ -88,7 +88,7 @@ CanvasView (?view=canvas 에서만 마운트 → 게이팅 자동)
 lib/realtime/coords.ts              toContent / isInside 추가 (순수·테스트)        [확장]
 components/realtime/realtime-provider.tsx   RemoteCursor·sendCursor 시그니처 변경  [수정]
 components/realtime/canvas-cursors.tsx      캡처+CursorLayer (transform 컨텍스트 내) [신규]
-components/preview/canvas-view.tsx          contentRef·onTransformed·커서 레이어 마운트 [수정]
+components/preview/canvas-view.tsx          contentRef·onInit/onTransform·커서 레이어 마운트 [수정]
 components/realtime/realtime-shell.tsx      <CursorOverlay/> 제거                   [수정]
 components/realtime/cursor-overlay.tsx      삭제/대체                               [제거]
 ```
