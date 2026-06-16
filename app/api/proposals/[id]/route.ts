@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { proposals, proposalVersions, proposalPages } from "@/drizzle/schema";
+import { proposals, proposalVariants, proposalVersions, proposalPages } from "@/drizzle/schema";
 import { requireEditor } from "@/lib/auth/session";
 import { hashPassword } from "@/lib/access/password";
 import { removeObjects } from "@/lib/proposals/storage";
@@ -15,9 +15,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params;
   const rows = await db.select().from(proposals).where(eq(proposals.id, id)).limit(1);
   if (rows.length === 0) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
-  const versions = await db.select().from(proposalVersions)
-    .where(eq(proposalVersions.proposalId, id)).orderBy(asc(proposalVersions.versionNo));
-  return NextResponse.json({ proposal: rows[0], versions });
+  const variants = await db.select().from(proposalVariants)
+    .where(eq(proposalVariants.proposalId, id)).orderBy(asc(proposalVariants.sortOrder));
+  const variantIds = variants.map((v) => v.id);
+  const versions = variantIds.length
+    ? await db.select().from(proposalVersions)
+        .where(inArray(proposalVersions.variantId, variantIds)).orderBy(asc(proposalVersions.versionNo))
+    : [];
+  return NextResponse.json({ proposal: rows[0], variants, versions });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -67,7 +72,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
   const pages = await db.select({ path: proposalPages.storagePath }).from(proposalPages)
     .innerJoin(proposalVersions, eq(proposalPages.versionId, proposalVersions.id))
-    .where(eq(proposalVersions.proposalId, id));
+    .innerJoin(proposalVariants, eq(proposalVersions.variantId, proposalVariants.id))
+    .where(eq(proposalVariants.proposalId, id));
   const paths = [...new Set(pages.map((p) => p.path))];
   await removeObjects(paths); // best-effort cleanup before row delete
   await db.delete(proposals).where(eq(proposals.id, id)); // cascade removes versions + pages
