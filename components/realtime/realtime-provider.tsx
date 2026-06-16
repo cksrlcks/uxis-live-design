@@ -1,0 +1,101 @@
+"use client";
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
+import { channelName } from "@/lib/realtime/channel";
+import type { Identity } from "@/lib/realtime/identity";
+
+export type Participant = { id: string; name: string; color: string };
+export type RemoteCursor = { id: string; name: string; color: string; xNorm: number; yNorm: number };
+
+type RealtimeContextValue = {
+  participants: Participant[];
+  cursors: RemoteCursor[];
+  sendCursor: (xNorm: number, yNorm: number) => void;
+  clearCursor: () => void;
+};
+
+const RealtimeContext = createContext<RealtimeContextValue | null>(null);
+
+export function useRealtime(): RealtimeContextValue {
+  const ctx = useContext(RealtimeContext);
+  if (!ctx) throw new Error("useRealtime must be used within RealtimeProvider");
+  return ctx;
+}
+
+export function RealtimeProvider({ publicId, identity, children }: {
+  publicId: string; identity: Identity; children: React.ReactNode;
+}) {
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const identityRef = useRef<Identity>(identity);
+  // eslint-disable-next-line react-hooks/refs -- intentional: keep ref in sync with latest identity without triggering re-renders
+  identityRef.current = identity;
+
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [cursors, setCursors] = useState<RemoteCursor[]>([]);
+
+  // (Re)create the channel only when the room or my stable id changes.
+  useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    const ch = supabase.channel(channelName(publicId), {
+      config: { presence: { key: identity.id }, broadcast: { self: false } },
+    });
+    channelRef.current = ch;
+
+    ch.on("presence", { event: "sync" }, () => {
+      const state = ch.presenceState<{ name: string; color: string }>();
+      setParticipants(
+        Object.entries(state).map(([id, metas]) => ({
+          id,
+          name: metas[0]?.name ?? "Guest",
+          color: metas[0]?.color ?? "#888888",
+        })),
+      );
+    });
+
+    ch.on("broadcast", { event: "cursor" }, ({ payload }) => {
+      const p = payload as RemoteCursor;
+      setCursors((prev) => [...prev.filter((c) => c.id !== p.id), p]);
+    });
+    ch.on("broadcast", { event: "cursor_leave" }, ({ payload }) => {
+      const id = (payload as { id: string }).id;
+      setCursors((prev) => prev.filter((c) => c.id !== id));
+    });
+
+    ch.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await ch.track({ name: identityRef.current.name, color: identityRef.current.color });
+      }
+    });
+
+    return () => {
+      supabase.removeChannel(ch);
+      channelRef.current = null;
+    };
+    // Intentional: only recreate the channel when the room or stable identity id changes,
+    // not on every identity object reference change (name/color updates handled separately below).
+  }, [publicId, identity.id]);
+
+  // Re-broadcast presence when the display name/color changes (e.g. rename).
+  useEffect(() => {
+    channelRef.current?.track({ name: identity.name, color: identity.color }).catch(() => {});
+  }, [identity.name, identity.color]);
+
+  const sendCursor = useCallback((xNorm: number, yNorm: number) => {
+    const me = identityRef.current;
+    channelRef.current?.send({
+      type: "broadcast", event: "cursor",
+      payload: { id: me.id, name: me.name, color: me.color, xNorm, yNorm },
+    });
+  }, []);
+
+  const clearCursor = useCallback(() => {
+    channelRef.current?.send({ type: "broadcast", event: "cursor_leave", payload: { id: identityRef.current.id } });
+  }, []);
+
+  return (
+    <RealtimeContext.Provider value={{ participants, cursors, sendCursor, clearCursor }}>
+      {children}
+    </RealtimeContext.Provider>
+  );
+}
