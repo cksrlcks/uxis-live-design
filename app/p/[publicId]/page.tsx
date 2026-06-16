@@ -1,13 +1,9 @@
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { asc, count, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { proposals, proposalVariants, proposalPages } from "@/drizzle/schema";
+import { proposalVariants, proposalPages } from "@/drizzle/schema";
 import type { ProposalVariant } from "@/drizzle/schema";
-import { getProfile } from "@/lib/auth/session";
-import { isEditor, type Role } from "@/lib/auth/roles";
-import { decideAccess } from "@/lib/proposals/access";
-import { verifyUnlockToken, unlockCookieName } from "@/lib/access/cookie";
+import { resolveViewerGate } from "@/lib/access/viewer-gate";
 import { createReadUrl } from "@/lib/proposals/storage";
 import type { PreviewPage } from "@/lib/preview/types";
 import { ProposalPreview } from "@/components/preview/proposal-preview";
@@ -53,27 +49,8 @@ export default async function PublicViewerPage({
   const { publicId } = await params;
   const { error, v, compare } = await searchParams;
 
-  const rows = await db.select().from(proposals).where(eq(proposals.publicId, publicId)).limit(1);
-  const proposal = rows[0];
+  const { proposal, decision } = await resolveViewerGate(publicId);
   if (!proposal) notFound();
-
-  const profile = await getProfile();
-  const editor = isEditor(profile?.role as Role | undefined);
-
-  const cookieStore = await cookies();
-  const token = cookieStore.get(unlockCookieName(publicId))?.value ?? "";
-  // Server component renders once per request; reading the request-time clock here is intentional.
-  // eslint-disable-next-line react-hooks/purity
-  const nowSec = Math.floor(Date.now() / 1000);
-  const hasValidUnlock = !!token &&
-    verifyUnlockToken(token, publicId, nowSec, process.env.ACCESS_TOKEN_SECRET!);
-
-  const decision = decideAccess({
-    visibility: proposal.visibility,
-    hasPassword: !!proposal.accessPasswordHash,
-    isEditor: editor,
-    hasValidUnlock,
-  });
 
   if (decision === "forbidden") {
     return (
