@@ -3,6 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { proposals, proposalVersions, proposalPages } from "@/drizzle/schema";
 import { createReadUrl } from "@/lib/proposals/storage";
+import { ProposalPreview } from "@/components/preview/proposal-preview";
 import { AddVersionForm } from "@/components/proposals/add-version-form";
 import { RestoreButton } from "@/components/proposals/version-actions";
 import { ProposalSettings } from "@/components/proposals/proposal-settings";
@@ -21,7 +22,14 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
     ? await db.select().from(proposalPages)
         .where(eq(proposalPages.versionId, proposal.currentVersionId)).orderBy(asc(proposalPages.pageOrder))
     : [];
-  const previews = await Promise.all(currentPages.map(async (pg) => ({ id: pg.id, url: await createReadUrl(pg.storagePath) })));
+  const previews = await Promise.all(
+    currentPages.map(async (pg) => ({
+      id: pg.id,
+      url: await createReadUrl(pg.storagePath),
+      width: pg.width,
+      height: pg.height,
+    })),
+  );
 
   return (
     <div className="space-y-8">
@@ -57,12 +65,8 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium">현재 버전 미리보기</h2>
-        {previews.length === 0 && <p className="text-sm text-muted-foreground">페이지가 없습니다.</p>}
-        <div className="space-y-4">
-          {previews.map((p) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={p.id} src={p.url} alt="" className="max-w-full border border-border" />
-          ))}
+        <div className="h-[80vh] overflow-hidden rounded-[8px] border border-border">
+          <ProposalPreview pages={previews} />
         </div>
       </section>
     </div>
