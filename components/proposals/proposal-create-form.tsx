@@ -30,9 +30,9 @@ export function ProposalCreateForm() {
         body: JSON.stringify({ title, files: files.map((f) => ({ contentType: f.type, size: f.size })) }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "생성 실패");
-      const { proposalId, versionId, uploads } = await res.json();
+      const { proposalId, variantId, versionId, uploads } = await res.json();
       const pages = await uploadAll(uploads, measured);
-      const confirm = await fetch(`/api/proposals/${proposalId}/versions/${versionId}/pages`, {
+      const confirm = await fetch(`/api/proposals/${proposalId}/variants/${variantId}/versions/${versionId}/pages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pages }),
