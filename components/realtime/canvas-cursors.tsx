@@ -75,6 +75,7 @@ export function CanvasCursorCapture({
       }
     }
     function onLeave() {
+      pending.current = null; // drop any queued frame so it can't re-send after clear
       clear();
     }
 
@@ -86,6 +87,7 @@ export function CanvasCursorCapture({
       root.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("blur", onLeave);
       if (frame.current != null) cancelAnimationFrame(frame.current);
+      pending.current = null;
       clear();
     };
   }, [rootRef, contentRef, sendCursor, clearCursor]);

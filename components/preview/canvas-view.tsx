@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import type { PreviewPage } from "@/lib/preview/types";
 import { CanvasCursorLayer, CanvasCursorCapture } from "@/components/realtime/canvas-cursors";
@@ -8,15 +8,15 @@ export function CanvasView({ pages }: { pages: PreviewPage[] }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  if (pages.length === 0) {
-    return <div className="p-8 text-sm text-muted-foreground">페이지가 없습니다.</div>;
-  }
-
   // 안정적 부모(contentRef)에 --inv-scale = 1/scale 을 써서, 자손 커서 마커가
   // 줌과 무관하게 화면상 일정 크기를 유지하도록 한다(늦게 마운트된 커서도 즉시 상속).
-  function applyInvScale(scale: number) {
+  const applyInvScale = useCallback((scale: number) => {
     const el = contentRef.current;
     if (el && scale > 0) el.style.setProperty("--inv-scale", String(1 / scale));
+  }, []);
+
+  if (pages.length === 0) {
+    return <div className="p-8 text-sm text-muted-foreground">페이지가 없습니다.</div>;
   }
 
   return (
@@ -63,6 +63,9 @@ export function CanvasView({ pages }: { pages: PreviewPage[] }) {
             <CanvasCursorLayer />
           </div>
         </TransformComponent>
+        {/* Capture lives outside TransformComponent on purpose: it derives the zoom
+            scale from contentRef.getBoundingClientRect()/offsetWidth, so it needs no
+            transform context — only the root (for listeners) and content (for coords). */}
         <CanvasCursorCapture rootRef={rootRef} contentRef={contentRef} />
       </TransformWrapper>
     </div>
