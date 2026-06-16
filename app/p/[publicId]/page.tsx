@@ -33,8 +33,11 @@ export default async function PublicViewerPage({
 
   const cookieStore = await cookies();
   const token = cookieStore.get(unlockCookieName(publicId))?.value ?? "";
+  // Server component renders once per request; reading the request-time clock here is intentional.
+  // eslint-disable-next-line react-hooks/purity
+  const nowSec = Math.floor(Date.now() / 1000);
   const hasValidUnlock = !!token &&
-    verifyUnlockToken(token, publicId, Math.floor(Date.now() / 1000), process.env.ACCESS_TOKEN_SECRET!);
+    verifyUnlockToken(token, publicId, nowSec, process.env.ACCESS_TOKEN_SECRET!);
 
   const decision = decideAccess({
     visibility: proposal.visibility,
