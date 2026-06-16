@@ -16,6 +16,7 @@ export function VariantTabs({ proposalId, variants, activeVariantId }: {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(false);
   const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   const active = variants.find((v) => v.id === activeVariantId) ?? variants[0];
 
@@ -34,28 +35,33 @@ export function VariantTabs({ proposalId, variants, activeVariantId }: {
   }
 
   function rename(form: HTMLFormElement) {
+    if (pending) return;
     const label = (form.elements.namedItem("label") as HTMLInputElement).value.trim();
     if (!label) return;
     start(async () => {
       const res = await patch(active.id, { label });
-      if (res.ok) { setEditing(false); router.refresh(); }
+      if (res.ok) { setError(null); setEditing(false); router.refresh(); }
+      else setError("이름 변경에 실패했습니다.");
     });
   }
 
   function move(dir: -1 | 1) {
+    if (pending) return;
     const idx = variants.findIndex((v) => v.id === active.id);
     const swapWith = variants[idx + dir];
     if (!swapWith) return;
     start(async () => {
-      await Promise.all([
+      const results = await Promise.all([
         patch(active.id, { sortOrder: idx + dir }),
         patch(swapWith.id, { sortOrder: idx }),
       ]);
-      router.refresh();
+      if (results.every((r) => r.ok)) { setError(null); router.refresh(); }
+      else setError("순서 변경에 실패했습니다.");
     });
   }
 
   function remove() {
+    if (pending) return;
     if (variants.length <= 1) return;
     if (!confirm(`"${active.label}" 안을 삭제할까요? 이 안의 모든 버전이 삭제됩니다.`)) return;
     start(async () => {
@@ -64,7 +70,7 @@ export function VariantTabs({ proposalId, variants, activeVariantId }: {
         const rest = variants.filter((v) => v.id !== active.id)[0];
         if (rest) selectVariant(rest.id);
         router.refresh();
-      }
+      } else setError("삭제에 실패했습니다.");
     });
   }
 
@@ -99,6 +105,7 @@ export function VariantTabs({ proposalId, variants, activeVariantId }: {
           </>
         )}
       </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }
