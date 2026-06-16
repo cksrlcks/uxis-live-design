@@ -8,6 +8,7 @@ import { isEditor, type Role } from "@/lib/auth/roles";
 import { decideAccess } from "@/lib/proposals/access";
 import { verifyUnlockToken, unlockCookieName } from "@/lib/access/cookie";
 import { createReadUrl } from "@/lib/proposals/storage";
+import { ProposalPreview } from "@/components/preview/proposal-preview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,15 +82,18 @@ export default async function PublicViewerPage({
     ? await db.select().from(proposalPages)
         .where(eq(proposalPages.versionId, proposal.currentVersionId)).orderBy(asc(proposalPages.pageOrder))
     : [];
-  const previews = await Promise.all(pages.map(async (pg) => ({ id: pg.id, url: await createReadUrl(pg.storagePath) })));
+  const previews = await Promise.all(
+    pages.map(async (pg) => ({
+      id: pg.id,
+      url: await createReadUrl(pg.storagePath),
+      width: pg.width,
+      height: pg.height,
+    })),
+  );
 
   return (
-    <div className="mx-auto max-w-[1920px]">
-      {previews.length === 0 && <p className="p-8 text-sm text-muted-foreground">아직 페이지가 없습니다.</p>}
-      {previews.map((p) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img key={p.id} src={p.url} alt="" className="block w-full" />
-      ))}
+    <div className="h-screen w-screen">
+      <ProposalPreview pages={previews} />
     </div>
   );
 }
