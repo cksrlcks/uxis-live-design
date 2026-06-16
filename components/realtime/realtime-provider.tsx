@@ -44,13 +44,17 @@ export function RealtimeProvider({ publicId, identity, children }: {
 
     ch.on("presence", { event: "sync" }, () => {
       const state = ch.presenceState<{ name: string; color: string }>();
+      const ids = Object.keys(state);
       setParticipants(
-        Object.entries(state).map(([id, metas]) => ({
+        ids.map((id) => ({
           id,
-          name: metas[0]?.name ?? "Guest",
-          color: metas[0]?.color ?? "#888888",
+          name: state[id][0]?.name ?? "Guest",
+          color: state[id][0]?.color ?? "#888888",
         })),
       );
+      // Drop cursors of peers who have left the room (disconnect sends no cursor_leave).
+      const present = new Set(ids);
+      setCursors((prev) => prev.filter((c) => present.has(c.id)));
     });
 
     ch.on("broadcast", { event: "cursor" }, ({ payload }) => {
@@ -77,8 +81,10 @@ export function RealtimeProvider({ publicId, identity, children }: {
   }, [publicId, identity.id]);
 
   // Re-broadcast presence when the display name/color changes (e.g. rename).
+  // Only when already joined; before SUBSCRIBED the subscribe callback tracks the latest identity.
   useEffect(() => {
-    channelRef.current?.track({ name: identity.name, color: identity.color }).catch(() => {});
+    const ch = channelRef.current;
+    if (ch && ch.state === "joined") ch.track({ name: identity.name, color: identity.color });
   }, [identity.name, identity.color]);
 
   const sendCursor = useCallback((xNorm: number, yNorm: number) => {
