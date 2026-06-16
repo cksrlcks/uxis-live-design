@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Link href="/admin/users" className="block rounded-[4px] px-3 py-2 hover:bg-muted">사용자 관리</Link>
           )}
         </nav>
-        <form action={logout} className="mt-6"><Button variant="outline" className="w-full">로그아웃</Button></form>
+        <form action={logout} className="mt-6"><Button type="submit" variant="outline" className="w-full">로그아웃</Button></form>
       </aside>
       <main className="flex-1 p-8">{children}</main>
     </div>
