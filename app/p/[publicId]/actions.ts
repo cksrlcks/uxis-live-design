@@ -22,7 +22,7 @@ export async function unlock(publicId: string, formData: FormData) {
   const store = await cookies();
   store.set(unlockCookieName(publicId), token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production", // allow over http://localhost in dev
     sameSite: "lax",
     path: `/p/${publicId}`,
     maxAge: UNLOCK_TTL_SECONDS,
