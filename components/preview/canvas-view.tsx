@@ -10,29 +10,39 @@ export function CanvasView({ pages }: { pages: PreviewPage[] }) {
     <div className="h-full w-full bg-muted">
       <TransformWrapper
         minScale={0.1}
-        maxScale={4}
+        maxScale={3}
+        initialScale={0.2}
         centerOnInit
         limitToBounds={false}
-        wheel={{ step: 0.05 }} // gentler zoom per wheel tick (default ~0.2 is too aggressive)
+        wheel={{ step: 0.001 }} // gentler zoom per wheel tick (default ~0.2 is too aggressive)
       >
-        {/* Use inline-style props (not `!important` classes) to reliably override
-            the library's own inline wrapper/content styles. */}
-        <TransformComponent
-          wrapperStyle={{ width: "100%", height: "100%" }}
-          contentStyle={{ display: "flex", alignItems: "flex-start", gap: "2rem", padding: "2rem" }}
-        >
-          {pages.map((pg) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={pg.id}
-              src={pg.url}
-              alt=""
-              width={pg.width}
-              height={pg.height}
-              draggable={false}
-              className="block max-w-none select-none border border-border bg-background"
-            />
-          ))}
+        {/* wrapper fills the box; our own inner row controls the layout so we don't
+            fight react-zoom-pan-pinch's content div (which defaults to flex-wrap: wrap). */}
+        <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              flexWrap: "nowrap",
+              alignItems: "flex-start",
+              gap: "3rem",
+              padding: "2rem",
+              width: "max-content", // grow to fit all pages → single horizontal row, no wrap
+            }}
+          >
+            {pages.map((pg) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={pg.id}
+                src={pg.url}
+                alt=""
+                width={pg.width}
+                height={pg.height}
+                draggable={false}
+                className="block max-w-none shrink-0 select-none border border-border bg-background"
+              />
+            ))}
+          </div>
         </TransformComponent>
       </TransformWrapper>
     </div>

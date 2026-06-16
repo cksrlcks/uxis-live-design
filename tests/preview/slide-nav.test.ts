@@ -1,21 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { clampIndex, nextIndex, prevIndex } from "@/lib/preview/slide-nav";
+import { nextIndex, prevIndex } from "@/lib/preview/slide-nav";
 
-describe("slide navigation", () => {
-  it("clamps within [0, count-1]", () => {
-    expect(clampIndex(-3, 5)).toBe(0);
-    expect(clampIndex(99, 5)).toBe(4);
-    expect(clampIndex(2, 5)).toBe(2);
-  });
-  it("returns 0 for an empty list", () => {
-    expect(clampIndex(0, 0)).toBe(0);
-  });
-  it("advances but stops at the last page", () => {
+describe("slide navigation (wrap-around)", () => {
+  it("advances and loops from the last page back to the first", () => {
     expect(nextIndex(0, 3)).toBe(1);
-    expect(nextIndex(2, 3)).toBe(2);
+    expect(nextIndex(1, 3)).toBe(2);
+    expect(nextIndex(2, 3)).toBe(0);
   });
-  it("retreats but stops at the first page", () => {
+  it("retreats and loops from the first page back to the last", () => {
     expect(prevIndex(2, 3)).toBe(1);
-    expect(prevIndex(0, 3)).toBe(0);
+    expect(prevIndex(1, 3)).toBe(0);
+    expect(prevIndex(0, 3)).toBe(2);
+  });
+  it("stays at 0 for an empty list", () => {
+    expect(nextIndex(0, 0)).toBe(0);
+    expect(prevIndex(0, 0)).toBe(0);
   });
 });
