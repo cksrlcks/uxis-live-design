@@ -1,13 +1,21 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { useQueryState } from "nuqs";
 import { useRealtime } from "./realtime-provider";
 
 export function CursorOverlay() {
   const { cursors, sendCursor, clearCursor } = useRealtime();
+  // Cursors are only meaningful in the canvas (pan/zoom) view → ?view=canvas.
+  const [view] = useQueryState("view");
+  const active = view === "canvas";
   const frame = useRef<number | null>(null);
   const pending = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
+    if (!active) {
+      clearCursor();
+      return;
+    }
     function onMove(e: PointerEvent) {
       pending.current = { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight };
       if (frame.current == null) {
@@ -28,7 +36,9 @@ export function CursorOverlay() {
       if (frame.current != null) cancelAnimationFrame(frame.current);
       clearCursor();
     };
-  }, [sendCursor, clearCursor]);
+  }, [active, sendCursor, clearCursor]);
+
+  if (!active) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden">
