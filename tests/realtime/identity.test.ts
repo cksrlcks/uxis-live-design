@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { IDENTITY_COLORS, pickColor, defaultGuestName, parseIdentity } from "@/lib/realtime/identity";
+import { IDENTITY_COLORS, pickColor, defaultGuestName, parseProfile } from "@/lib/realtime/identity";
 
 describe("pickColor", () => {
   it("returns a palette color", () => {
@@ -16,14 +16,13 @@ describe("defaultGuestName", () => {
   });
 });
 
-describe("parseIdentity", () => {
-  it("accepts a well-formed identity", () => {
-    const v = parseIdentity(JSON.stringify({ id: "a", name: "Bob", color: "#ef4444" }));
-    expect(v).toEqual({ id: "a", name: "Bob", color: "#ef4444" });
+describe("parseProfile", () => {
+  it("accepts a well-formed profile", () => {
+    expect(parseProfile(JSON.stringify({ name: "Bob", color: "#ef4444" }))).toEqual({ name: "Bob", color: "#ef4444" });
   });
   it("rejects malformed JSON or missing fields", () => {
-    expect(parseIdentity("not json")).toBeNull();
-    expect(parseIdentity(JSON.stringify({ id: "a" }))).toBeNull();
-    expect(parseIdentity(JSON.stringify({ id: "a", name: "", color: "#fff" }))).toBeNull();
+    expect(parseProfile("not json")).toBeNull();
+    expect(parseProfile(JSON.stringify({ name: "Bob" }))).toBeNull();
+    expect(parseProfile(JSON.stringify({ name: "", color: "#fff" }))).toBeNull();
   });
 });

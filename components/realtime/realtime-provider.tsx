@@ -59,6 +59,7 @@ export function RealtimeProvider({ publicId, identity, children }: {
 
     ch.on("broadcast", { event: "cursor" }, ({ payload }) => {
       const p = payload as RemoteCursor;
+      if (p.id === identityRef.current.id) return; // never render our own cursor
       setCursors((prev) => [...prev.filter((c) => c.id !== p.id), p]);
     });
     ch.on("broadcast", { event: "cursor_leave" }, ({ payload }) => {
