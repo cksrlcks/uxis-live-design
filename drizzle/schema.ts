@@ -22,22 +22,34 @@ export const proposals = pgTable("proposals", {
   ownerId: uuid("owner_id").notNull(),
   visibility: text("visibility").notNull().default("private"), // 'private' | 'public'
   accessPasswordHash: text("access_password_hash"), // 'salt:hash' (scrypt), public+password only
-  currentVersionId: uuid("current_version_id"), // FK added via SQL (circular)
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   check("proposals_visibility_check", sql`${t.visibility} in ('private', 'public')`),
 ]);
 
-export const proposalVersions = pgTable("proposal_versions", {
+export const proposalVariants = pgTable("proposal_variants", {
   id: uuid("id").primaryKey().defaultRandom(),
   proposalId: uuid("proposal_id").notNull(),
+  label: text("label").notNull(),
+  slug: text("slug").notNull(),                  // URL용 고정 키
+  sortOrder: integer("sort_order").notNull(),
+  currentVersionId: uuid("current_version_id"),  // FK added via SQL (circular)
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  unique("proposal_variants_proposal_slug_unique").on(t.proposalId, t.slug),
+]);
+
+export const proposalVersions = pgTable("proposal_versions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  variantId: uuid("variant_id").notNull(),
   versionNo: integer("version_no").notNull(),
   note: text("note"),
   createdBy: uuid("created_by"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
-  unique("proposal_versions_proposal_version_unique").on(t.proposalId, t.versionNo),
+  unique("proposal_versions_variant_version_unique").on(t.variantId, t.versionNo),
 ]);
 
 export const proposalPages = pgTable("proposal_pages", {
@@ -52,5 +64,6 @@ export const proposalPages = pgTable("proposal_pages", {
 ]);
 
 export type Proposal = typeof proposals.$inferSelect;
+export type ProposalVariant = typeof proposalVariants.$inferSelect;
 export type ProposalVersion = typeof proposalVersions.$inferSelect;
 export type ProposalPage = typeof proposalPages.$inferSelect;
