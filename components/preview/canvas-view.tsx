@@ -8,7 +8,13 @@ export function CanvasView({ pages }: { pages: PreviewPage[] }) {
   }
   return (
     <div className="h-full w-full bg-muted">
-      <TransformWrapper minScale={0.1} maxScale={4} centerOnInit limitToBounds={false}>
+      <TransformWrapper
+        minScale={0.1}
+        maxScale={4}
+        centerOnInit
+        limitToBounds={false}
+        wheel={{ step: 0.05 }} // gentler zoom per wheel tick (default ~0.2 is too aggressive)
+      >
         {/* Use inline-style props (not `!important` classes) to reliably override
             the library's own inline wrapper/content styles. */}
         <TransformComponent
