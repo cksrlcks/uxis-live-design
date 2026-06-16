@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { RealtimeProvider } from "./realtime-provider";
 import { PresenceBar } from "./presence-bar";
-import { CursorOverlay } from "./cursor-overlay";
 import { type Identity, loadOrCreateIdentity, saveIdentity } from "@/lib/realtime/identity";
 
 export function RealtimeShell({ publicId, editorName, children }: {
@@ -30,7 +29,6 @@ export function RealtimeShell({ publicId, editorName, children }: {
     <RealtimeProvider publicId={publicId} identity={identity}>
       {children}
       <PresenceBar identity={identity} onRename={rename} />
-      <CursorOverlay />
     </RealtimeProvider>
   );
 }

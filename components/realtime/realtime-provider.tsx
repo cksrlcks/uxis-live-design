@@ -6,12 +6,12 @@ import { channelName } from "@/lib/realtime/channel";
 import type { Identity } from "@/lib/realtime/identity";
 
 export type Participant = { id: string; name: string; color: string };
-export type RemoteCursor = { id: string; name: string; color: string; xNorm: number; yNorm: number };
+export type RemoteCursor = { id: string; name: string; color: string; cx: number; cy: number };
 
 type RealtimeContextValue = {
   participants: Participant[];
   cursors: RemoteCursor[];
-  sendCursor: (xNorm: number, yNorm: number) => void;
+  sendCursor: (cx: number, cy: number) => void;
   clearCursor: () => void;
 };
 
@@ -21,6 +21,12 @@ export function useRealtime(): RealtimeContextValue {
   const ctx = useContext(RealtimeContext);
   if (!ctx) throw new Error("useRealtime must be used within RealtimeProvider");
   return ctx;
+}
+
+// useRealtime과 같지만 provider 밖에서는 throw 대신 null 반환.
+// 비실시간 에디터 프리뷰에서 캔버스 커서 컴포넌트가 no-op하도록.
+export function useRealtimeOptional(): RealtimeContextValue | null {
+  return useContext(RealtimeContext);
 }
 
 export function RealtimeProvider({ publicId, identity, children }: {
@@ -88,11 +94,11 @@ export function RealtimeProvider({ publicId, identity, children }: {
     if (ch && ch.state === "joined") ch.track({ name: identity.name, color: identity.color });
   }, [identity.name, identity.color]);
 
-  const sendCursor = useCallback((xNorm: number, yNorm: number) => {
+  const sendCursor = useCallback((cx: number, cy: number) => {
     const me = identityRef.current;
     channelRef.current?.send({
       type: "broadcast", event: "cursor",
-      payload: { id: me.id, name: me.name, color: me.color, xNorm, yNorm },
+      payload: { id: me.id, name: me.name, color: me.color, cx, cy },
     });
   }, []);
 
