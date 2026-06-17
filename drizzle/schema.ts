@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, unique, check } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, integer, unique, check, index } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const profiles = pgTable("profiles", {
@@ -67,3 +67,16 @@ export type Proposal = typeof proposals.$inferSelect;
 export type ProposalVariant = typeof proposalVariants.$inferSelect;
 export type ProposalVersion = typeof proposalVersions.$inferSelect;
 export type ProposalPage = typeof proposalPages.$inferSelect;
+
+export const chatMessages = pgTable("chat_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  proposalId: uuid("proposal_id").notNull(),     // FK added via SQL (기존 컨벤션)
+  authorName: text("author_name").notNull(),
+  authorColor: text("author_color").notNull(),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("chat_messages_proposal_created_idx").on(t.proposalId, t.createdAt),
+]);
+
+export type ChatMessage = typeof chatMessages.$inferSelect;
