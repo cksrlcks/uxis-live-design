@@ -19,10 +19,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ publ
   const versionId = req.nextUrl.searchParams.get("version") ?? "";
   if (!variantId || !versionId) return NextResponse.json({ error: "BAD_QUERY" }, { status: 400 });
 
-  // 소속 확인: variant가 이 proposal 것인지.
+  // 소속 확인: variant가 이 proposal 것인지, version이 그 variant 것인지(POST와 동일).
   const v = await db.select({ id: proposalVariants.id }).from(proposalVariants)
     .where(and(eq(proposalVariants.id, variantId), eq(proposalVariants.proposalId, proposal.id))).limit(1);
   if (v.length === 0) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+  const ver = await db.select({ id: proposalVersions.id }).from(proposalVersions)
+    .where(and(eq(proposalVersions.id, versionId), eq(proposalVersions.variantId, variantId))).limit(1);
+  if (ver.length === 0) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
 
   const pins = await loadPinsForVersion(variantId, versionId);
   return NextResponse.json({ pins });
@@ -44,7 +47,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pub
   const versionId = typeof json?.versionId === "string" ? json.versionId : "";
   const pageOrder = Number(json?.pageOrder);
   const authorColor = typeof json?.authorColor === "string" ? json.authorColor.trim().slice(0, 32) : "";
-  if (!variantId || !versionId || !Number.isInteger(pageOrder) || pageOrder < 0 || !authorColor) {
+  if (
+    !variantId || !versionId || !Number.isInteger(pageOrder) || pageOrder < 0 || !authorColor ||
+    typeof json?.xNorm !== "number" || typeof json?.yNorm !== "number"
+  ) {
     return NextResponse.json({ error: "INVALID_INPUT" }, { status: 400 });
   }
 
