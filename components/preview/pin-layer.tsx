@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import { toContent } from "@/lib/realtime/coords";
 import { locatePin, placePin, type PageBox } from "@/lib/pins/locate";
 import { usePins } from "@/lib/pins/use-pins";
@@ -32,30 +32,11 @@ export function PinLayer({ contentRef, pages, pin, mode }: {
   const [editBody, setEditBody] = useState("");
   const isGuest = pin.viewerId == null;
 
-  // Page boxes are measured from the DOM after paint, stored in state so they
-  // can be used safely during render without accessing the ref directly.
-  const [boxes, setBoxes] = useState<PageBox[]>([]);
-  const pagesKey = pages.map((p) => p.pageOrder).join(",");
-
-  // 박스는 레이아웃 좌표(offset*) — 줌/팬(CSS transform)과 무관하므로 페이지 집합이
-  // 바뀔 때만 재측정하면 된다. 이미지에 width/height가 명시돼 마운트 시점에 이미 정확.
-  useLayoutEffect(() => {
-    const content = contentRef.current;
-    if (!content) return;
-    const out: PageBox[] = [];
-    content.querySelectorAll<HTMLElement>("[data-page-index]").forEach((el) => {
-      const i = Number(el.dataset.pageIndex);
-      const po = pages[i]?.pageOrder;
-      if (po == null) return;
-      out.push({ left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight, pageOrder: po });
-    });
-    setBoxes(out);
-  // contentRef는 안정 ref; pagesKey가 페이지 집합 변경을 커버한다.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagesKey]);
-
-  // Kept as a ref-accessor used only from event handlers (not render).
-  const readBoxes = useCallback((): PageBox[] => {
+  // 페이지 박스를 매 렌더/클릭 시점의 실제 DOM에서 직접 측정한다. offset*은 레이아웃
+  // 좌표라 줌/팬(CSS transform)과 무관하다. 단발성 측정(useLayoutEffect+state)은
+  // react-zoom-pan-pinch 초기 레이아웃 타이밍에 따라 비어버릴 수 있어, 마커·작성기
+  // 위치가 항상 정확하도록 현재 DOM을 읽는다. (offsetParent = position:relative contentRef)
+  function measureBoxes(): PageBox[] {
     const content = contentRef.current;
     if (!content) return [];
     const out: PageBox[] = [];
@@ -66,9 +47,7 @@ export function PinLayer({ contentRef, pages, pin, mode }: {
       out.push({ left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight, pageOrder: po });
     });
     return out;
-  // pages is stable-by-reference from parent memoisation; pagesKey covers identity changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagesKey]);
+  }
 
   function onCaptureClick(e: React.MouseEvent) {
     const content = contentRef.current;
@@ -77,7 +56,7 @@ export function PinLayer({ contentRef, pages, pin, mode }: {
     const ow = content.offsetWidth;
     if (ow <= 0) return;
     const { cx, cy } = toContent(e.clientX, e.clientY, rect, rect.width / ow);
-    const loc = locatePin(cx, cy, readBoxes());
+    const loc = locatePin(cx, cy, measureBoxes());
     if (!loc) return;
     setSelectedId(null);
     setEditingId(null);
@@ -93,7 +72,11 @@ export function PinLayer({ contentRef, pages, pin, mode }: {
     if (ok) { setDraft(null); setDraftBody(""); }
   }
 
-  const boxesByOrder = new Map(boxes.map((b) => [b.pageOrder, b]));
+  // 렌더 시점 실측: contentRef.current를 읽지만 반응형 상태가 아닌 DOM 레이아웃
+  // 측정이며 매 렌더 재계산된다(오버레이 위치용). 마운트 후 setDraft/setPins 리렌더
+  // 시점엔 ref가 연결돼 정확한 값을 얻는다.
+  // eslint-disable-next-line react-hooks/refs
+  const boxesByOrder = new Map(measureBoxes().map((b) => [b.pageOrder, b]));
 
   return (
     <div className="pointer-events-none absolute inset-0">
