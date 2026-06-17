@@ -18,7 +18,7 @@ export default async function PublicViewerPage({
   const { publicId } = await params;
   const { error } = await searchParams;
 
-  const { proposal, decision } = await resolveViewerGate(publicId);
+  const { proposal, decision, viewer } = await resolveViewerGate(publicId);
   if (!proposal) notFound();
 
   if (decision === "forbidden") {
@@ -54,5 +54,5 @@ export default async function PublicViewerPage({
   // decision === "allow": load every 안 with its pages once (one batch URL-signing
   // call), then let the client switch between them with no further server round-trips.
   const variants = await loadVariantsForProposal(proposal.id);
-  return <PublicViewer variants={variants} />;
+  return <PublicViewer variants={variants} publicId={publicId} viewer={viewer} />;
 }

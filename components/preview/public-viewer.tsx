@@ -2,6 +2,7 @@
 import { useMemo } from "react";
 import { useQueryStates, parseAsString } from "nuqs";
 import type { ViewerVariant } from "@/lib/preview/load-variants";
+import type { PinContext } from "@/lib/pins/types";
 import { ProposalPreview } from "./proposal-preview";
 import { CompareView } from "./compare-view";
 import { VariantViewerNav } from "./variant-viewer-nav";
@@ -14,7 +15,9 @@ import { usePrefetchImages } from "./use-prefetch-images";
 // already-cached images, so it's instant. The URL contract is unchanged
 // (?v=slug single, ?compare=1 side-by-side, neither = list) so shared/deep links
 // and the back button still work.
-export function PublicViewer({ variants }: { variants: ViewerVariant[] }) {
+export function PublicViewer({ variants, publicId, viewer }: {
+  variants: ViewerVariant[]; publicId: string; viewer: { id: string } | null;
+}) {
   const [{ v, compare }, setQuery] = useQueryStates(
     { v: parseAsString, compare: parseAsString },
     { shallow: true, history: "push" },
@@ -47,7 +50,12 @@ export function PublicViewer({ variants }: { variants: ViewerVariant[] }) {
         <VariantViewerNav items={navItems} activeSlug={active.slug} onList={showList} onSelect={showVariant} onCompare={showCompare} />
         {/* key resets per-variant view state (slide index, canvas zoom); the
             fullscreen/canvas choice lives in ?view so it survives the remount. */}
-        <div className="min-h-0 flex-1"><ProposalPreview key={active.slug} pages={active.pages} /></div>
+        <div className="min-h-0 flex-1">{(() => {
+          const pin: PinContext | undefined = active.currentVersionId
+            ? { publicId, variantId: active.id, versionId: active.currentVersionId, viewerId: viewer?.id ?? null }
+            : undefined;
+          return <ProposalPreview key={active.slug} pages={active.pages} pin={pin} />;
+        })()}</div>
       </div>
     );
   }

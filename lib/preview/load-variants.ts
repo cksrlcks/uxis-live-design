@@ -42,7 +42,7 @@ export async function loadVariantsForProposal(proposalId: string): Promise<Viewe
   const pagesByVersion = new Map<string, PreviewPage[]>();
   for (const pg of pages) {
     const list = pagesByVersion.get(pg.versionId) ?? [];
-    list.push({ id: pg.id, url: urlByPath.get(pg.storagePath) ?? "", width: pg.width, height: pg.height });
+    list.push({ id: pg.id, url: urlByPath.get(pg.storagePath) ?? "", width: pg.width, height: pg.height, pageOrder: pg.pageOrder });
     pagesByVersion.set(pg.versionId, list);
   }
 

@@ -1,6 +1,7 @@
 "use client";
 import { useQueryState, parseAsStringEnum } from "nuqs";
 import type { PreviewPage } from "@/lib/preview/types";
+import type { PinContext } from "@/lib/pins/types";
 import { FullscreenSlides } from "./fullscreen-slides";
 import { CanvasView } from "./canvas-view";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 // nuqs defaults to shallow + history:replace → toggling updates the URL without a server round-trip.
 const viewParser = parseAsStringEnum(["fullscreen", "canvas"] as const).withDefault("fullscreen");
 
-export function ProposalPreview({ pages }: { pages: PreviewPage[] }) {
+export function ProposalPreview({ pages, pin }: { pages: PreviewPage[]; pin?: PinContext }) {
   const [view, setView] = useQueryState("view", viewParser);
   return (
     <div className="flex h-full w-full flex-col">
@@ -18,7 +19,7 @@ export function ProposalPreview({ pages }: { pages: PreviewPage[] }) {
         <Button size="sm" variant={view === "canvas" ? "default" : "outline"} onClick={() => setView("canvas")}>캔버스</Button>
       </div>
       <div className="min-h-0 flex-1">
-        {view === "fullscreen" ? <FullscreenSlides pages={pages} /> : <CanvasView pages={pages} />}
+        {view === "fullscreen" ? <FullscreenSlides pages={pages} /> : <CanvasView pages={pages} pin={pin} />}
       </div>
     </div>
   );
