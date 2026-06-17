@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { MAX_CHAT_BODY, validateChatBody } from "@/lib/meeting/chat";
+import { MAX_CHAT_BODY, validateChatBody } from "@/legacy/lib/meeting/chat";
 
 describe("validateChatBody", () => {
   it("trims and returns a valid body", () => {

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { profiles } from "@/drizzle/schema";
-import { requireAdmin } from "@/lib/auth/session";
-import { ROLES } from "@/lib/auth/roles";
+import { db } from "@/legacy/lib/db";
+import { profiles } from "@drizzle/schema";
+import { requireAdmin } from "@/legacy/lib/auth/session";
+import { ROLES } from "@/legacy/lib/auth/roles";
 
 const ALLOWED = new Set<string>([ROLES.PENDING, ROLES.EDITOR, ROLES.ADMIN]);
 

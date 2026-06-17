@@ -1,4 +1,4 @@
-import { ProposalCreateForm } from "@/components/proposals/proposal-create-form";
+import { ProposalCreateForm } from "@/legacy/components/proposals/proposal-create-form";
 
 export default function NewProposalPage() {
   return (

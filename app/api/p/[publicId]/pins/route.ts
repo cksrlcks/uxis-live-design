@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { pinComments, proposalVariants, proposalVersions, proposalPages } from "@/drizzle/schema";
-import { resolveViewerGate } from "@/lib/access/viewer-gate";
-import { getProfile } from "@/lib/auth/session";
-import { validateChatBody } from "@/lib/meeting/chat"; // 범용 본문 검증(≤2000, trim) 재사용
-import { clamp01 } from "@/lib/realtime/coords";
-import { loadPinsForVersion } from "@/lib/pins/load-pins";
-import type { PinDTO } from "@/lib/pins/types";
+import { db } from "@/legacy/lib/db";
+import { pinComments, proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
+import { resolveViewerGate } from "@/legacy/lib/access/viewer-gate";
+import { getProfile } from "@/legacy/lib/auth/session";
+import { validateChatBody } from "@/legacy/lib/meeting/chat"; // 범용 본문 검증(≤2000, trim) 재사용
+import { clamp01 } from "@/legacy/lib/realtime/coords";
+import { loadPinsForVersion } from "@/legacy/lib/pins/load-pins";
+import type { PinDTO } from "@/legacy/lib/pins/types";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;

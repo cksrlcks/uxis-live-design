@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decideAccess } from "@/lib/proposals/access";
+import { decideAccess } from "@/legacy/lib/proposals/access";
 
 describe("decideAccess", () => {
   it("allows editors regardless of visibility", () => {

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { pinComments } from "@/drizzle/schema";
-import { resolveViewerGate } from "@/lib/access/viewer-gate";
-import { getProfile } from "@/lib/auth/session";
-import { validateChatBody } from "@/lib/meeting/chat";
-import type { PinDTO } from "@/lib/pins/types";
+import { db } from "@/legacy/lib/db";
+import { pinComments } from "@drizzle/schema";
+import { resolveViewerGate } from "@/legacy/lib/access/viewer-gate";
+import { getProfile } from "@/legacy/lib/auth/session";
+import { validateChatBody } from "@/legacy/lib/meeting/chat";
+import type { PinDTO } from "@/legacy/lib/pins/types";
 
 function toDTO(r: typeof pinComments.$inferSelect): PinDTO {
   return {

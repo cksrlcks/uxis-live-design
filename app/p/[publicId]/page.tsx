@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
-import { resolveViewerGate } from "@/lib/access/viewer-gate";
-import { loadVariantsForProposal } from "@/lib/preview/load-variants";
-import { PublicViewer } from "@/components/preview/public-viewer";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { resolveViewerGate } from "@/legacy/lib/access/viewer-gate";
+import { loadVariantsForProposal } from "@/legacy/lib/preview/load-variants";
+import { PublicViewer } from "@/legacy/components/preview/public-viewer";
+import { Button } from "@/legacy/components/ui/button";
+import { Input } from "@/legacy/components/ui/input";
+import { Label } from "@/legacy/components/ui/label";
+import { Card } from "@/legacy/components/ui/card";
 import { unlock } from "./actions";
 
 export default async function PublicViewerPage({

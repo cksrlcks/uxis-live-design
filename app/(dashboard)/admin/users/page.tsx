@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 import { desc } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { profiles } from "@/drizzle/schema";
-import { getProfile } from "@/lib/auth/session";
-import { isAdmin, type Role } from "@/lib/auth/roles";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { UserRowActions } from "@/components/admin/user-row-actions";
+import { db } from "@/legacy/lib/db";
+import { profiles } from "@drizzle/schema";
+import { getProfile } from "@/legacy/lib/auth/session";
+import { isAdmin, type Role } from "@/legacy/lib/auth/roles";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/legacy/components/ui/table";
+import { Badge } from "@/legacy/components/ui/badge";
+import { UserRowActions } from "@/legacy/components/admin/user-row-actions";
 
 export default async function AdminUsersPage() {
   const profile = await getProfile();

@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { proposals } from "@/drizzle/schema";
-import { loadEditorVariants } from "@/lib/preview/load-variants";
-import { ProposalSettings } from "@/components/proposals/proposal-settings";
-import { VariantTabs } from "@/components/proposals/variant-tabs";
-import { ProposalEditorPreview } from "@/components/preview/proposal-editor-preview";
+import { db } from "@/legacy/lib/db";
+import { proposals } from "@drizzle/schema";
+import { loadEditorVariants } from "@/legacy/lib/preview/load-variants";
+import { ProposalSettings } from "@/legacy/components/proposals/proposal-settings";
+import { VariantTabs } from "@/legacy/components/proposals/variant-tabs";
+import { ProposalEditorPreview } from "@/legacy/components/preview/proposal-editor-preview";
 
 export default async function ProposalDetailPage({
   params,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hashPassword, verifyPassword } from "@/lib/access/password";
+import { hashPassword, verifyPassword } from "@/legacy/lib/access/password";
 
 describe("password hashing", () => {
   it("verifies the correct password", () => {

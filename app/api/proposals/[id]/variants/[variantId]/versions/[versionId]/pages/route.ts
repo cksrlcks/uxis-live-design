@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { proposals, proposalVariants, proposalVersions, proposalPages } from "@/drizzle/schema";
-import { requireEditor } from "@/lib/auth/session";
-import { listObjectNames } from "@/lib/proposals/storage";
+import { db } from "@/legacy/lib/db";
+import { proposals, proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
+import { requireEditor } from "@/legacy/lib/auth/session";
+import { listObjectNames } from "@/legacy/lib/proposals/storage";
 
 type PageInput = { pageId: string; pageOrder: number; path: string; width: number; height: number };
 

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { desc } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { proposals } from "@/drizzle/schema";
-import { buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { db } from "@/legacy/lib/db";
+import { proposals } from "@drizzle/schema";
+import { buttonVariants } from "@/legacy/components/ui/button";
+import { Badge } from "@/legacy/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/legacy/components/ui/table";
 
 export default async function ProposalsPage() {
   const rows = await db.select().from(proposals).orderBy(desc(proposals.updatedAt));

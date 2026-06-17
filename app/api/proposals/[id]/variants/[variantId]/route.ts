@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { proposalVariants, proposalVersions, proposalPages } from "@/drizzle/schema";
-import { requireEditor } from "@/lib/auth/session";
-import { removeObjects } from "@/lib/proposals/storage";
+import { db } from "@/legacy/lib/db";
+import { proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
+import { requireEditor } from "@/legacy/lib/auth/session";
+import { removeObjects } from "@/legacy/lib/proposals/storage";
 
 export async function PATCH(
   req: NextRequest,

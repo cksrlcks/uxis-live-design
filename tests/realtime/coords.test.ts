@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { clamp01, toNorm, fromNorm, toContent } from "@/lib/realtime/coords";
+import { clamp01, toNorm, fromNorm, toContent } from "@/legacy/lib/realtime/coords";
 
 describe("clamp01", () => {
   it("clamps below 0 and above 1", () => {

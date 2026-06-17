@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asc, eq, inArray } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { proposals, proposalVariants, proposalVersions, proposalPages } from "@/drizzle/schema";
-import { requireEditor } from "@/lib/auth/session";
-import { hashPassword } from "@/lib/access/password";
-import { removeObjects } from "@/lib/proposals/storage";
+import { db } from "@/legacy/lib/db";
+import { proposals, proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
+import { requireEditor } from "@/legacy/lib/auth/session";
+import { hashPassword } from "@/legacy/lib/access/password";
+import { removeObjects } from "@/legacy/lib/proposals/storage";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { db } from "@/lib/db";
-import { chatMessages } from "@/drizzle/schema";
-import { resolveViewerGate } from "@/lib/access/viewer-gate";
-import { validateChatBody } from "@/lib/meeting/chat";
-import type { ChatMessageDTO } from "@/lib/meeting/types";
+import { db } from "@/legacy/lib/db";
+import { chatMessages } from "@drizzle/schema";
+import { resolveViewerGate } from "@/legacy/lib/access/viewer-gate";
+import { validateChatBody } from "@/legacy/lib/meeting/chat";
+import type { ChatMessageDTO } from "@/legacy/lib/meeting/types";
 
 export async function POST(
   req: NextRequest,

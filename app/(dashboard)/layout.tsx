@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getProfile } from "@/lib/auth/session";
-import { isEditor, isAdmin, type Role } from "@/lib/auth/roles";
+import { getProfile } from "@/legacy/lib/auth/session";
+import { isEditor, isAdmin, type Role } from "@/legacy/lib/auth/roles";
 import { logout } from "../(auth)/actions";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/legacy/components/ui/button";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const profile = await getProfile();

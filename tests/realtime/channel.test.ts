@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { channelName } from "@/lib/realtime/channel";
+import { channelName } from "@/legacy/lib/realtime/channel";
 
 describe("channelName", () => {
   it("prefixes the public id with 'proposal:'", () => {

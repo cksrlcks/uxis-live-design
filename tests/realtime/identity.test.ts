@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { IDENTITY_COLORS, pickColor, defaultGuestName, parseIdentity } from "@/lib/realtime/identity";
+import { IDENTITY_COLORS, pickColor, defaultGuestName, parseIdentity } from "@/legacy/lib/realtime/identity";
 
 describe("pickColor", () => {
   it("returns a palette color", () => {

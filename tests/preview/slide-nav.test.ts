@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { nextIndex, prevIndex } from "@/lib/preview/slide-nav";
+import { nextIndex, prevIndex } from "@/legacy/lib/preview/slide-nav";
 
 describe("slide navigation (wrap-around)", () => {
   it("advances and loops from the last page back to the first", () => {

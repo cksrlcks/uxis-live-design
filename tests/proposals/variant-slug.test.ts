@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { nextVariantSlug, defaultVariantLabel } from "@/lib/proposals/variant-slug";
+import { nextVariantSlug, defaultVariantLabel } from "@/legacy/lib/proposals/variant-slug";
 
 describe("nextVariantSlug", () => {
   it("returns 'a' when nothing is used", () => {

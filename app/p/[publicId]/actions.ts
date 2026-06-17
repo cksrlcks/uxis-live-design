@@ -2,10 +2,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { proposals } from "@/drizzle/schema";
-import { verifyPassword } from "@/lib/access/password";
-import { signUnlockToken, unlockCookieName, UNLOCK_TTL_SECONDS } from "@/lib/access/cookie";
+import { db } from "@/legacy/lib/db";
+import { proposals } from "@drizzle/schema";
+import { verifyPassword } from "@/legacy/lib/access/password";
+import { signUnlockToken, unlockCookieName, UNLOCK_TTL_SECONDS } from "@/legacy/lib/access/cookie";
 
 export async function unlock(publicId: string, formData: FormData) {
   const password = String(formData.get("password") ?? "");

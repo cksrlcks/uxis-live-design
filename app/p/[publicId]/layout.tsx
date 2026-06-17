@@ -1,6 +1,6 @@
-import { resolveViewerGate } from "@/lib/access/viewer-gate";
-import { RealtimeShell } from "@/components/realtime/realtime-shell";
-import { loadRecentChat } from "@/lib/meeting/load-chat";
+import { resolveViewerGate } from "@/legacy/lib/access/viewer-gate";
+import { RealtimeShell } from "@/legacy/components/realtime/realtime-shell";
+import { loadRecentChat } from "@/legacy/lib/meeting/load-chat";
 
 // The layout persists across in-viewer navigations (?v=, ?compare=) on the same
 // [publicId] segment, so the realtime channel mounted here is NOT torn down when
