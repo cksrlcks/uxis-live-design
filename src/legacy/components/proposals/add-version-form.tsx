@@ -5,7 +5,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { ALLOWED_IMAGE_TYPES } from "@/shared/lib/proposals/constants";
-import { measureAll, uploadAll } from "@/legacy/lib/proposals/upload-client";
+import { measureAll, uploadAll } from "@/shared/storage-client";
 
 export function AddVersionForm({ proposalId, variantId }: { proposalId: string; variantId: string }) {
   const router = useRouter();
