@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { proposals, proposalVariants, proposalVersions } from "@drizzle/schema";
 import { requireEditor } from "@/shared/auth/guards.server";
 import { generatePublicId } from "@/shared/lib/proposals/public-id";
 import { extForContentType, pagePath, MAX_PAGE_BYTES } from "@/shared/lib/proposals/constants";
 import { createUploadUrl } from "@/shared/storage";
+import { getProposals } from "@/entities/proposal/api/get-proposals.server";
+import { toErrorResponse } from "@/shared/api/to-error-response";
 
 export async function GET() {
   try {
-    await requireEditor();
-  } catch {
-    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    return Response.json(await getProposals());
+  } catch (error) {
+    return toErrorResponse(error);
   }
-  const rows = await db.select().from(proposals).orderBy(desc(proposals.updatedAt));
-  return NextResponse.json(rows);
 }
 
 type FileSpec = { contentType: string; size: number };
@@ -45,8 +45,15 @@ export async function POST(req: NextRequest) {
   let publicId = "";
   for (let i = 0; i < 5; i++) {
     const cand = generatePublicId();
-    const exists = await db.select({ id: proposals.id }).from(proposals).where(eq(proposals.publicId, cand)).limit(1);
-    if (exists.length === 0) { publicId = cand; break; }
+    const exists = await db
+      .select({ id: proposals.id })
+      .from(proposals)
+      .where(eq(proposals.publicId, cand))
+      .limit(1);
+    if (exists.length === 0) {
+      publicId = cand;
+      break;
+    }
   }
   if (!publicId) return NextResponse.json({ error: "ID_GENERATION_FAILED" }, { status: 500 });
 
@@ -55,9 +62,16 @@ export async function POST(req: NextRequest) {
   const versionId = randomUUID();
   await db.insert(proposals).values({ id: proposalId, publicId, title, ownerId: editor.id });
   await db.insert(proposalVariants).values({
-    id: variantId, proposalId, label: "A", slug: "a", sortOrder: 0, createdBy: editor.id,
+    id: variantId,
+    proposalId,
+    label: "A",
+    slug: "a",
+    sortOrder: 0,
+    createdBy: editor.id,
   });
-  await db.insert(proposalVersions).values({ id: versionId, variantId, versionNo: 1, createdBy: editor.id });
+  await db
+    .insert(proposalVersions)
+    .values({ id: versionId, variantId, versionNo: 1, createdBy: editor.id });
 
   const uploads = [];
   for (let i = 0; i < files.length; i++) {
