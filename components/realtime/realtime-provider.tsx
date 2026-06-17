@@ -5,6 +5,7 @@ import { createSupabaseBrowser } from "@/lib/supabase/client";
 import { channelName } from "@/lib/realtime/channel";
 import type { Identity } from "@/lib/realtime/identity";
 import type { ChatMessageDTO } from "@/lib/meeting/types";
+import type { PinDTO, PinEvent } from "@/lib/pins/types";
 
 export type Participant = { id: string; name: string; color: string };
 export type RemoteCursor = { id: string; name: string; color: string; cx: number; cy: number };
@@ -16,6 +17,11 @@ type RealtimeContextValue = {
   clearCursor: () => void;
   chatMessages: ChatMessageDTO[];
   sendChat: (message: ChatMessageDTO) => void;
+  myColor: string;
+  subscribePins: (handler: (e: PinEvent) => void) => () => void;
+  broadcastPin: (pin: PinDTO) => void;
+  broadcastPinUpdated: (pin: PinDTO) => void;
+  broadcastPinDeleted: (id: string) => void;
 };
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
@@ -43,6 +49,7 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [cursors, setCursors] = useState<RemoteCursor[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessageDTO[]>(initialChat);
+  const pinSubsRef = useRef(new Set<(e: PinEvent) => void>());
 
   // (Re)create the channel only when the room or my stable id changes.
   useEffect(() => {
@@ -81,6 +88,22 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
       const m = payload as ChatMessageDTO;
       if (!m?.id) return; // public channel: drop malformed/garbage chat payloads
       setChatMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+    });
+
+    ch.on("broadcast", { event: "pin" }, ({ payload }) => {
+      const pin = payload as PinDTO;
+      if (!pin?.id) return;
+      pinSubsRef.current.forEach((h) => h({ type: "pin", pin }));
+    });
+    ch.on("broadcast", { event: "pin_updated" }, ({ payload }) => {
+      const pin = payload as PinDTO;
+      if (!pin?.id) return;
+      pinSubsRef.current.forEach((h) => h({ type: "pin_updated", pin }));
+    });
+    ch.on("broadcast", { event: "pin_deleted" }, ({ payload }) => {
+      const id = (payload as { id?: string }).id;
+      if (!id) return;
+      pinSubsRef.current.forEach((h) => h({ type: "pin_deleted", id }));
     });
 
     ch.subscribe(async (status) => {
@@ -133,8 +156,26 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
     }
   }, []);
 
+  const subscribePins = useCallback((handler: (e: PinEvent) => void) => {
+    pinSubsRef.current.add(handler);
+    return () => { pinSubsRef.current.delete(handler); };
+  }, []);
+
+  const broadcastPin = useCallback((pin: PinDTO) => {
+    const ch = channelRef.current;
+    if (ch?.state === "joined") ch.send({ type: "broadcast", event: "pin", payload: pin });
+  }, []);
+  const broadcastPinUpdated = useCallback((pin: PinDTO) => {
+    const ch = channelRef.current;
+    if (ch?.state === "joined") ch.send({ type: "broadcast", event: "pin_updated", payload: pin });
+  }, []);
+  const broadcastPinDeleted = useCallback((id: string) => {
+    const ch = channelRef.current;
+    if (ch?.state === "joined") ch.send({ type: "broadcast", event: "pin_deleted", payload: { id } });
+  }, []);
+
   return (
-    <RealtimeContext.Provider value={{ participants, cursors, sendCursor, clearCursor, chatMessages, sendChat }}>
+    <RealtimeContext.Provider value={{ participants, cursors, sendCursor, clearCursor, chatMessages, sendChat, myColor: identity.color, subscribePins, broadcastPin, broadcastPinUpdated, broadcastPinDeleted }}>
       {children}
     </RealtimeContext.Provider>
   );
