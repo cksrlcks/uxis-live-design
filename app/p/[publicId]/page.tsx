@@ -1,53 +1,22 @@
 import { notFound } from "next/navigation";
-import { asc, count, eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { proposalVariants, proposalPages } from "@/drizzle/schema";
-import type { ProposalVariant } from "@/drizzle/schema";
 import { resolveViewerGate } from "@/lib/access/viewer-gate";
-import { createReadUrl } from "@/lib/proposals/storage";
-import type { PreviewPage } from "@/lib/preview/types";
-import { ProposalPreview } from "@/components/preview/proposal-preview";
-import { VariantList } from "@/components/preview/variant-list";
-import { CompareView } from "@/components/preview/compare-view";
-import { VariantViewerNav } from "@/components/preview/variant-viewer-nav";
+import { loadVariantsForProposal } from "@/lib/preview/load-variants";
+import { PublicViewer } from "@/components/preview/public-viewer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { unlock } from "./actions";
 
-async function loadPages(versionId: string | null): Promise<PreviewPage[]> {
-  if (!versionId) return [];
-  const pages = await db.select().from(proposalPages)
-    .where(eq(proposalPages.versionId, versionId)).orderBy(asc(proposalPages.pageOrder));
-  return Promise.all(pages.map(async (pg) => ({
-    id: pg.id, url: await createReadUrl(pg.storagePath), width: pg.width, height: pg.height,
-  })));
-}
-
-async function loadThumb(versionId: string | null): Promise<{ thumb: PreviewPage | null; pageCount: number }> {
-  if (!versionId) return { thumb: null, pageCount: 0 };
-  const [counted] = await db.select({ n: count() }).from(proposalPages)
-    .where(eq(proposalPages.versionId, versionId));
-  const pageCount = Number(counted?.n ?? 0);
-  if (pageCount === 0) return { thumb: null, pageCount };
-  const [first] = await db.select().from(proposalPages)
-    .where(eq(proposalPages.versionId, versionId)).orderBy(asc(proposalPages.pageOrder)).limit(1);
-  const thumb = first
-    ? { id: first.id, url: await createReadUrl(first.storagePath), width: first.width, height: first.height }
-    : null;
-  return { thumb, pageCount };
-}
-
 export default async function PublicViewerPage({
   params,
   searchParams,
 }: {
   params: Promise<{ publicId: string }>;
-  searchParams: Promise<{ error?: string; v?: string; compare?: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { publicId } = await params;
-  const { error, v, compare } = await searchParams;
+  const { error } = await searchParams;
 
   const { proposal, decision } = await resolveViewerGate(publicId);
   if (!proposal) notFound();
@@ -82,43 +51,8 @@ export default async function PublicViewerPage({
     );
   }
 
-  // decision === "allow"
-  const variants: ProposalVariant[] = await db.select().from(proposalVariants)
-    .where(eq(proposalVariants.proposalId, proposal.id)).orderBy(asc(proposalVariants.sortOrder));
-  const navItems = variants.map((vr) => ({ slug: vr.slug, label: vr.label }));
-
-  // 나란히 비교
-  if (compare) {
-    const columns = await Promise.all(
-      variants.map(async (vr) => ({ slug: vr.slug, label: vr.label, pages: await loadPages(vr.currentVersionId) })),
-    );
-    return (
-      <div className="flex h-screen w-screen flex-col">
-        <VariantViewerNav publicId={publicId} items={navItems} activeSlug="" />
-        <div className="min-h-0 flex-1"><CompareView columns={columns} /></div>
-      </div>
-    );
-  }
-
-  // 특정 안 (?v=slug)
-  if (v) {
-    const variant = variants.find((vr) => vr.slug === v);
-    if (!variant) notFound();
-    const previews = await loadPages(variant.currentVersionId);
-    return (
-      <div className="flex h-screen w-screen flex-col">
-        <VariantViewerNav publicId={publicId} items={navItems} activeSlug={variant.slug} />
-        <div className="min-h-0 flex-1"><ProposalPreview pages={previews} /></div>
-      </div>
-    );
-  }
-
-  // 기본: 안 목록
-  const items = await Promise.all(
-    variants.map(async (vr) => {
-      const { thumb, pageCount } = await loadThumb(vr.currentVersionId);
-      return { slug: vr.slug, label: vr.label, thumb, pageCount };
-    }),
-  );
-  return <VariantList publicId={publicId} items={items} />;
+  // decision === "allow": load every 안 with its pages once (one batch URL-signing
+  // call), then let the client switch between them with no further server round-trips.
+  const variants = await loadVariantsForProposal(proposal.id);
+  return <PublicViewer variants={variants} />;
 }

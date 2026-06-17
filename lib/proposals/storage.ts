@@ -15,6 +15,24 @@ export async function createReadUrl(path: string, expiresIn = 3600) {
   return data.signedUrl;
 }
 
+// Sign many object paths in ONE network round-trip (vs one createReadUrl call each).
+// Returns a path→signedUrl map; a path whose signing failed is omitted (caller decides
+// how to handle a missing URL). Empty input short-circuits without hitting the network.
+export async function createReadUrls(
+  paths: string[],
+  expiresIn = 3600,
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (paths.length === 0) return out;
+  const supabase = createSupabaseService();
+  const { data, error } = await supabase.storage.from(PROPOSALS_BUCKET).createSignedUrls(paths, expiresIn);
+  if (error || !data) throw new Error(`createSignedUrls failed: ${error?.message ?? "no data"}`);
+  for (const item of data) {
+    if (item.signedUrl && item.path) out.set(item.path, item.signedUrl);
+  }
+  return out;
+}
+
 export async function removeObjects(paths: string[]) {
   if (paths.length === 0) return;
   const supabase = createSupabaseService();

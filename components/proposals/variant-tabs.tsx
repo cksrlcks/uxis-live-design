@@ -1,5 +1,6 @@
 "use client";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useQueryState, parseAsString } from "nuqs";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,23 +8,22 @@ import { AddVariantForm } from "./add-variant-form";
 
 type VariantTab = { id: string; label: string; slug: string };
 
-export function VariantTabs({ proposalId, variants, activeVariantId }: {
-  proposalId: string; variants: VariantTab[]; activeVariantId: string;
+export function VariantTabs({ proposalId, variants }: {
+  proposalId: string; variants: VariantTab[];
 }) {
   const router = useRouter();
-  const pathname = usePathname();
-  const params = useSearchParams();
+  // ?variant (variant id) is the single source of truth for the active 안, shared
+  // with ProposalEditorPreview. Shallow → switching tabs doesn't re-run the server.
+  const [variantId, setVariantId] = useQueryState("variant", parseAsString.withOptions({ shallow: true, history: "push" }));
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(false);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const active = variants.find((v) => v.id === activeVariantId) ?? variants[0];
+  const active = variants.find((v) => v.id === variantId) ?? variants[0];
 
   function selectVariant(id: string) {
-    const next = new URLSearchParams(params);
-    next.set("variant", id);
-    router.push(`${pathname}?${next.toString()}`);
+    setVariantId(id);
   }
 
   function patch(id: string, payload: Record<string, unknown>) {
