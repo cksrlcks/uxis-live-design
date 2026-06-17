@@ -1,6 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/lib/supabase/server";
+import { isSafeInternalPath } from "@/lib/access/safe-redirect";
 
 export async function signup(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -20,10 +21,14 @@ export async function signup(formData: FormData) {
 export async function login(formData: FormData) {
   const email = String(formData.get("email"));
   const password = String(formData.get("password"));
+  const returnTo = formData.get("returnTo");
   const supabase = await createSupabaseServer();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return redirect(`/login?error=${encodeURIComponent(error.message)}`);
-  redirect("/dashboard");
+  if (error) {
+    const qs = isSafeInternalPath(returnTo) ? `&returnTo=${encodeURIComponent(returnTo)}` : "";
+    return redirect(`/login?error=${encodeURIComponent(error.message)}${qs}`);
+  }
+  redirect(isSafeInternalPath(returnTo) ? returnTo : "/dashboard");
 }
 
 export async function logout() {
