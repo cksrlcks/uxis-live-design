@@ -24,7 +24,10 @@ export async function unlock(publicId: string, formData: FormData) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", // allow over http://localhost in dev
     sameSite: "lax",
-    path: `/p/${publicId}`,
+    // path "/" so the cookie reaches BOTH the viewer pages (/p/<id>) AND the BFF
+    // routes (/api/p/<id>/...). It's scoped per-proposal by the cookie NAME
+    // (pu_<publicId>) + HMAC-signed token, so a broad path doesn't weaken security.
+    path: "/",
     maxAge: UNLOCK_TTL_SECONDS,
   });
   redirect(`/p/${publicId}`);
