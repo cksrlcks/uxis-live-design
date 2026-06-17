@@ -79,6 +79,7 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
 
     ch.on("broadcast", { event: "chat" }, ({ payload }) => {
       const m = payload as ChatMessageDTO;
+      if (!m?.id) return; // public channel: drop malformed/garbage chat payloads
       setChatMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
     });
 
@@ -123,6 +124,7 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
   }, []);
 
   // 저장 성공(BFF) 후 호출. self:false라 송신자는 자기 broadcast를 못 받으므로 로컬에도 append.
+  // 채널이 joined가 아니면 broadcast는 건너뛴다(메시지는 이미 BFF에 저장됨 → 피어는 재접속/새로고침 시 initial 로드로 복구).
   const sendChat = useCallback((message: ChatMessageDTO) => {
     setChatMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
     const ch = channelRef.current;
