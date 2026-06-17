@@ -12,6 +12,7 @@ export type ViewerGate = {
   proposal: Proposal | null;
   decision: AccessDecision;
   editorName: string | null;
+  viewer: { id: string; displayName: string | null } | null;
 };
 
 // Single source of truth for public-viewer access, shared by the layout (to gate the
@@ -20,7 +21,7 @@ export type ViewerGate = {
 export const resolveViewerGate = cache(async (publicId: string): Promise<ViewerGate> => {
   const rows = await db.select().from(proposals).where(eq(proposals.publicId, publicId)).limit(1);
   const proposal = rows[0] ?? null;
-  if (!proposal) return { proposal: null, decision: "forbidden", editorName: null };
+  if (!proposal) return { proposal: null, decision: "forbidden", editorName: null, viewer: null };
 
   const profile = await getProfile();
   const editor = isEditor(profile?.role as Role | undefined);
@@ -38,5 +39,6 @@ export const resolveViewerGate = cache(async (publicId: string): Promise<ViewerG
     hasValidUnlock,
   });
 
-  return { proposal, decision, editorName: editor ? (profile?.displayName ?? null) : null };
+  const viewer = profile ? { id: profile.id, displayName: profile.displayName } : null;
+  return { proposal, decision, editorName: editor ? (profile?.displayName ?? null) : null, viewer };
 });
