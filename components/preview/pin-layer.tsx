@@ -97,7 +97,7 @@ export function PinLayer({ contentRef, pages, pin, mode }: {
 
   return (
     <div className="pointer-events-none absolute inset-0">
-      {mode === "comment" && <div className="pointer-events-auto absolute inset-0" onClick={onCaptureClick} />}
+      {mode === "comment" && <div className="pointer-events-auto absolute inset-0 cursor-crosshair" onClick={onCaptureClick} />}
 
       {pins.map((p) => {
         const b = boxesByOrder.get(p.pageOrder);
