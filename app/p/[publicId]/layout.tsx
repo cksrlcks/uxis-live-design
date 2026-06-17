@@ -1,5 +1,6 @@
 import { resolveViewerGate } from "@/lib/access/viewer-gate";
 import { RealtimeShell } from "@/components/realtime/realtime-shell";
+import { loadRecentChat } from "@/lib/meeting/load-chat";
 
 // The layout persists across in-viewer navigations (?v=, ?compare=) on the same
 // [publicId] segment, so the realtime channel mounted here is NOT torn down when
@@ -12,12 +13,14 @@ export default async function PublicViewerLayout({
   children: React.ReactNode;
 }) {
   const { publicId } = await params;
-  const { decision, editorName } = await resolveViewerGate(publicId);
+  const { proposal, decision, editorName } = await resolveViewerGate(publicId);
 
-  if (decision !== "allow") return <>{children}</>;
+  if (decision !== "allow" || !proposal) return <>{children}</>;
+
+  const initialChat = await loadRecentChat(proposal.id);
 
   return (
-    <RealtimeShell publicId={publicId} editorName={editorName}>
+    <RealtimeShell publicId={publicId} editorName={editorName} initialChat={initialChat}>
       {children}
     </RealtimeShell>
   );
