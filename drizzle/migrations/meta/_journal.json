@@ -43,6 +43,13 @@
       "when": 1781663561751,
       "tag": "0005_volatile_shockwave",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781677830006,
+      "tag": "0006_lethal_skrulls",
+      "breakpoints": true
     }
   ]
 }

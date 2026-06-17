@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, unique, check, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, integer, unique, check, index, real, boolean } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const profiles = pgTable("profiles", {
@@ -80,3 +80,23 @@ export const chatMessages = pgTable("chat_messages", {
 ]);
 
 export type ChatMessage = typeof chatMessages.$inferSelect;
+
+export const pinComments = pgTable("pin_comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  proposalId: uuid("proposal_id").notNull(),     // FK via SQL
+  variantId: uuid("variant_id").notNull(),       // FK via SQL
+  versionId: uuid("version_id").notNull(),        // FK via SQL
+  pageOrder: integer("page_order").notNull(),
+  xNorm: real("x_norm").notNull(),
+  yNorm: real("y_norm").notNull(),
+  authorId: uuid("author_id"),                    // FK via SQL (set null), 소유권 기준
+  authorName: text("author_name").notNull(),
+  authorColor: text("author_color").notNull(),
+  body: text("body").notNull(),
+  resolved: boolean("resolved").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("pin_comments_variant_version_page_idx").on(t.variantId, t.versionId, t.pageOrder),
+]);
+
+export type PinComment = typeof pinComments.$inferSelect;
