@@ -4,6 +4,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createSupabaseBrowser } from "@/lib/supabase/client";
 import { channelName } from "@/lib/realtime/channel";
 import type { Identity } from "@/lib/realtime/identity";
+import type { ChatMessageDTO } from "@/lib/meeting/types";
 
 export type Participant = { id: string; name: string; color: string };
 export type RemoteCursor = { id: string; name: string; color: string; cx: number; cy: number };
@@ -13,6 +14,8 @@ type RealtimeContextValue = {
   cursors: RemoteCursor[];
   sendCursor: (cx: number, cy: number) => void;
   clearCursor: () => void;
+  chatMessages: ChatMessageDTO[];
+  sendChat: (message: ChatMessageDTO) => void;
 };
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
@@ -29,8 +32,8 @@ export function useRealtimeOptional(): RealtimeContextValue | null {
   return useContext(RealtimeContext);
 }
 
-export function RealtimeProvider({ publicId, identity, children }: {
-  publicId: string; identity: Identity; children: React.ReactNode;
+export function RealtimeProvider({ publicId, identity, initialChat, children }: {
+  publicId: string; identity: Identity; initialChat: ChatMessageDTO[]; children: React.ReactNode;
 }) {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const identityRef = useRef<Identity>(identity);
@@ -39,6 +42,7 @@ export function RealtimeProvider({ publicId, identity, children }: {
 
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [cursors, setCursors] = useState<RemoteCursor[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessageDTO[]>(initialChat);
 
   // (Re)create the channel only when the room or my stable id changes.
   useEffect(() => {
@@ -71,6 +75,11 @@ export function RealtimeProvider({ publicId, identity, children }: {
     ch.on("broadcast", { event: "cursor_leave" }, ({ payload }) => {
       const id = (payload as { id: string }).id;
       setCursors((prev) => prev.filter((c) => c.id !== id));
+    });
+
+    ch.on("broadcast", { event: "chat" }, ({ payload }) => {
+      const m = payload as ChatMessageDTO;
+      setChatMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
     });
 
     ch.subscribe(async (status) => {
@@ -113,8 +122,17 @@ export function RealtimeProvider({ publicId, identity, children }: {
     ch.send({ type: "broadcast", event: "cursor_leave", payload: { id: identityRef.current.id } });
   }, []);
 
+  // 저장 성공(BFF) 후 호출. self:false라 송신자는 자기 broadcast를 못 받으므로 로컬에도 append.
+  const sendChat = useCallback((message: ChatMessageDTO) => {
+    setChatMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
+    const ch = channelRef.current;
+    if (ch?.state === "joined") {
+      ch.send({ type: "broadcast", event: "chat", payload: message });
+    }
+  }, []);
+
   return (
-    <RealtimeContext.Provider value={{ participants, cursors, sendCursor, clearCursor }}>
+    <RealtimeContext.Provider value={{ participants, cursors, sendCursor, clearCursor, chatMessages, sendChat }}>
       {children}
     </RealtimeContext.Provider>
   );
