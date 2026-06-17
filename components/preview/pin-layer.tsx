@@ -37,9 +37,8 @@ export function PinLayer({ contentRef, pages, pin, mode }: {
   const [boxes, setBoxes] = useState<PageBox[]>([]);
   const pagesKey = pages.map((p) => p.pageOrder).join(",");
 
-  // Re-measure whenever pages list or pins change (pins trigger re-render after
-  // which layout is stable). ResizeObserver is not needed here: the parent
-  // CanvasView re-renders (and thus re-mounts PinLayer) on scale changes.
+  // 박스는 레이아웃 좌표(offset*) — 줌/팬(CSS transform)과 무관하므로 페이지 집합이
+  // 바뀔 때만 재측정하면 된다. 이미지에 width/height가 명시돼 마운트 시점에 이미 정확.
   useLayoutEffect(() => {
     const content = contentRef.current;
     if (!content) return;
@@ -51,8 +50,9 @@ export function PinLayer({ contentRef, pages, pin, mode }: {
       out.push({ left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight, pageOrder: po });
     });
     setBoxes(out);
+  // contentRef는 안정 ref; pagesKey가 페이지 집합 변경을 커버한다.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagesKey, pins.length]);
+  }, [pagesKey]);
 
   // Kept as a ref-accessor used only from event handlers (not render).
   const readBoxes = useCallback((): PageBox[] => {
