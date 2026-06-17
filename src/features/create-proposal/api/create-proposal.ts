@@ -1,3 +1,5 @@
+"use client";
+
 import { http } from "@/shared/api/http";
 import { measureAll, uploadAll, type ConfirmPage } from "@/shared/storage-client";
 import type { CreateProposalInput } from "@/entities/proposal/model/create-schema";

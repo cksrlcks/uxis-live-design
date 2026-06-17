@@ -9,10 +9,10 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { ALLOWED_IMAGE_TYPES } from "@/shared/lib/proposals/constants";
-import { createProposalSchema, titleSchema } from "@/entities/proposal/model/create-schema";
+import { createProposalSchema } from "@/entities/proposal/model/create-schema";
 import { useCreateProposal } from "../api/use-create-proposal";
 
-const formSchema = z.object({ title: titleSchema });
+const formSchema = createProposalSchema.pick({ title: true });
 type FormValues = z.infer<typeof formSchema>;
 
 export function ProposalCreateForm() {
@@ -30,6 +30,7 @@ export function ProposalCreateForm() {
   async function onSubmit({ title }: FormValues) {
     setFormError(null);
 
+    // RHF validated title; re-validate the full payload (files live outside RHF state).
     const parsed = createProposalSchema.safeParse({
       title,
       files: files.map((f) => ({ contentType: f.type, size: f.size })),
@@ -42,7 +43,6 @@ export function ProposalCreateForm() {
     try {
       const { proposalId } = await createProposal.mutateAsync({ title, files });
       router.push(`/dashboard/proposals/${proposalId}`);
-      router.refresh();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "오류가 발생했습니다.");
     }
