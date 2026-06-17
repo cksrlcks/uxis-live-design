@@ -11,6 +11,7 @@ export function ChatPanel({ publicId, identity }: { publicId: string; identity: 
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [failed, setFailed] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   // 새 메시지/열림 시 맨 아래로.
@@ -23,6 +24,7 @@ export function ChatPanel({ publicId, identity }: { publicId: string; identity: 
     const body = text.trim();
     if (!body || sending) return;
     setSending(true);
+    setFailed(false);
     try {
       const res = await fetch(`/api/p/${publicId}/chat`, {
         method: "POST",
@@ -33,7 +35,13 @@ export function ChatPanel({ publicId, identity }: { publicId: string; identity: 
         const { message } = await res.json();
         sendChat(message);
         setText("");
+      } else {
+        console.error("[chat] send failed", res.status);
+        setFailed(true);
       }
+    } catch (err) {
+      console.error("[chat] send error", err);
+      setFailed(true);
     } finally {
       setSending(false);
     }
@@ -67,12 +75,16 @@ export function ChatPanel({ publicId, identity }: { publicId: string; identity: 
           </div>
         ))}
       </div>
+      {failed && (
+        <p className="shrink-0 px-3 pb-1 text-xs text-destructive">전송 실패 — 다시 시도해 주세요.</p>
+      )}
       <form onSubmit={submit} className="flex shrink-0 items-center gap-2 border-t border-border p-2">
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
           maxLength={MAX_CHAT_BODY}
           placeholder="메시지 입력"
+          aria-label="메시지 입력"
           className="h-8"
         />
         <Button type="submit" size="sm" className="h-8" disabled={sending || !text.trim()}>
