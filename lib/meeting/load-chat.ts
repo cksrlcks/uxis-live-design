@@ -11,7 +11,8 @@ export async function loadRecentChat(proposalId: string): Promise<ChatMessageDTO
     .select()
     .from(chatMessages)
     .where(eq(chatMessages.proposalId, proposalId))
-    .orderBy(desc(chatMessages.createdAt))
+    // id를 보조 키로 둬 동일 createdAt(같은 ms) 행도 안정적 전순서 → LIMIT 경계 누락/중복 방지.
+    .orderBy(desc(chatMessages.createdAt), desc(chatMessages.id))
     .limit(INITIAL_CHAT_LIMIT);
   return rows
     .reverse()
