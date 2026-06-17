@@ -6,7 +6,7 @@ import { ProposalPreview } from "./proposal-preview";
 import { usePrefetchImages } from "./use-prefetch-images";
 import { AddVersionForm } from "@/legacy/components/proposals/add-version-form";
 import { RestoreButton } from "@/legacy/components/proposals/version-actions";
-import { Badge } from "@/legacy/components/ui/badge";
+import { Badge } from "@/shared/ui/badge";
 
 // Version history + current-version preview for the active 안. Reads ?variant
 // (variant id) from the URL — the same param VariantTabs writes — so selecting a

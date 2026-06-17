@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useTransition, useState } from "react";
-import { Button } from "@/legacy/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 export function UserRowActions({ id, role }: { id: string; role: string }) {
   const router = useRouter();

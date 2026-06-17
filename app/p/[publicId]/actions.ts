@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { proposals } from "@drizzle/schema";
 import { verifyPassword } from "@/legacy/lib/access/password";
 import { signUnlockToken, unlockCookieName, UNLOCK_TTL_SECONDS } from "@/legacy/lib/access/cookie";

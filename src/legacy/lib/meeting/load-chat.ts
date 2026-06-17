@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { chatMessages } from "@drizzle/schema";
 import type { ChatMessageDTO } from "@/legacy/lib/meeting/types";
 

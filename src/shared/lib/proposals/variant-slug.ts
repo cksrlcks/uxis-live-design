@@ -1,4 +1,4 @@
-import { generatePublicId } from "@/legacy/lib/proposals/public-id";
+import { generatePublicId } from "@/shared/lib/proposals/public-id";
 
 const VARIANT_SLUG_LETTERS = "abcdefghijklmnopqrstuvwxyz";
 

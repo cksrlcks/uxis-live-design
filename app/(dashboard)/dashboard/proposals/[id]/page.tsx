@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { proposals } from "@drizzle/schema";
 import { loadEditorVariants } from "@/legacy/lib/preview/load-variants";
 import { ProposalSettings } from "@/legacy/components/proposals/proposal-settings";

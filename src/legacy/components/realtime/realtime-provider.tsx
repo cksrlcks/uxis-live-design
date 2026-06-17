@@ -1,9 +1,9 @@
 "use client";
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { createSupabaseBrowser } from "@/legacy/lib/supabase/client";
-import { channelName } from "@/legacy/lib/realtime/channel";
-import type { Identity } from "@/legacy/lib/realtime/identity";
+import { createSupabaseBrowser } from "@/shared/supabase/client";
+import { channelName } from "@/shared/realtime/channel";
+import type { Identity } from "@/shared/realtime/identity";
 import type { ChatMessageDTO } from "@/legacy/lib/meeting/types";
 import type { PinDTO, PinEvent } from "@/legacy/lib/pins/types";
 

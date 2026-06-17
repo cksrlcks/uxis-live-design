@@ -1,10 +1,10 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/legacy/components/ui/button";
-import { Input } from "@/legacy/components/ui/input";
-import { Label } from "@/legacy/components/ui/label";
-import { ALLOWED_IMAGE_TYPES } from "@/legacy/lib/proposals/constants";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { ALLOWED_IMAGE_TYPES } from "@/shared/lib/proposals/constants";
 import { measureAll, uploadAll } from "@/legacy/lib/proposals/upload-client";
 
 export function AddVariantForm({ proposalId, onDone }: { proposalId: string; onDone?: () => void }) {

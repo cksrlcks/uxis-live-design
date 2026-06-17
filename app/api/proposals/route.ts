@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { desc, eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { proposals, proposalVariants, proposalVersions } from "@drizzle/schema";
-import { requireEditor } from "@/legacy/lib/auth/session";
-import { generatePublicId } from "@/legacy/lib/proposals/public-id";
-import { extForContentType, pagePath, MAX_PAGE_BYTES } from "@/legacy/lib/proposals/constants";
-import { createUploadUrl } from "@/legacy/lib/proposals/storage";
+import { requireEditor } from "@/shared/auth/guards.server";
+import { generatePublicId } from "@/shared/lib/proposals/public-id";
+import { extForContentType, pagePath, MAX_PAGE_BYTES } from "@/shared/lib/proposals/constants";
+import { createUploadUrl } from "@/shared/storage";
 
 export async function GET() {
   try {

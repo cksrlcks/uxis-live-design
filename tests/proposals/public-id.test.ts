@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generatePublicId, PUBLIC_ID_LENGTH, PUBLIC_ID_ALPHABET } from "@/legacy/lib/proposals/public-id";
+import { generatePublicId, PUBLIC_ID_LENGTH, PUBLIC_ID_ALPHABET } from "@/shared/lib/proposals/public-id";
 
 describe("generatePublicId", () => {
   it("returns a string of the configured length", () => {

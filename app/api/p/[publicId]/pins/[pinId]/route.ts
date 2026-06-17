@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { pinComments } from "@drizzle/schema";
 import { resolveViewerGate } from "@/legacy/lib/access/viewer-gate";
-import { getProfile } from "@/legacy/lib/auth/session";
+import { getProfile } from "@/shared/auth/guards.server";
 import { validateChatBody } from "@/legacy/lib/meeting/chat";
 import type { PinDTO } from "@/legacy/lib/pins/types";
 

@@ -1,5 +1,5 @@
 "use client";
-import { Badge } from "@/legacy/components/ui/badge";
+import { Badge } from "@/shared/ui/badge";
 
 type NavItem = { slug: string; label: string };
 

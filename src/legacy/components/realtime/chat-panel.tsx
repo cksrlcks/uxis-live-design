@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useRealtime } from "./realtime-provider";
-import type { Identity } from "@/legacy/lib/realtime/identity";
+import type { Identity } from "@/shared/realtime/identity";
 import { MAX_CHAT_BODY } from "@/legacy/lib/meeting/chat";
-import { Input } from "@/legacy/components/ui/input";
-import { Button } from "@/legacy/components/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Button } from "@/shared/ui/button";
 
 export function ChatPanel({ publicId, identity }: { publicId: string; identity: Identity }) {
   const { chatMessages, sendChat } = useRealtime();

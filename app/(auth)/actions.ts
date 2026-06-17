@@ -1,6 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
-import { createSupabaseServer } from "@/legacy/lib/supabase/server";
+import { createSupabaseServer } from "@/shared/supabase/server";
 import { isSafeInternalPath } from "@/legacy/lib/access/safe-redirect";
 
 export async function signup(formData: FormData) {

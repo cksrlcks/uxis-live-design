@@ -1,4 +1,4 @@
-import { Skeleton } from "@/legacy/components/ui/skeleton";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 // Shown while the page server component loads — the slow part is signing every
 // 안's page URLs in one batch (loadVariantsForProposal). Mirrors the default

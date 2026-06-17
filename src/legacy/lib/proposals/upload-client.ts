@@ -1,6 +1,6 @@
 "use client";
-import { createSupabaseBrowser } from "@/legacy/lib/supabase/client";
-import { PROPOSALS_BUCKET } from "@/legacy/lib/proposals/constants";
+import { createSupabaseBrowser } from "@/shared/supabase/client";
+import { PROPOSALS_BUCKET } from "@/shared/lib/proposals/constants";
 
 export type MeasuredFile = { file: File; width: number; height: number };
 export type UploadSpec = { pageId: string; path: string; token: string; pageOrder: number };

@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
-import { toContent } from "@/legacy/lib/realtime/coords";
+import { toContent } from "@/shared/realtime/coords";
 import { locatePin, placePin, type PageBox } from "@/legacy/lib/pins/locate";
 import { usePins } from "@/legacy/lib/pins/use-pins";
 import type { PinContext } from "@/legacy/lib/pins/types";
 import type { PreviewPage } from "@/legacy/lib/preview/types";
-import { Button } from "@/legacy/components/ui/button";
-import { Input } from "@/legacy/components/ui/input";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 
 type Draft = { pageOrder: number; xNorm: number; yNorm: number } | null;
 const INV = "scale(var(--inv-scale,5))";

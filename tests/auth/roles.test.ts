@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isEditor, isAdmin, canEditProposals, ROLES } from "@/legacy/lib/auth/roles";
+import { isEditor, isAdmin, canEditProposals, ROLES } from "@/shared/auth/roles";
 
 describe("roles", () => {
   it("admin and editor can edit proposals; pending cannot", () => {

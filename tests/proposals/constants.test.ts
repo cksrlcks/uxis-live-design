@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extForContentType, pagePath, ALLOWED_IMAGE_TYPES } from "@/legacy/lib/proposals/constants";
+import { extForContentType, pagePath, ALLOWED_IMAGE_TYPES } from "@/shared/lib/proposals/constants";
 
 describe("proposal storage constants", () => {
   it("maps allowed content types to extensions", () => {

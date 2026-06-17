@@ -1,9 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Button } from "@/legacy/components/ui/button";
-import { Input } from "@/legacy/components/ui/input";
-import { Label } from "@/legacy/components/ui/label";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
 
 export function ProposalSettings({
   proposalId,

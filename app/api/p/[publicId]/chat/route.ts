@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { chatMessages } from "@drizzle/schema";
 import { resolveViewerGate } from "@/legacy/lib/access/viewer-gate";
 import { validateChatBody } from "@/legacy/lib/meeting/chat";

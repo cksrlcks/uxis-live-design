@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { RealtimeProvider } from "./realtime-provider";
 import { PresenceBar } from "./presence-bar";
 import { ChatPanel } from "./chat-panel";
-import { type Identity, loadOrCreateIdentity, saveIdentity } from "@/legacy/lib/realtime/identity";
+import { type Identity, loadOrCreateIdentity, saveIdentity } from "@/shared/realtime/identity";
 import type { ChatMessageDTO } from "@/legacy/lib/meeting/types";
 
 export function RealtimeShell({ publicId, editorName, initialChat, children }: {

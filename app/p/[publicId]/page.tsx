@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import { resolveViewerGate } from "@/legacy/lib/access/viewer-gate";
 import { loadVariantsForProposal } from "@/legacy/lib/preview/load-variants";
 import { PublicViewer } from "@/legacy/components/preview/public-viewer";
-import { Button } from "@/legacy/components/ui/button";
-import { Input } from "@/legacy/components/ui/input";
-import { Label } from "@/legacy/components/ui/label";
-import { Card } from "@/legacy/components/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Card } from "@/shared/ui/card";
 import { unlock } from "./actions";
 
 export default async function PublicViewerPage({

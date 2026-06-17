@@ -1,5 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { pinComments } from "@drizzle/schema";
 import type { PinDTO } from "@/legacy/lib/pins/types";
 

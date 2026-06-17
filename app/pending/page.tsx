@@ -1,5 +1,5 @@
 import { logout } from "../(auth)/actions";
-import { Button } from "@/legacy/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 export default function PendingPage() {
   return (

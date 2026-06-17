@@ -1,8 +1,9 @@
+import "server-only";
 import { eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { profiles, type Profile } from "@drizzle/schema";
-import { createSupabaseServer } from "@/legacy/lib/supabase/server";
-import { isEditor, isAdmin, type Role } from "@/legacy/lib/auth/roles";
+import { createSupabaseServer } from "@/shared/supabase/server";
+import { isEditor, isAdmin, type Role } from "@/shared/auth/roles";
 
 export async function getSessionUser() {
   const supabase = await createSupabaseServer();

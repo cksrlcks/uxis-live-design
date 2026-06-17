@@ -1,4 +1,4 @@
-import { clamp01 } from "@/legacy/lib/realtime/coords";
+import { clamp01 } from "@/shared/realtime/coords";
 
 export type PageBox = { left: number; top: number; width: number; height: number; pageOrder: number };
 export type PinLocation = { pageOrder: number; xNorm: number; yNorm: number };

@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Button } from "@/legacy/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 export function RestoreButton({ proposalId, variantId, versionId, isCurrent }: {
   proposalId: string; variantId: string; versionId: string; isCurrent: boolean;

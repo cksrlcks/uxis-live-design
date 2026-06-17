@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { pinComments, proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
 import { resolveViewerGate } from "@/legacy/lib/access/viewer-gate";
-import { getProfile } from "@/legacy/lib/auth/session";
+import { getProfile } from "@/shared/auth/guards.server";
 import { validateChatBody } from "@/legacy/lib/meeting/chat"; // 범용 본문 검증(≤2000, trim) 재사용
-import { clamp01 } from "@/legacy/lib/realtime/coords";
+import { clamp01 } from "@/shared/realtime/coords";
 import { loadPinsForVersion } from "@/legacy/lib/pins/load-pins";
 import type { PinDTO } from "@/legacy/lib/pins/types";
 

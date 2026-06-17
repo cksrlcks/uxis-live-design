@@ -5,7 +5,7 @@ import type { PreviewPage } from "@/legacy/lib/preview/types";
 import type { PinContext } from "@/legacy/lib/pins/types";
 import { CanvasCursorLayer, CanvasCursorCapture } from "@/legacy/components/realtime/canvas-cursors";
 import { PinLayer } from "./pin-layer";
-import { Button } from "@/legacy/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 export function CanvasView({ pages, pin }: { pages: PreviewPage[]; pin?: PinContext }) {
   const rootRef = useRef<HTMLDivElement>(null);

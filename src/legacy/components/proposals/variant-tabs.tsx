@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useQueryState, parseAsString } from "nuqs";
 import { useState, useTransition } from "react";
-import { Button } from "@/legacy/components/ui/button";
-import { Input } from "@/legacy/components/ui/input";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 import { AddVariantForm } from "./add-variant-form";
 
 type VariantTab = { id: string; label: string; slug: string };

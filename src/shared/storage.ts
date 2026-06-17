@@ -1,5 +1,6 @@
-import { createSupabaseService } from "@/legacy/lib/supabase/service";
-import { PROPOSALS_BUCKET } from "@/legacy/lib/proposals/constants";
+import "server-only";
+import { createSupabaseService } from "@/shared/supabase/service";
+import { PROPOSALS_BUCKET } from "@/shared/lib/proposals/constants";
 
 export async function createUploadUrl(path: string) {
   const supabase = createSupabaseService();

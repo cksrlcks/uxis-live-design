@@ -1,7 +1,7 @@
 import { asc, eq, inArray } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
-import { createReadUrls } from "@/legacy/lib/proposals/storage";
+import { createReadUrls } from "@/shared/storage";
 import type { PreviewPage } from "@/legacy/lib/preview/types";
 
 // One variant (안) with its current version's pages, ready for the client viewer.

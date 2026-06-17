@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { proposalVariants, proposalVersions } from "@drizzle/schema";
-import { requireEditor } from "@/legacy/lib/auth/session";
-import { extForContentType, pagePath, MAX_PAGE_BYTES } from "@/legacy/lib/proposals/constants";
-import { createUploadUrl } from "@/legacy/lib/proposals/storage";
+import { requireEditor } from "@/shared/auth/guards.server";
+import { extForContentType, pagePath, MAX_PAGE_BYTES } from "@/shared/lib/proposals/constants";
+import { createUploadUrl } from "@/shared/storage";
 
 type FileSpec = { contentType: string; size: number };
 

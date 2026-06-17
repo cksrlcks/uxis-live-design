@@ -1,11 +1,11 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { proposals, type Proposal } from "@drizzle/schema";
-import { getProfile } from "@/legacy/lib/auth/session";
-import { isEditor, type Role } from "@/legacy/lib/auth/roles";
-import { decideAccess, type AccessDecision } from "@/legacy/lib/proposals/access";
+import { getProfile } from "@/shared/auth/guards.server";
+import { isEditor, type Role } from "@/shared/auth/roles";
+import { decideAccess, type AccessDecision } from "@/shared/lib/proposals/access";
 import { verifyUnlockToken, unlockCookieName } from "@/legacy/lib/access/cookie";
 
 export type ViewerGate = {

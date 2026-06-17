@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { useRealtimeOptional } from "./realtime-provider";
-import { toContent } from "@/legacy/lib/realtime/coords";
+import { toContent } from "@/shared/realtime/coords";
 
 // 원격 커서를 캔버스 transform 레이어 *안*에 그린다. 라이브러리가 각 뷰어의
 // 줌/팬으로 자동 투영하므로 커서가 콘텐츠에 붙는다. 아이콘은 부모(contentRef)에

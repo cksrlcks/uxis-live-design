@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { proposals, proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
-import { requireEditor } from "@/legacy/lib/auth/session";
+import { requireEditor } from "@/shared/auth/guards.server";
 
 export async function POST(
   req: NextRequest,

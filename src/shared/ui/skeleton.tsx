@@ -1,4 +1,4 @@
-import { cn } from "@/legacy/lib/utils"
+import { cn } from "@/shared/lib/utils"
 
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (

@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { desc } from "drizzle-orm";
-import { db } from "@/legacy/lib/db";
+import { db } from "@/shared/db";
 import { profiles } from "@drizzle/schema";
-import { getProfile } from "@/legacy/lib/auth/session";
-import { isAdmin, type Role } from "@/legacy/lib/auth/roles";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/legacy/components/ui/table";
-import { Badge } from "@/legacy/components/ui/badge";
+import { getProfile } from "@/shared/auth/guards.server";
+import { isAdmin, type Role } from "@/shared/auth/roles";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { Badge } from "@/shared/ui/badge";
 import { UserRowActions } from "@/legacy/components/admin/user-row-actions";
 
 export default async function AdminUsersPage() {

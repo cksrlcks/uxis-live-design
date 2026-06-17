@@ -4,7 +4,7 @@ import type { PreviewPage } from "@/legacy/lib/preview/types";
 import type { PinContext } from "@/legacy/lib/pins/types";
 import { FullscreenSlides } from "./fullscreen-slides";
 import { CanvasView } from "./canvas-view";
-import { Button } from "@/legacy/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 // Remembered in the URL as ?view=canvas (default "fullscreen" is omitted from the URL).
 // nuqs defaults to shallow + history:replace → toggling updates the URL without a server round-trip.
