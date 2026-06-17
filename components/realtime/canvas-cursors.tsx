@@ -15,7 +15,7 @@ export function CanvasCursorLayer() {
       {rt.cursors.map((c) => (
         <div
           key={c.id}
-          className="absolute transition-[left,top] duration-75 ease-linear"
+          className="absolute flex items-start transition-[left,top] duration-75 ease-linear"
           style={{
             left: c.cx,
             top: c.cy,
