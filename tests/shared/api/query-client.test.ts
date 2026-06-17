@@ -9,7 +9,10 @@ describe("makeQueryClient", () => {
   });
 
   it("does not retry 4xx but retries other errors up to 2x", () => {
-    const retry = makeQueryClient().getDefaultOptions().queries?.retry as (n: number, e: unknown) => boolean;
+    const retry = makeQueryClient().getDefaultOptions().queries?.retry as (
+      n: number,
+      e: unknown,
+    ) => boolean;
     expect(retry(0, new HttpError(404, "NOT_FOUND"))).toBe(false);
     expect(retry(0, new HttpError(500, "INTERNAL_ERROR"))).toBe(true);
     expect(retry(2, new HttpError(500, "INTERNAL_ERROR"))).toBe(false);
