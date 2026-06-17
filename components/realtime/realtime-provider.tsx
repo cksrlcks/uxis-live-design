@@ -94,16 +94,23 @@ export function RealtimeProvider({ publicId, identity, children }: {
     if (ch && ch.state === "joined") ch.track({ name: identity.name, color: identity.color });
   }, [identity.name, identity.color]);
 
+  // WebSocket-only delivery: skip when the channel isn't joined (pre-subscribe or
+  // dropped). send() would otherwise auto-fall back to REST — now deprecated, and
+  // wrong for high-frequency cursors (one HTTP request per move while disconnected).
   const sendCursor = useCallback((cx: number, cy: number) => {
+    const ch = channelRef.current;
+    if (ch?.state !== "joined") return;
     const me = identityRef.current;
-    channelRef.current?.send({
+    ch.send({
       type: "broadcast", event: "cursor",
       payload: { id: me.id, name: me.name, color: me.color, cx, cy },
     });
   }, []);
 
   const clearCursor = useCallback(() => {
-    channelRef.current?.send({ type: "broadcast", event: "cursor_leave", payload: { id: identityRef.current.id } });
+    const ch = channelRef.current;
+    if (ch?.state !== "joined") return;
+    ch.send({ type: "broadcast", event: "cursor_leave", payload: { id: identityRef.current.id } });
   }, []);
 
   return (
