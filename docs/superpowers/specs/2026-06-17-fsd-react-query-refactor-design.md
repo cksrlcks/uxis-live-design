@@ -191,7 +191,7 @@ export type CreateProposalInput = z.infer<typeof createProposalSchema>;
 - `components.json` alias 갱신(`ui:@/shared/ui`, `utils:@/shared/lib/utils`, `components:@/shared`, `css:src/app/styles/globals.css`) — shadcn CLI 유지.
 
 **0b — shared 승격 + provider:**
-- `src/legacy`에서 명백한 공용 모듈을 `shared/`로 승격(importer 갱신): `components/ui`→`shared/ui`, `lib/utils`→`shared/lib`, `lib/auth/roles`→`shared/auth`(술어), `lib/auth/session`의 가드(`requireEditor`/`requireAdmin`)→`shared/auth/guards.server.ts`(`server-only`), `lib/supabase`→`shared/supabase`, `lib/db`→`shared/db`, `lib/realtime/*`+`components/realtime/realtime-provider`→`shared/realtime`, `lib/fonts`→`shared/config`, `lib/proposals/{public-id,variant-slug,constants,access(decideAccess)}`→`shared/lib`, `lib/proposals/storage`→`shared/storage`(`server-only`).
+- `src/legacy`에서 명백한 공용 모듈을 `shared/`로 승격(importer 갱신): `components/ui`→`shared/ui`, `lib/utils`→`shared/lib`, `lib/auth/roles`→`shared/auth`(술어), `lib/auth/session`의 가드(`requireEditor`/`requireAdmin`)→`shared/auth/guards.server.ts`(`server-only`), `lib/supabase`→`shared/supabase`, `lib/db`→`shared/db`, `lib/realtime/*`(channel/identity/coords)→`shared/realtime`, `lib/fonts`→`shared/config`, `lib/proposals/{public-id,variant-slug,constants,access(decideAccess)}`→`shared/lib`, `lib/proposals/storage`→`shared/storage`(`server-only`).
 - `shared/api/{query-client,http,to-error-response}.ts` 추가.
 - `src/app/providers/{query-provider,theme-provider}.tsx` 추가 후 루트 `app/layout.tsx`에 주입(**NuqsAdapter 보존**, 폰트 import 경로 갱신).
 - 수용 기준: `src/app`에 라우트 파일(page/layout/route/loading) 없음 grep 확인.
@@ -243,7 +243,8 @@ export type CreateProposalInput = z.infer<typeof createProposalSchema>;
 | `components/ui/*` | `shared/ui/*` | 0b |
 | `lib/utils` | `shared/lib` | 0b |
 | `lib/db`, `lib/supabase`, `lib/fonts` | `shared/db`, `shared/supabase`, `shared/config` | 0b |
-| `lib/realtime/*` + `components/realtime/realtime-provider` | `shared/realtime` | 0b |
+| `lib/realtime/*` (channel/identity/coords) | `shared/realtime` | 0b |
+| `components/realtime/realtime-provider` | `shared/realtime` (provider) | 5 (deferred: relative-import + legacy-type entanglement) |
 | `lib/auth/roles`(술어) | `shared/auth` | 0b |
 | `lib/auth/session`(가드 requireEditor/requireAdmin) | `shared/auth/guards.server.ts` | 0b |
 | `lib/proposals/{public-id,variant-slug,constants,access}` | `shared/lib` | 0b |
