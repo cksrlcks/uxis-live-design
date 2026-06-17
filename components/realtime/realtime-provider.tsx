@@ -115,8 +115,9 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
     return () => {
       supabase.removeChannel(ch);
       channelRef.current = null;
-      pinSubsRef.current.clear(); // 채널 재생성 시 stale 핀 구독 누적 방지(소비자는 effect로 재구독)
     };
+    // 핀 구독 Set은 provider가 비우지 않는다 — 각 소비자(usePins)가 자기 effect cleanup으로
+    // 핸들러를 제거하고, subscribePins는 안정 참조라 채널 재생성과 무관하게 구독이 유지된다.
     // Intentional: only recreate the channel when the room or stable identity id changes,
     // not on every identity object reference change (name/color updates handled separately below).
   }, [publicId, identity.id]);

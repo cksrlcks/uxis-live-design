@@ -18,10 +18,13 @@ export function usePins(pin: PinContext) {
     return () => { alive = false; };
   }, [publicId, variantId, versionId]);
 
-  // 실시간 병합(현재 버전 대상만).
+  // 실시간 병합(현재 버전 대상만). subscribePins는 안정 참조(provider useCallback)라
+  // dep으로 쓰면, rt 전체(매 렌더 새 객체)와 달리 커서 등 고빈도 갱신마다
+  // 재구독되지 않는다 — 재구독 사이 broadcast 누락 윈도우 방지.
+  const subscribePins = rt?.subscribePins;
   useEffect(() => {
-    if (!rt) return;
-    return rt.subscribePins((e) => {
+    if (!subscribePins) return;
+    return subscribePins((e) => {
       if (e.type === "pin_deleted") { setPins((prev) => prev.filter((p) => p.id !== e.id)); return; }
       const p = e.pin;
       if (p.variantId !== variantId || p.versionId !== versionId) return;
@@ -30,7 +33,7 @@ export function usePins(pin: PinContext) {
         return exists ? prev.map((x) => (x.id === p.id ? p : x)) : [...prev, p];
       });
     });
-  }, [rt, variantId, versionId]);
+  }, [subscribePins, variantId, versionId]);
 
   const createPin = useCallback(async (input: { pageOrder: number; xNorm: number; yNorm: number; body: string }) => {
     const res = await fetch(`/api/p/${publicId}/pins`, {
