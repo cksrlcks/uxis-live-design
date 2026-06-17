@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createProposalSchema } from "@/entities/proposal/model/create-schema";
+import { MAX_PAGE_BYTES } from "@/shared/lib/proposals/constants";
 
 const okFile = { contentType: "image/png", size: 1000 };
 
@@ -27,7 +28,12 @@ describe("createProposalSchema", () => {
   });
 
   it("rejects a file over the size limit", () => {
-    const huge = { contentType: "image/png", size: 25 * 1024 * 1024 + 1 };
+    const huge = { contentType: "image/png", size: MAX_PAGE_BYTES + 1 };
     expect(createProposalSchema.safeParse({ title: "A", files: [huge] }).success).toBe(false);
+  });
+
+  it("accepts a file exactly at the size limit", () => {
+    const atLimit = { contentType: "image/png", size: MAX_PAGE_BYTES };
+    expect(createProposalSchema.safeParse({ title: "A", files: [atLimit] }).success).toBe(true);
   });
 });

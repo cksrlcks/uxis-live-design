@@ -1,13 +1,15 @@
 import { z } from "zod";
 import { ALLOWED_IMAGE_TYPES, MAX_PAGE_BYTES } from "@/shared/lib/proposals/constants";
 
+const MAX_MB = Math.round(MAX_PAGE_BYTES / (1024 * 1024));
+
 export const titleSchema = z.string().trim().min(1, "제목을 입력하세요");
 
 export const fileMetaSchema = z.object({
   contentType: z
     .string()
     .refine((t) => ALLOWED_IMAGE_TYPES.includes(t), "지원하지 않는 이미지 형식입니다"),
-  size: z.number().int().positive().max(MAX_PAGE_BYTES, "파일이 너무 큽니다 (최대 25MB)"),
+  size: z.number().int().positive().max(MAX_PAGE_BYTES, `파일이 너무 큽니다 (최대 ${MAX_MB}MB)`),
 });
 
 export const createProposalSchema = z.object({
