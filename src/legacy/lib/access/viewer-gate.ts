@@ -6,7 +6,7 @@ import { proposals, type Proposal } from "@drizzle/schema";
 import { getProfile } from "@/shared/auth/guards.server";
 import { isEditor, type Role } from "@/shared/auth/roles";
 import { decideAccess, type AccessDecision } from "@/shared/lib/proposals/access";
-import { verifyUnlockToken, unlockCookieName } from "@/legacy/lib/access/cookie";
+import { verifyUnlockToken, unlockCookieName } from "@/shared/access/unlock-token";
 
 export type ViewerGate = {
   proposal: Proposal | null;

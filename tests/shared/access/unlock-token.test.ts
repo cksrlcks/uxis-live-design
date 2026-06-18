@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { signUnlockToken, verifyUnlockToken, unlockCookieName } from "@/legacy/lib/access/cookie";
+import { signUnlockToken, verifyUnlockToken, unlockCookieName } from "@/shared/access/unlock-token";
 
 const SECRET = "test-secret";
 const NOW = 1_000_000; // epoch seconds (fixed for determinism)
