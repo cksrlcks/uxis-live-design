@@ -1,15 +1,10 @@
-import { NextResponse } from "next/server";
-import { desc } from "drizzle-orm";
-import { db } from "@/shared/db";
-import { profiles } from "@drizzle/schema";
-import { requireAdmin } from "@/shared/auth/guards.server";
+import { getUsers } from "@/entities/user/api/get-users.server";
+import { toErrorResponse } from "@/shared/api/to-error-response";
 
 export async function GET() {
   try {
-    await requireAdmin();
-  } catch {
-    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    return Response.json(await getUsers());
+  } catch (error) {
+    return toErrorResponse(error);
   }
-  const rows = await db.select().from(profiles).orderBy(desc(profiles.createdAt));
-  return NextResponse.json(rows);
 }
