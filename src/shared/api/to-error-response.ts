@@ -5,6 +5,10 @@ const STATUS_BY_CODE: Record<string, number> = {
   UNAUTHORIZED: 401,
   LOGIN_REQUIRED: 401,
   NOT_FOUND: 404,
+  INVALID_CREDENTIALS: 401,
+  EMAIL_TAKEN: 409,
+  SIGNUP_FAILED: 400,
+  RATE_LIMITED: 429,
 };
 
 export function toErrorResponse(error: unknown): Response {

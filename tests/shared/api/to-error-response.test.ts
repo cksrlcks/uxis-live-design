@@ -23,4 +23,22 @@ describe("toErrorResponse", () => {
   it("maps unknown error to 500", () => {
     expect(toErrorResponse("boom").status).toBe(500);
   });
+
+  it("maps INVALID_CREDENTIALS to 401", () => {
+    expect(toErrorResponse(new Error("INVALID_CREDENTIALS")).status).toBe(401);
+  });
+
+  it("maps EMAIL_TAKEN to 409", () => {
+    expect(toErrorResponse(new Error("EMAIL_TAKEN")).status).toBe(409);
+  });
+
+  it("maps SIGNUP_FAILED to 400", async () => {
+    const res = toErrorResponse(new Error("SIGNUP_FAILED"));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("SIGNUP_FAILED");
+  });
+
+  it("maps RATE_LIMITED to 429", () => {
+    expect(toErrorResponse(new Error("RATE_LIMITED")).status).toBe(429);
+  });
 });
