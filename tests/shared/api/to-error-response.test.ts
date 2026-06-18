@@ -49,4 +49,8 @@ describe("toErrorResponse", () => {
   it("maps OBJECT_MISSING to 400", () => {
     expect(toErrorResponse(new Error("OBJECT_MISSING")).status).toBe(400);
   });
+
+  it("maps CANNOT_MODIFY_SELF to 400", () => {
+    expect(toErrorResponse(new Error("CANNOT_MODIFY_SELF")).status).toBe(400);
+  });
 });
