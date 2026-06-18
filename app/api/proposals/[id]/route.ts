@@ -1,28 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { asc, eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { proposals, proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
 import { requireEditor } from "@/shared/auth/guards.server";
 import { hashPassword } from "@/legacy/lib/access/password";
 import { removeObjects } from "@/shared/storage";
+import { getProposalDetail } from "@/entities/proposal/api/get-proposal-detail.server";
+import { toErrorResponse } from "@/shared/api/to-error-response";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireEditor();
-  } catch {
-    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    const { id } = await params;
+    return Response.json(await getProposalDetail(id));
+  } catch (error) {
+    return toErrorResponse(error);
   }
-  const { id } = await params;
-  const rows = await db.select().from(proposals).where(eq(proposals.id, id)).limit(1);
-  if (rows.length === 0) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
-  const variants = await db.select().from(proposalVariants)
-    .where(eq(proposalVariants.proposalId, id)).orderBy(asc(proposalVariants.sortOrder));
-  const variantIds = variants.map((v) => v.id);
-  const versions = variantIds.length
-    ? await db.select().from(proposalVersions)
-        .where(inArray(proposalVersions.variantId, variantIds)).orderBy(asc(proposalVersions.versionNo))
-    : [];
-  return NextResponse.json({ proposal: rows[0], variants, versions });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -70,7 +62,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
   const { id } = await params;
-  const pages = await db.select({ path: proposalPages.storagePath }).from(proposalPages)
+  const pages = await db
+    .select({ path: proposalPages.storagePath })
+    .from(proposalPages)
     .innerJoin(proposalVersions, eq(proposalPages.versionId, proposalVersions.id))
     .innerJoin(proposalVariants, eq(proposalVersions.variantId, proposalVariants.id))
     .where(eq(proposalVariants.proposalId, id));
