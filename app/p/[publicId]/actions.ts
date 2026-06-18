@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { proposals } from "@drizzle/schema";
-import { verifyPassword } from "@/legacy/lib/access/password";
+import { verifyPassword } from "@/shared/lib/password";
 import { signUnlockToken, unlockCookieName, UNLOCK_TTL_SECONDS } from "@/legacy/lib/access/cookie";
 
 export async function unlock(publicId: string, formData: FormData) {
