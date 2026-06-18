@@ -44,8 +44,11 @@ export function ProposalSettings({
   }
 
   function onSetPassword({ password }: PasswordValues) {
-    change({ password });
-    reset();
+    setError(null);
+    updateSettings.mutate(
+      { password },
+      { onSuccess: () => reset(), onError: () => setError("변경에 실패했습니다.") },
+    );
   }
 
   function onDelete() {
