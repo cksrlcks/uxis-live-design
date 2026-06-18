@@ -1,6 +1,6 @@
 # Refactor Handoff — FSD + React Query + Zod/RHF + No-SSR-Fetch
 
-**Last updated:** 2026-06-17 · **Branch:** `refactor/fsd-react-query` (this branch) · **Live/deployed:** `origin/master` (untouched — do NOT push master).
+**Last updated:** 2026-06-18 · **Branch:** `refactor/fsd-react-query` (this branch) · **Live/deployed:** `origin/master` (untouched — do NOT push master).
 
 > This doc is the portable resume point (the equivalent of local machine memory). Read it first when continuing on another machine.
 
@@ -10,7 +10,7 @@
 git fetch origin
 git checkout refactor/fsd-react-query   # tracks origin; has all refactor work
 npm install                              # deps were added in Stage 0
-npm test                                 # expect all green (89 tests)
+npm test                                 # expect all green (102 tests)
 npm run build                            # expect PASS
 ```
 
@@ -40,6 +40,7 @@ src/            @ → ./src
 ```
 
 **Key patterns:**
+
 - Read: client page `useQuery(xQueries.list())` → client fetcher (`@/shared/api/http`) → `GET /api/x` (thin) → `getX()` `*.server.ts` (`requireEditor()` guard + Drizzle) → errors via `toErrorResponse`.
 - Write: RHF+Zod form → `useMutation` → `POST /api/x` (thin) → `createX()` `*.server.ts` (guard + `schema.parse` + DB) → invalidate query key.
 - Zod schema shared by client form + server fn lives in `entities/x/model/` (lower layer, so both can import it).
@@ -52,13 +53,14 @@ src/            @ → ./src
 
 **Stage 1 — Proposals core** (read + create vertical slice): `entities/proposal` (queryOptions factory + client fetchers + guarded `getProposals`/`createProposal` `*.server.ts` + `model/create-schema.ts`), thin `GET`/`POST /api/proposals` via `toErrorResponse`, `features/create-proposal` (RHF+Zod + `useMutation` + client upload orchestration), `src/shared/storage-client.ts` (moved from legacy), `src/pages/{proposals-list,proposal-new}` client pages, root routes are 1-line re-exports, CSRF same-origin guard in `proxy.ts`, `server-only` on `service.ts`.
 
-Verification at each stage: `tsc --noEmit` + `lint` + `test` (89) + `build` (23 routes), plus no-SSR / FSD-layering / server-only grep gates.
+**Stage 1b — Auth + auxiliary routes** (no-SSR auth slice): `src/pages/home` (`/` redirect, server boundary kept for auth gating); `src/pages/dashboard-home` (client-only dashboard home); `src/pages/{login,signup,pending}` + `src/features/auth` (RHF+Zod forms, `useLogin`/`useSignup`/`useLogout` hooks via `useMutation`). Supabase auth migrated to **route handlers** (`app/api/auth/{login,signup,logout}`) per the user's decision — NOT server actions; `app/(auth)/actions.ts` deleted. `isSafeInternalPath` promoted to `src/shared/lib` (consumed by `LoginForm` for the `returnTo` redirect guard). ESLint `@next/next/no-html-link-for-pages` rule disabled — it misfires on the FSD `src/pages` layer which is not the Pages Router. Added `+3 /api/auth/*` route handlers, `+13` tests (+4 to-error-response, +6 schema, +3 signup-error; safe-redirect test relocated, not added).
+
+Verification at each stage: `tsc --noEmit` + `lint` + `test` (102) + `build` (26 routes), plus no-SSR / FSD-layering / server-only grep gates.
 
 ## Next steps
 
-1. **Stage 1b** — migrate the remaining auxiliary routes: `app/page.tsx` (`/` redirect, keep server boundary) → `src/pages/home`; `dashboard/page.tsx` → `src/pages/dashboard-home`; the `(auth)` login/signup + pending pages → `src/pages/*` + `features/auth` (RHF+Zod forms; **keep the Supabase auth as server actions**, just wrap the UI). Write the plan first (`docs/superpowers/plans/`), audit it, then execute.
-2. **Stage 2** — variants/versions + proposal-detail (currently still legacy RSC). Carry-forwards below.
-3. Stages 3–6 per the spec: admin users → public viewer+access → realtime (pins/chat) → cleanup + full permission audit + delete `src/legacy`.
+1. **Stage 2** — variants/versions + proposal-detail (currently still legacy RSC). Carry-forwards below.
+2. Stages 3–6 per the spec: admin users → public viewer+access → realtime (pins/chat) → cleanup + full permission audit + delete `src/legacy`.
 
 ## Carry-forwards (fold into the stage that touches them)
 
