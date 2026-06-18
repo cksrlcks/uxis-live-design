@@ -10,7 +10,7 @@
 git fetch origin
 git checkout refactor/fsd-react-query   # tracks origin; has all refactor work
 npm install                              # deps were added in Stage 0
-npm test                                 # expect all green (102 tests)
+npm test                                 # expect all green (103 tests)
 npm run build                            # expect PASS
 ```
 
@@ -55,18 +55,21 @@ src/            @ → ./src
 
 **Stage 1b — Auth + auxiliary routes** (no-SSR auth slice): `src/pages/home` (`/` redirect, server boundary kept for auth gating); `src/pages/dashboard-home` (client-only dashboard home); `src/pages/{login,signup,pending}` + `src/features/auth` (RHF+Zod forms, `useLogin`/`useSignup`/`useLogout` hooks via `useMutation`). Supabase auth migrated to **route handlers** (`app/api/auth/{login,signup,logout}`) per the user's decision — NOT server actions; `app/(auth)/actions.ts` deleted. `isSafeInternalPath` promoted to `src/shared/lib` (consumed by `LoginForm` for the `returnTo` redirect guard). ESLint `@next/next/no-html-link-for-pages` rule disabled — it misfires on the FSD `src/pages` layer which is not the Pages Router. Added `+3 /api/auth/*` route handlers, `+13` tests (+4 to-error-response, +6 schema, +3 signup-error; safe-redirect test relocated, not added).
 
-Verification at each stage: `tsc --noEmit` + `lint` + `test` (102) + `build` (26 routes), plus no-SSR / FSD-layering / server-only grep gates.
+**Stage 2a — Proposal detail (client-side read + public images):** `proposalQueries.detail(id)` added to the entity factory; thin guarded `GET /api/proposals/[id]` returns a `ProposalDetail` DTO (`ProposalPage`/`EditorVariant` types centralized in `entities/proposal/model/` with legacy re-export bridges). **Images now public — read-signing dropped:** `publicUrl` helper added to `src/shared/storage.ts`; the `editor-images` bucket is set `public: true` (ops step required per environment); `createSignedUrl`/`createReadUrl` removed. `src/pages/proposal-detail` is now a fully client-side page (`"use client"`) that fetches via `useQuery(proposalQueries.detail(id))` — SSR data-fetch removed; the RSC wrapper only `await params` and renders the client page. Legacy edit components (`ProposalSettings`, `VariantTabs`, `ProposalEditorPreview`) kept as-is but their mutations now call `queryClient.invalidateQueries({ queryKey: proposalQueries.detail(id).queryKey })` to keep the cache fresh. `loadEditorVariants`/signers removed from `src/legacy/lib/queries.ts`. Added `+1` test (`publicUrl`). **Bucket-public ops step:** run `UPDATE storage.buckets SET public = true WHERE id = 'editor-images'` (or use the Supabase dashboard Storage → Policies → Make public) on each environment (local, staging, production) before deploying this branch.
+
+Verification at each stage: `tsc --noEmit` + `lint` + `test` (103) + `build` (26 routes), plus no-SSR / FSD-layering / server-only / no-signing grep gates.
 
 ## Next steps
 
-1. **Stage 2** — variants/versions + proposal-detail (currently still legacy RSC). Carry-forwards below.
-2. Stages 3–6 per the spec: admin users → public viewer+access → realtime (pins/chat) → cleanup + full permission audit + delete `src/legacy`.
+1. **Stage 2b** — detail edit mutations → `features/*` with RHF/Zod (where forms) + `useMutation` + thin `*.server.ts` routes: `PATCH`/`DELETE /api/proposals/[id]` (settings/visibility/password/delete), variant `PATCH`/`DELETE`, version `restore`. Replaces the raw-fetch legacy components rewired in 2a.
+2. **Stage 2c** — add-variant/add-version upload forms → `features/*` (reusing `shared/storage-client`); make the variant/version/pages `POST` routes thin (`*.server.ts` + Zod + `toErrorResponse`); delete legacy proposal-detail components + the `loadVariantsForProposal` bridge once Stage 4 no longer needs it.
+3. Stages 3–6 per the spec: admin users → public viewer+access → realtime (pins/chat) → cleanup + full permission audit + delete `src/legacy`.
 
 ## Carry-forwards (fold into the stage that touches them)
 
-- **Stage 2 — guarded editor-images GET:** the proposal-detail page reads variant pages + signed image URLs server-side with NO guarded API route yet. Add a `requireEditor`-guarded GET before moving it client-side (security blocker from the audit). Same pattern for the public viewer (Stage 4) and chat (Stage 5).
-- **Stage 2 — legacy add forms:** `src/legacy/components/proposals/{add-variant-form,add-version-form}.tsx` still use raw `fetch` (now importing `@/shared/storage-client`). Migrate to `features/{add-variant,add-version}` using `http` + mutation; reuse the file-meta part of the create schema.
-- **`proposalQueries.detail(id)`** doesn't exist yet — add it to the factory when variant/version mutations need detail invalidation.
+- **Stage 2b — legacy add forms:** `src/legacy/components/proposals/{add-variant-form,add-version-form}.tsx` still use raw `fetch` (now importing `@/shared/storage-client`). Migrate to `features/{add-variant,add-version}` using `http` + mutation; reuse the file-meta part of the create schema. (Deferred to Stage 2c.)
+- ~~**guarded editor-images GET:**~~ **SUPERSEDED** — the `editor-images` bucket is now public; image URLs are served directly without signed reads. The public viewer (Stage 4) uses `publicUrl` instead of signing. No guarded GET route needed.
+- ~~**`proposalQueries.detail(id)` doesn't exist yet**~~ — **Done in Stage 2a.** Factory extended; all detail mutations in 2a invalidate the detail query key.
 - **Client `Proposal` DTO:** entity types rows as the Drizzle row (`createdAt`/`updatedAt: Date`), but over HTTP they're ISO strings. Introduce a DTO when a stage renders/parses a timestamp.
 - **`http()` drops Zod `issues[]`** from 4xx bodies (keeps only the code). Surface server validation messages if a form needs them.
 - **`@tanstack/react-query-devtools`** is in `dependencies` (dev-stripped by the package — fine).
