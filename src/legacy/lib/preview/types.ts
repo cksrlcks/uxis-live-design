@@ -1,2 +1,3 @@
-// A single rendered page: signed read URL + native pixel dimensions + version page order.
-export type PreviewPage = { id: string; url: string; width: number; height: number; pageOrder: number };
+// PreviewPage is now the entity's ProposalPage (same shape). Re-exported here so
+// legacy preview components keep their `@/legacy/lib/preview/types` import.
+export type { ProposalPage as PreviewPage } from "@/entities/proposal";

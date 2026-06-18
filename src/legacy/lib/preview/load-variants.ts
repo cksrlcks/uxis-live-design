@@ -2,21 +2,8 @@ import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
 import { createReadUrls } from "@/shared/storage";
-import type { PreviewPage } from "@/legacy/lib/preview/types";
-
-// One variant (안) with its current version's pages, ready for the client viewer.
-export type ViewerVariant = {
-  id: string;
-  slug: string;
-  label: string;
-  currentVersionId: string | null;
-  pages: PreviewPage[];
-};
-
-// Editor view also needs the per-variant version history for the timeline UI.
-export type EditorVariant = ViewerVariant & {
-  versions: { id: string; versionNo: number; note: string | null }[];
-};
+import type { ViewerVariant, EditorVariant, ProposalPage } from "@/entities/proposal";
+export type { ViewerVariant, EditorVariant } from "@/entities/proposal";
 
 // Load EVERY variant of a proposal with its current pages in a fixed number of
 // queries + a single batch URL-signing call — so the client can switch variants
@@ -39,7 +26,7 @@ export async function loadVariantsForProposal(proposalId: string): Promise<Viewe
   const urlByPath = await createReadUrls(pages.map((p) => p.storagePath));
 
   // Group pages by version, preserving the pageOrder from the query above.
-  const pagesByVersion = new Map<string, PreviewPage[]>();
+  const pagesByVersion = new Map<string, ProposalPage[]>();
   for (const pg of pages) {
     const list = pagesByVersion.get(pg.versionId) ?? [];
     list.push({ id: pg.id, url: urlByPath.get(pg.storagePath) ?? "", width: pg.width, height: pg.height, pageOrder: pg.pageOrder });
