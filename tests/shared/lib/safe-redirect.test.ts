@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isSafeInternalPath } from "@/legacy/lib/access/safe-redirect";
+import { isSafeInternalPath } from "@/shared/lib/safe-redirect";
 
 describe("isSafeInternalPath", () => {
   it("accepts internal absolute paths", () => {

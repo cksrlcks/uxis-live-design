@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/shared/supabase/server";
-import { isSafeInternalPath } from "@/legacy/lib/access/safe-redirect";
+import { isSafeInternalPath } from "@/shared/lib/safe-redirect";
 
 export async function signup(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
