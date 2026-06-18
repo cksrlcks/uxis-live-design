@@ -1,0 +1,28 @@
+import { z } from "zod";
+
+export const updateSettingsSchema = z
+  .object({
+    title: z.string().trim().min(1, "제목을 입력하세요").optional(),
+    visibility: z.enum(["private", "public"]).optional(),
+    // string (≥4) to set/change, or null to clear. Absent = unchanged.
+    password: z.union([z.string().min(4, "비밀번호는 4자 이상이어야 합니다"), z.null()]).optional(),
+  })
+  .refine((v) => v.title !== undefined || v.visibility !== undefined || v.password !== undefined, {
+    message: "변경할 항목이 없습니다",
+  });
+export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
+
+export const updateVariantSchema = z
+  .object({
+    label: z.string().trim().min(1, "이름을 입력하세요").optional(),
+    sortOrder: z.number().int().optional(),
+  })
+  .refine((v) => v.label !== undefined || v.sortOrder !== undefined, {
+    message: "변경할 항목이 없습니다",
+  });
+export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
+
+export const restoreSchema = z.object({
+  versionId: z.string().min(1, "versionId가 필요합니다"),
+});
+export type RestoreInput = z.infer<typeof restoreSchema>;

@@ -9,6 +9,7 @@ const STATUS_BY_CODE: Record<string, number> = {
   EMAIL_TAKEN: 409,
   SIGNUP_FAILED: 400,
   RATE_LIMITED: 429,
+  LAST_VARIANT: 409,
 };
 
 export function toErrorResponse(error: unknown): Response {

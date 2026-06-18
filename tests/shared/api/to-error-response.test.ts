@@ -41,4 +41,8 @@ describe("toErrorResponse", () => {
   it("maps RATE_LIMITED to 429", () => {
     expect(toErrorResponse(new Error("RATE_LIMITED")).status).toBe(429);
   });
+
+  it("maps LAST_VARIANT to 409", () => {
+    expect(toErrorResponse(new Error("LAST_VARIANT")).status).toBe(409);
+  });
 });
