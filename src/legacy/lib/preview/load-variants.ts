@@ -1,15 +1,13 @@
 import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
-import { createReadUrls } from "@/shared/storage";
-import type { ViewerVariant, EditorVariant, ProposalPage } from "@/entities/proposal";
+import { proposalVariants, proposalPages } from "@drizzle/schema";
+import { publicUrl } from "@/shared/lib/proposals/constants";
+import type { ViewerVariant, ProposalPage } from "@/entities/proposal";
 export type { ViewerVariant, EditorVariant } from "@/entities/proposal";
 
 // Load EVERY variant of a proposal with its current pages in a fixed number of
-// queries + a single batch URL-signing call — so the client can switch variants
-// with zero server round-trips. Replaces the old per-variant / per-page signing
-// (N variants × M pages = N×M signed-URL network calls) with: variants query,
-// one pages query (inArray), one createSignedUrls batch.
+// queries — so the client can switch variants with zero server round-trips.
+// Pages are served via the public bucket URL (no signed URLs needed).
 export async function loadVariantsForProposal(proposalId: string): Promise<ViewerVariant[]> {
   const variants = await db.select().from(proposalVariants)
     .where(eq(proposalVariants.proposalId, proposalId)).orderBy(asc(proposalVariants.sortOrder));
@@ -23,13 +21,17 @@ export async function loadVariantsForProposal(proposalId: string): Promise<Viewe
         .where(inArray(proposalPages.versionId, versionIds)).orderBy(asc(proposalPages.pageOrder))
     : [];
 
-  const urlByPath = await createReadUrls(pages.map((p) => p.storagePath));
-
-  // Group pages by version, preserving the pageOrder from the query above.
+  // Group pages by version (public URLs — no signing).
   const pagesByVersion = new Map<string, ProposalPage[]>();
   for (const pg of pages) {
     const list = pagesByVersion.get(pg.versionId) ?? [];
-    list.push({ id: pg.id, url: urlByPath.get(pg.storagePath) ?? "", width: pg.width, height: pg.height, pageOrder: pg.pageOrder });
+    list.push({
+      id: pg.id,
+      url: publicUrl(pg.storagePath),
+      width: pg.width,
+      height: pg.height,
+      pageOrder: pg.pageOrder,
+    });
     pagesByVersion.set(pg.versionId, list);
   }
 
@@ -42,22 +44,3 @@ export async function loadVariantsForProposal(proposalId: string): Promise<Viewe
   }));
 }
 
-// Same as loadVariantsForProposal, plus each variant's full version history.
-export async function loadEditorVariants(proposalId: string): Promise<EditorVariant[]> {
-  const base = await loadVariantsForProposal(proposalId);
-  const variantIds = base.map((v) => v.id);
-
-  const versions = variantIds.length
-    ? await db.select().from(proposalVersions)
-        .where(inArray(proposalVersions.variantId, variantIds)).orderBy(asc(proposalVersions.versionNo))
-    : [];
-
-  const versionsByVariant = new Map<string, EditorVariant["versions"]>();
-  for (const ver of versions) {
-    const list = versionsByVariant.get(ver.variantId) ?? [];
-    list.push({ id: ver.id, versionNo: ver.versionNo, note: ver.note });
-    versionsByVariant.set(ver.variantId, list);
-  }
-
-  return base.map((v) => ({ ...v, versions: versionsByVariant.get(v.id) ?? [] }));
-}
