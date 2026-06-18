@@ -3,7 +3,7 @@ import { useQueryState, parseAsString } from "nuqs";
 import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { AddVariantForm } from "./add-variant-form";
+import { AddVariantForm } from "@/features/add-variant";
 import {
   useUpdateVariant,
   useDeleteVariant,
