@@ -26,7 +26,10 @@ export function ProposalSettings({
         body: JSON.stringify(payload),
       });
       if (!res.ok) setError((await res.json()).error ?? "변경 실패");
-      else queryClient.invalidateQueries({ queryKey: proposalQueries.detail(proposalId).queryKey });
+      else {
+        queryClient.invalidateQueries({ queryKey: proposalQueries.detail(proposalId).queryKey });
+        queryClient.invalidateQueries({ queryKey: proposalQueries.lists() });
+      }
     });
   }
 
