@@ -13,6 +13,17 @@ export function extForContentType(contentType: string): string | null {
   return EXT_BY_TYPE[contentType] ?? null;
 }
 
-export function pagePath(proposalId: string, versionId: string, pageId: string, ext: string): string {
+export function pagePath(
+  proposalId: string,
+  versionId: string,
+  pageId: string,
+  ext: string,
+): string {
   return `${proposalId}/${versionId}/${pageId}.${ext}`;
+}
+
+// Permanent public URL for an object in the (public) proposals bucket.
+// Reads NEXT_PUBLIC_SUPABASE_URL at call time so it works on server and client.
+export function publicUrl(path: string): string {
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PROPOSALS_BUCKET}/${path}`;
 }
