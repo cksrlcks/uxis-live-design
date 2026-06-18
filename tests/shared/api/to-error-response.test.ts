@@ -45,4 +45,8 @@ describe("toErrorResponse", () => {
   it("maps LAST_VARIANT to 409", () => {
     expect(toErrorResponse(new Error("LAST_VARIANT")).status).toBe(409);
   });
+
+  it("maps OBJECT_MISSING to 400", () => {
+    expect(toErrorResponse(new Error("OBJECT_MISSING")).status).toBe(400);
+  });
 });

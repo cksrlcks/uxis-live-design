@@ -10,6 +10,7 @@ const STATUS_BY_CODE: Record<string, number> = {
   SIGNUP_FAILED: 400,
   RATE_LIMITED: 429,
   LAST_VARIANT: 409,
+  OBJECT_MISSING: 400,
 };
 
 export function toErrorResponse(error: unknown): Response {
