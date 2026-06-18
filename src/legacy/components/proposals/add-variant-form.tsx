@@ -1,6 +1,7 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { proposalQueries } from "@/entities/proposal";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -8,7 +9,7 @@ import { ALLOWED_IMAGE_TYPES } from "@/shared/lib/proposals/constants";
 import { measureAll, uploadAll } from "@/shared/storage-client";
 
 export function AddVariantForm({ proposalId, onDone }: { proposalId: string; onDone?: () => void }) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +39,7 @@ export function AddVariantForm({ proposalId, onDone }: { proposalId: string; onD
       if (!confirm.ok) throw new Error((await confirm.json()).error ?? "페이지 저장 실패");
       form.reset();
       onDone?.();
-      router.refresh();
+      queryClient.invalidateQueries({ queryKey: proposalQueries.detail(proposalId).queryKey });
     } catch (err) {
       setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
     } finally {

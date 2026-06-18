@@ -1,6 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { proposalQueries } from "@/entities/proposal";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -11,6 +13,7 @@ export function ProposalSettings({
   hasPassword,
 }: { proposalId: string; visibility: string; hasPassword: boolean }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +26,7 @@ export function ProposalSettings({
         body: JSON.stringify(payload),
       });
       if (!res.ok) setError((await res.json()).error ?? "변경 실패");
-      else router.refresh();
+      else queryClient.invalidateQueries({ queryKey: proposalQueries.detail(proposalId).queryKey });
     });
   }
 
@@ -38,7 +41,10 @@ export function ProposalSettings({
     if (!confirm("이 시안을 삭제할까요? 모든 버전과 이미지가 사라집니다.")) return;
     start(async () => {
       const res = await fetch(`/api/proposals/${proposalId}`, { method: "DELETE" });
-      if (res.ok) { router.push("/dashboard/proposals"); router.refresh(); }
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: proposalQueries.lists() });
+        router.push("/dashboard/proposals");
+      }
       else setError((await res.json()).error ?? "삭제 실패");
     });
   }

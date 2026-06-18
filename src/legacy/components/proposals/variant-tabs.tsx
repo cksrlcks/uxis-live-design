@@ -1,6 +1,7 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useQueryState, parseAsString } from "nuqs";
+import { useQueryClient } from "@tanstack/react-query";
+import { proposalQueries } from "@/entities/proposal";
 import { useState, useTransition } from "react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -11,7 +12,7 @@ type VariantTab = { id: string; label: string; slug: string };
 export function VariantTabs({ proposalId, variants }: {
   proposalId: string; variants: VariantTab[];
 }) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   // ?variant (variant id) is the single source of truth for the active 안, shared
   // with ProposalEditorPreview. Shallow → switching tabs doesn't re-run the server.
   const [variantId, setVariantId] = useQueryState("variant", parseAsString.withOptions({ shallow: true, history: "push" }));
@@ -40,7 +41,7 @@ export function VariantTabs({ proposalId, variants }: {
     if (!label) return;
     start(async () => {
       const res = await patch(active.id, { label });
-      if (res.ok) { setError(null); setEditing(false); router.refresh(); }
+      if (res.ok) { setError(null); setEditing(false); queryClient.invalidateQueries({ queryKey: proposalQueries.detail(proposalId).queryKey }); }
       else setError("이름 변경에 실패했습니다.");
     });
   }
@@ -55,7 +56,7 @@ export function VariantTabs({ proposalId, variants }: {
         patch(active.id, { sortOrder: idx + dir }),
         patch(swapWith.id, { sortOrder: idx }),
       ]);
-      if (results.every((r) => r.ok)) { setError(null); router.refresh(); }
+      if (results.every((r) => r.ok)) { setError(null); queryClient.invalidateQueries({ queryKey: proposalQueries.detail(proposalId).queryKey }); }
       else setError("순서 변경에 실패했습니다.");
     });
   }
@@ -69,7 +70,7 @@ export function VariantTabs({ proposalId, variants }: {
       if (res.ok) {
         const rest = variants.filter((v) => v.id !== active.id)[0];
         if (rest) selectVariant(rest.id);
-        router.refresh();
+        queryClient.invalidateQueries({ queryKey: proposalQueries.detail(proposalId).queryKey });
       } else setError("삭제에 실패했습니다.");
     });
   }
