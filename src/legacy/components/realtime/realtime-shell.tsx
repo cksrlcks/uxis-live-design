@@ -4,10 +4,15 @@ import { RealtimeProvider } from "./realtime-provider";
 import { PresenceBar } from "./presence-bar";
 import { ChatPanel } from "./chat-panel";
 import { type Identity, loadOrCreateIdentity, saveIdentity } from "@/shared/realtime/identity";
-import type { ChatMessageDTO } from "@/legacy/lib/meeting/types";
 
-export function RealtimeShell({ publicId, editorName, initialChat, children }: {
-  publicId: string; editorName: string | null; initialChat: ChatMessageDTO[]; children: React.ReactNode;
+export function RealtimeShell({
+  publicId,
+  editorName,
+  children,
+}: {
+  publicId: string;
+  editorName: string | null;
+  children: React.ReactNode;
 }) {
   const [identity, setIdentity] = useState<Identity | null>(null);
 
@@ -28,7 +33,7 @@ export function RealtimeShell({ publicId, editorName, initialChat, children }: {
   }
 
   return (
-    <RealtimeProvider publicId={publicId} identity={identity} initialChat={initialChat}>
+    <RealtimeProvider publicId={publicId} identity={identity}>
       {children}
       <PresenceBar identity={identity} onRename={rename} />
       <ChatPanel publicId={publicId} identity={identity} />

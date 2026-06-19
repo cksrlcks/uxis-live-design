@@ -4,7 +4,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createSupabaseBrowser } from "@/shared/supabase/client";
 import { channelName } from "@/shared/realtime/channel";
 import type { Identity } from "@/shared/realtime/identity";
-import type { ChatMessageDTO } from "@/legacy/lib/meeting/types";
+import type { ChatMessageDTO } from "@/entities/chat-message";
 import type { PinDTO, PinEvent } from "@/legacy/lib/pins/types";
 
 export type Participant = { id: string; name: string; color: string };
@@ -15,8 +15,8 @@ type RealtimeContextValue = {
   cursors: RemoteCursor[];
   sendCursor: (cx: number, cy: number) => void;
   clearCursor: () => void;
-  chatMessages: ChatMessageDTO[];
-  sendChat: (message: ChatMessageDTO) => void;
+  subscribeChat: (handler: (m: ChatMessageDTO) => void) => () => void;
+  broadcastChat: (message: ChatMessageDTO) => void;
   myColor: string;
   subscribePins: (handler: (e: PinEvent) => void) => () => void;
   broadcastPin: (pin: PinDTO) => void;
@@ -38,8 +38,14 @@ export function useRealtimeOptional(): RealtimeContextValue | null {
   return useContext(RealtimeContext);
 }
 
-export function RealtimeProvider({ publicId, identity, initialChat, children }: {
-  publicId: string; identity: Identity; initialChat: ChatMessageDTO[]; children: React.ReactNode;
+export function RealtimeProvider({
+  publicId,
+  identity,
+  children,
+}: {
+  publicId: string;
+  identity: Identity;
+  children: React.ReactNode;
 }) {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const identityRef = useRef<Identity>(identity);
@@ -48,7 +54,7 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
 
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [cursors, setCursors] = useState<RemoteCursor[]>([]);
-  const [chatMessages, setChatMessages] = useState<ChatMessageDTO[]>(initialChat);
+  const chatSubsRef = useRef(new Set<(m: ChatMessageDTO) => void>());
   const pinSubsRef = useRef(new Set<(e: PinEvent) => void>());
 
   // (Re)create the channel only when the room or my stable id changes.
@@ -87,7 +93,7 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
     ch.on("broadcast", { event: "chat" }, ({ payload }) => {
       const m = payload as ChatMessageDTO;
       if (!m?.id) return; // public channel: drop malformed/garbage chat payloads
-      setChatMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+      chatSubsRef.current.forEach((h) => h(m));
     });
 
     ch.on("broadcast", { event: "pin" }, ({ payload }) => {
@@ -137,7 +143,8 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
     if (ch?.state !== "joined") return;
     const me = identityRef.current;
     ch.send({
-      type: "broadcast", event: "cursor",
+      type: "broadcast",
+      event: "cursor",
       payload: { id: me.id, name: me.name, color: me.color, cx, cy },
     });
   }, []);
@@ -148,19 +155,25 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
     ch.send({ type: "broadcast", event: "cursor_leave", payload: { id: identityRef.current.id } });
   }, []);
 
-  // 저장 성공(BFF) 후 호출. self:false라 송신자는 자기 broadcast를 못 받으므로 로컬에도 append.
-  // 채널이 joined가 아니면 broadcast는 건너뛴다(메시지는 이미 BFF에 저장됨 → 피어는 재접속/새로고침 시 initial 로드로 복구).
-  const sendChat = useCallback((message: ChatMessageDTO) => {
-    setChatMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
+  const subscribeChat = useCallback((handler: (m: ChatMessageDTO) => void) => {
+    chatSubsRef.current.add(handler);
+    return () => {
+      chatSubsRef.current.delete(handler);
+    };
+  }, []);
+
+  // 저장 성공(BFF) 후 호출. self:false라 송신자는 자기 broadcast를 못 받으므로
+  // 피어에게만 전달. 채널이 joined가 아니면 broadcast는 건너뛴다.
+  const broadcastChat = useCallback((message: ChatMessageDTO) => {
     const ch = channelRef.current;
-    if (ch?.state === "joined") {
-      ch.send({ type: "broadcast", event: "chat", payload: message });
-    }
+    if (ch?.state === "joined") ch.send({ type: "broadcast", event: "chat", payload: message });
   }, []);
 
   const subscribePins = useCallback((handler: (e: PinEvent) => void) => {
     pinSubsRef.current.add(handler);
-    return () => { pinSubsRef.current.delete(handler); };
+    return () => {
+      pinSubsRef.current.delete(handler);
+    };
   }, []);
 
   const broadcastPin = useCallback((pin: PinDTO) => {
@@ -173,11 +186,26 @@ export function RealtimeProvider({ publicId, identity, initialChat, children }: 
   }, []);
   const broadcastPinDeleted = useCallback((id: string) => {
     const ch = channelRef.current;
-    if (ch?.state === "joined") ch.send({ type: "broadcast", event: "pin_deleted", payload: { id } });
+    if (ch?.state === "joined")
+      ch.send({ type: "broadcast", event: "pin_deleted", payload: { id } });
   }, []);
 
   return (
-    <RealtimeContext.Provider value={{ participants, cursors, sendCursor, clearCursor, chatMessages, sendChat, myColor: identity.color, subscribePins, broadcastPin, broadcastPinUpdated, broadcastPinDeleted }}>
+    <RealtimeContext.Provider
+      value={{
+        participants,
+        cursors,
+        sendCursor,
+        clearCursor,
+        subscribeChat,
+        broadcastChat,
+        myColor: identity.color,
+        subscribePins,
+        broadcastPin,
+        broadcastPinUpdated,
+        broadcastPinDeleted,
+      }}
+    >
       {children}
     </RealtimeContext.Provider>
   );
