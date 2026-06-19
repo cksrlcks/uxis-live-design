@@ -3,7 +3,7 @@ import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { proposalVariants, proposalPages } from "@drizzle/schema";
 import { publicUrl } from "@/shared/lib/proposals/constants";
-import { resolveViewerGate } from "./resolve-viewer-gate.server";
+import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
 import type { ViewerVariant, ProposalPage } from "../model/types";
 
 export async function getViewerVariants(publicId: string): Promise<ViewerVariant[]> {

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { resolveViewerGate } from "@/entities/proposal/api/resolve-viewer-gate.server";
+import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
 import { PublicViewerPage as ClientViewerPage } from "@/pages/public-viewer";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";

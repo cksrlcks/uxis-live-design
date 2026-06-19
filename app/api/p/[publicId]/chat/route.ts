@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { db } from "@/shared/db";
 import { chatMessages } from "@drizzle/schema";
-import { resolveViewerGate } from "@/entities/proposal/api/resolve-viewer-gate.server";
+import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
 import { validateChatBody } from "@/legacy/lib/meeting/chat";
 import type { ChatMessageDTO } from "@/legacy/lib/meeting/types";
 

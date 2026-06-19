@@ -1,4 +1,4 @@
-import { resolveViewerGate } from "@/entities/proposal/api/resolve-viewer-gate.server";
+import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
 import { RealtimeShell } from "@/legacy/components/realtime/realtime-shell";
 import { loadRecentChat } from "@/legacy/lib/meeting/load-chat";
 

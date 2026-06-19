@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { pinComments } from "@drizzle/schema";
-import { resolveViewerGate } from "@/entities/proposal/api/resolve-viewer-gate.server";
+import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
 import { getProfile } from "@/shared/auth/guards.server";
 import { validateChatBody } from "@/legacy/lib/meeting/chat";
 import type { PinDTO } from "@/legacy/lib/pins/types";

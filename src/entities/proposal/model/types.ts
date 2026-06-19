@@ -1,14 +1,6 @@
 import type { Proposal } from "@drizzle/schema";
-import type { AccessDecision } from "@/shared/lib/proposals/access";
 
 export type { Proposal };
-
-export type ViewerGate = {
-  proposal: Proposal | null;
-  decision: AccessDecision;
-  editorName: string | null;
-  viewer: { id: string; displayName: string | null } | null;
-};
 
 // A single rendered page: public read URL + native pixel dimensions + page order.
 export type ProposalPage = {
