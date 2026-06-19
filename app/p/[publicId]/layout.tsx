@@ -1,5 +1,5 @@
 import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
-import { RealtimeShell } from "@/legacy/components/realtime/realtime-shell";
+import { RealtimeShell } from "@/widgets/realtime-shell";
 
 // The layout persists across in-viewer navigations (?v=, ?compare=) on the same
 // [publicId] segment, so the realtime channel mounted here is NOT torn down when

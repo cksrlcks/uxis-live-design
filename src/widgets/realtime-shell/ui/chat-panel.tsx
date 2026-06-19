@@ -24,10 +24,8 @@ export function ChatPanel({ publicId, identity }: { publicId: string; identity: 
     () =>
       subscribeChat((raw) => {
         const m = raw as ChatMessageDTO;
-        qc.setQueryData<ChatMessageDTO[]>(
-          chatQueries.list(publicId).queryKey,
-          (prev) =>
-            prev && prev.some((x) => x.id === m.id) ? prev : [...(prev ?? []), m],
+        qc.setQueryData<ChatMessageDTO[]>(chatQueries.list(publicId).queryKey, (prev) =>
+          prev && prev.some((x) => x.id === m.id) ? prev : [...(prev ?? []), m],
         );
       }),
     [subscribeChat, qc, publicId],
@@ -59,41 +57,46 @@ export function ChatPanel({ publicId, identity }: { publicId: string; identity: 
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-3 left-3 z-50 rounded-full border border-border bg-background/90 px-4 py-2 text-sm font-medium shadow-sm backdrop-blur"
+        className="border-border bg-background/90 fixed bottom-3 left-3 z-50 rounded-full border px-4 py-2 text-sm font-medium shadow-sm backdrop-blur"
       >
         채팅
         {chatMessages.length > 0 && (
-          <span className="ml-1 text-muted-foreground">{chatMessages.length}</span>
+          <span className="text-muted-foreground ml-1">{chatMessages.length}</span>
         )}
       </button>
     );
   }
 
   return (
-    <div className="fixed bottom-3 left-3 z-50 flex h-96 w-80 flex-col rounded-lg border border-border bg-background/95 shadow-lg backdrop-blur">
-      <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-2">
+    <div className="border-border bg-background/95 fixed bottom-3 left-3 z-50 flex h-96 w-80 flex-col rounded-lg border shadow-lg backdrop-blur">
+      <div className="border-border flex shrink-0 items-center justify-between border-b px-3 py-2">
         <span className="text-sm font-medium">채팅</span>
-        <button onClick={() => setOpen(false)} className="text-sm text-muted-foreground">
+        <button onClick={() => setOpen(false)} className="text-muted-foreground text-sm">
           닫기
         </button>
       </div>
       <div ref={listRef} className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {chatMessages.length === 0 && (
-          <p className="text-xs text-muted-foreground">아직 메시지가 없습니다.</p>
+          <p className="text-muted-foreground text-xs">아직 메시지가 없습니다.</p>
         )}
         {chatMessages.map((m) => (
           <div key={m.id} className="text-sm">
             <span className="font-medium" style={{ color: m.authorColor }}>
               {m.authorName}
             </span>
-            <span className="ml-2 whitespace-pre-wrap break-words">{m.body}</span>
+            <span className="ml-2 break-words whitespace-pre-wrap">{m.body}</span>
           </div>
         ))}
       </div>
       {(failed || send.isError) && (
-        <p className="shrink-0 px-3 pb-1 text-xs text-destructive">전송 실패 — 다시 시도해 주세요.</p>
+        <p className="text-destructive shrink-0 px-3 pb-1 text-xs">
+          전송 실패 — 다시 시도해 주세요.
+        </p>
       )}
-      <form onSubmit={submit} className="flex shrink-0 items-center gap-2 border-t border-border p-2">
+      <form
+        onSubmit={submit}
+        className="border-border flex shrink-0 items-center gap-2 border-t p-2"
+      >
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
