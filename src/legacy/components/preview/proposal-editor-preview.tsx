@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { useQueryState, parseAsString } from "nuqs";
-import type { EditorVariant } from "@/legacy/lib/preview/load-variants";
+import type { EditorVariant } from "@/entities/proposal";
 import { ProposalPreview } from "./proposal-preview";
 import { usePrefetchImages } from "./use-prefetch-images";
 import { AddVersionForm } from "@/features/add-version";

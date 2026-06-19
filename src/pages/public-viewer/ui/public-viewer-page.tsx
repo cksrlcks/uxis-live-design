@@ -1,0 +1,21 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { proposalQueries } from "@/entities/proposal";
+import { PublicViewer } from "@/legacy/components/preview/public-viewer";
+
+export function PublicViewerPage({
+  publicId,
+  viewer,
+}: {
+  publicId: string;
+  viewer: { id: string } | null;
+}) {
+  const { data: variants, isPending, isError } = useQuery(proposalQueries.viewerVariants(publicId));
+
+  if (isPending) return <p className="text-muted-foreground p-6 text-sm">불러오는 중…</p>;
+  if (isError || !variants)
+    return <p className="text-destructive p-6 text-sm">시안을 불러오지 못했습니다.</p>;
+
+  return <PublicViewer variants={variants} publicId={publicId} viewer={viewer} />;
+}

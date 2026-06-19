@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { useQueryStates, parseAsString } from "nuqs";
-import type { ViewerVariant } from "@/legacy/lib/preview/load-variants";
+import type { ViewerVariant } from "@/entities/proposal";
 import type { PinContext } from "@/legacy/lib/pins/types";
 import { ProposalPreview } from "./proposal-preview";
 import { CompareView } from "./compare-view";

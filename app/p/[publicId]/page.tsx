@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { resolveViewerGate } from "@/entities/proposal/api/resolve-viewer-gate.server";
-import { loadVariantsForProposal } from "@/legacy/lib/preview/load-variants";
-import { PublicViewer } from "@/legacy/components/preview/public-viewer";
+import { PublicViewerPage as ClientViewerPage } from "@/pages/public-viewer";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -57,8 +56,6 @@ export default async function PublicViewerPage({
     );
   }
 
-  // decision === "allow": load every 안 with its pages once (one batch URL-signing
-  // call), then let the client switch between them with no further server round-trips.
-  const variants = await loadVariantsForProposal(proposal.id);
-  return <PublicViewer variants={variants} publicId={publicId} viewer={viewer} />;
+  // decision === "allow": content is fetched client-side via React Query (guarded GET).
+  return <ClientViewerPage publicId={publicId} viewer={viewer ? { id: viewer.id } : null} />;
 }
