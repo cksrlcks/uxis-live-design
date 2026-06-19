@@ -14,7 +14,7 @@ export function ProposalsListPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">시안</h1>
-        <Link href="/dashboard/proposals/new" className={buttonVariants()}>
+        <Link href="/studio/proposals/new" className={buttonVariants()}>
           새 시안
         </Link>
       </div>
@@ -56,7 +56,7 @@ export function ProposalsListPage() {
           {rows?.map((p) => (
             <TableRow key={p.id}>
               <TableCell>
-                <Link href={`/dashboard/proposals/${p.id}`} className="underline">
+                <Link href={`/studio/proposals/${p.id}`} className="underline">
                   {p.title}
                 </Link>
               </TableCell>

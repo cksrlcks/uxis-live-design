@@ -35,7 +35,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
     setFormError(null);
     try {
       await loginMutation.mutateAsync(values);
-      router.replace(isSafeInternalPath(returnTo) ? returnTo : "/dashboard");
+      router.replace(isSafeInternalPath(returnTo) ? returnTo : "/studio");
       router.refresh();
     } catch (err) {
       setFormError(loginErrorMessage(err));

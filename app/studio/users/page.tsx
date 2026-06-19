@@ -5,6 +5,6 @@ import { AdminUsersPage } from "@/pages/admin-users";
 
 export default async function Page() {
   const profile = await getProfile();
-  if (!profile || !isAdmin(profile.role as Role)) redirect("/dashboard");
+  if (!profile || !isAdmin(profile.role as Role)) redirect("/studio");
   return <AdminUsersPage />;
 }

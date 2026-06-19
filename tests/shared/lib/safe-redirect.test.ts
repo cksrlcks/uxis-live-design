@@ -5,7 +5,7 @@ describe("isSafeInternalPath", () => {
   it("accepts internal absolute paths", () => {
     expect(isSafeInternalPath("/p/abc")).toBe(true);
     expect(isSafeInternalPath("/p/abc?v=a")).toBe(true);
-    expect(isSafeInternalPath("/dashboard")).toBe(true);
+    expect(isSafeInternalPath("/studio")).toBe(true);
   });
   it("rejects non-strings / empty", () => {
     expect(isSafeInternalPath(null)).toBe(false);

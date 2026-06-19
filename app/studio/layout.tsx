@@ -4,7 +4,7 @@ import { getProfile } from "@/shared/auth/guards.server";
 import { isEditor, isAdmin, type Role } from "@/shared/auth/roles";
 import { LogoutButton } from "@/features/auth";
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function StudioLayout({ children }: { children: React.ReactNode }) {
   const profile = await getProfile();
   if (!profile) redirect("/login");
   if (!isEditor(profile.role as Role)) redirect("/pending");
@@ -14,14 +14,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <aside className="border-border w-60 border-r p-4">
         <div className="mb-6 text-sm font-medium tracking-tight">uxis live design</div>
         <nav className="space-y-1 text-sm">
-          <Link
-            href="/dashboard/proposals"
-            className="hover:bg-muted block rounded-[4px] px-3 py-2"
-          >
+          <Link href="/studio/proposals" className="hover:bg-muted block rounded-[4px] px-3 py-2">
             시안
           </Link>
           {isAdmin(profile.role as Role) && (
-            <Link href="/admin/users" className="hover:bg-muted block rounded-[4px] px-3 py-2">
+            <Link href="/studio/users" className="hover:bg-muted block rounded-[4px] px-3 py-2">
               사용자 관리
             </Link>
           )}

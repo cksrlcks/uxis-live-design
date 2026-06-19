@@ -55,7 +55,7 @@ export function ProposalSettings({
     if (!confirm("이 시안을 삭제할까요? 모든 버전과 이미지가 사라집니다.")) return;
     setError(null);
     deleteProposal.mutate(undefined, {
-      onSuccess: () => router.push("/dashboard/proposals"),
+      onSuccess: () => router.push("/studio/proposals"),
       onError: () => setError("삭제에 실패했습니다."),
     });
   }

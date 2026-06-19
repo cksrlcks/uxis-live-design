@@ -42,7 +42,7 @@ export function ProposalCreateForm() {
 
     try {
       const { proposalId } = await createProposal.mutateAsync({ title, files });
-      router.push(`/dashboard/proposals/${proposalId}`);
+      router.push(`/studio/proposals/${proposalId}`);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "오류가 발생했습니다.");
     }
