@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { useRealtimeOptional } from "./realtime-provider";
+import { useRealtimeOptional } from "@/legacy/components/realtime/realtime-provider";
 import { toContent } from "@/shared/realtime/coords";
 
 // 원격 커서를 캔버스 transform 레이어 *안*에 그린다. 라이브러리가 각 뷰어의
@@ -23,7 +23,13 @@ export function CanvasCursorLayer() {
             transformOrigin: "0 0",
           }}
         >
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" style={{ color: c.color, display: "block" }}>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 16 16"
+            fill="none"
+            style={{ color: c.color, display: "block" }}
+          >
             <path d="M1 1l5 14 2-5 5-2L1 1z" fill="currentColor" stroke="white" strokeWidth="1" />
           </svg>
           <span

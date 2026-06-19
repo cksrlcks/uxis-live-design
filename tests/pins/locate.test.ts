@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { locatePin, placePin } from "@/legacy/lib/pins/locate";
+import { locatePin, placePin } from "@/widgets/preview-canvas/lib/locate";
 
 const boxes = [
   { left: 0, top: 0, width: 100, height: 200, pageOrder: 0 },

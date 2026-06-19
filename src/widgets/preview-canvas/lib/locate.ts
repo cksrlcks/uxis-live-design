@@ -1,6 +1,12 @@
 import { clamp01 } from "@/shared/realtime/coords";
 
-export type PageBox = { left: number; top: number; width: number; height: number; pageOrder: number };
+export type PageBox = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  pageOrder: number;
+};
 export type PinLocation = { pageOrder: number; xNorm: number; yNorm: number };
 
 // 콘텐츠 좌표 (cx,cy)가 어떤 페이지 박스 안이면 그 페이지 기준 정규화 좌표를, 아니면 null.

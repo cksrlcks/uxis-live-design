@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { proposalQueries } from "@/entities/proposal";
-import { PublicViewer } from "@/legacy/components/preview/public-viewer";
+import { PublicViewer } from "@/widgets/preview-canvas";
 
 export function PublicViewerPage({
   publicId,

@@ -1,13 +1,13 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import type { PreviewPage } from "@/legacy/lib/preview/types";
+import type { ProposalPage } from "@/entities/proposal";
 import type { PinContext } from "@/legacy/lib/pins/types";
-import { CanvasCursorLayer, CanvasCursorCapture } from "@/legacy/components/realtime/canvas-cursors";
+import { CanvasCursorLayer, CanvasCursorCapture } from "./canvas-cursors";
 import { PinLayer } from "./pin-layer";
 import { Button } from "@/shared/ui/button";
 
-export function CanvasView({ pages, pin }: { pages: PreviewPage[]; pin?: PinContext }) {
+export function CanvasView({ pages, pin }: { pages: ProposalPage[]; pin?: PinContext }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<"pan" | "comment">("pan");
@@ -18,17 +18,31 @@ export function CanvasView({ pages, pin }: { pages: PreviewPage[]; pin?: PinCont
   }, []);
 
   if (pages.length === 0) {
-    return <div className="p-8 text-sm text-muted-foreground">페이지가 없습니다.</div>;
+    return <div className="text-muted-foreground p-8 text-sm">페이지가 없습니다.</div>;
   }
 
   const commenting = !!pin && mode === "comment";
 
   return (
-    <div ref={rootRef} className="relative h-full w-full bg-muted">
+    <div ref={rootRef} className="bg-muted relative h-full w-full">
       {pin && (
-        <div className="absolute left-3 top-3 z-10 flex gap-1 rounded-md border border-border bg-background/90 p-1 shadow-sm backdrop-blur">
-          <Button size="sm" variant={mode === "pan" ? "default" : "outline"} className="h-7" onClick={() => setMode("pan")}>일반</Button>
-          <Button size="sm" variant={mode === "comment" ? "default" : "outline"} className="h-7" onClick={() => setMode("comment")}>코멘트</Button>
+        <div className="border-border bg-background/90 absolute top-3 left-3 z-10 flex gap-1 rounded-md border p-1 shadow-sm backdrop-blur">
+          <Button
+            size="sm"
+            variant={mode === "pan" ? "default" : "outline"}
+            className="h-7"
+            onClick={() => setMode("pan")}
+          >
+            일반
+          </Button>
+          <Button
+            size="sm"
+            variant={mode === "comment" ? "default" : "outline"}
+            className="h-7"
+            onClick={() => setMode("comment")}
+          >
+            코멘트
+          </Button>
         </div>
       )}
       <TransformWrapper
@@ -44,11 +58,29 @@ export function CanvasView({ pages, pin }: { pages: PreviewPage[]; pin?: PinCont
       >
         <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
           <div ref={contentRef} style={{ position: "relative", width: "max-content" }}>
-            <div style={{ display: "flex", flexDirection: "row", flexWrap: "nowrap", alignItems: "flex-start", gap: "3rem", padding: "2rem", width: "max-content" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "nowrap",
+                alignItems: "flex-start",
+                gap: "3rem",
+                padding: "2rem",
+                width: "max-content",
+              }}
+            >
               {pages.map((pg, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={pg.id} data-page-index={i} src={pg.url} alt="" width={pg.width} height={pg.height} draggable={false}
-                  className="block max-w-none shrink-0 select-none border border-border bg-background" />
+                <img
+                  key={pg.id}
+                  data-page-index={i}
+                  src={pg.url}
+                  alt=""
+                  width={pg.width}
+                  height={pg.height}
+                  draggable={false}
+                  className="border-border bg-background block max-w-none shrink-0 border select-none"
+                />
               ))}
             </div>
             <CanvasCursorLayer />
