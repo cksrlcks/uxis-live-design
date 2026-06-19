@@ -12,6 +12,7 @@ const STATUS_BY_CODE: Record<string, number> = {
   LAST_VARIANT: 409,
   OBJECT_MISSING: 400,
   CANNOT_MODIFY_SELF: 400,
+  BAD_QUERY: 400,
 };
 
 export function toErrorResponse(error: unknown): Response {

@@ -7,35 +7,20 @@ import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
 import { getProfile } from "@/shared/auth/guards.server";
 import { validateChatBody } from "@/legacy/lib/meeting/chat"; // 범용 본문 검증(≤2000, trim) 재사용
 import { clamp01 } from "@/shared/realtime/coords";
-import { loadPinsForVersion } from "@/legacy/lib/pins/load-pins";
+import { getPins } from "@/entities/pin/api/get-pins.server";
+import { toErrorResponse } from "@/shared/api/to-error-response";
 import type { PinDTO } from "@/legacy/lib/pins/types";
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ publicId: string }> }) {
-  const { publicId } = await params;
-  const { proposal, decision } = await resolveViewerGate(publicId);
-  if (!proposal || decision !== "allow")
-    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
-
-  const variantId = req.nextUrl.searchParams.get("variant") ?? "";
-  const versionId = req.nextUrl.searchParams.get("version") ?? "";
-  if (!variantId || !versionId) return NextResponse.json({ error: "BAD_QUERY" }, { status: 400 });
-
-  // 소속 확인: variant가 이 proposal 것인지, version이 그 variant 것인지(POST와 동일).
-  const v = await db
-    .select({ id: proposalVariants.id })
-    .from(proposalVariants)
-    .where(and(eq(proposalVariants.id, variantId), eq(proposalVariants.proposalId, proposal.id)))
-    .limit(1);
-  if (v.length === 0) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
-  const ver = await db
-    .select({ id: proposalVersions.id })
-    .from(proposalVersions)
-    .where(and(eq(proposalVersions.id, versionId), eq(proposalVersions.variantId, variantId)))
-    .limit(1);
-  if (ver.length === 0) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
-
-  const pins = await loadPinsForVersion(variantId, versionId);
-  return NextResponse.json({ pins });
+export async function GET(req: Request, { params }: { params: Promise<{ publicId: string }> }) {
+  try {
+    const { publicId } = await params;
+    const url = new URL(req.url);
+    const variantId = url.searchParams.get("variant") ?? "";
+    const versionId = url.searchParams.get("version") ?? "";
+    return Response.json({ pins: await getPins(publicId, variantId, versionId) });
+  } catch (error) {
+    return toErrorResponse(error);
+  }
 }
 
 export async function POST(
