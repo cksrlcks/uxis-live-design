@@ -7,19 +7,19 @@ import { type Identity, loadOrCreateIdentity, saveIdentity } from "@/shared/real
 
 export function RealtimeShell({
   publicId,
-  editorName,
+  viewerName,
   children,
 }: {
   publicId: string;
-  editorName: string | null;
+  viewerName: string | null;
   children: React.ReactNode;
 }) {
   const [identity, setIdentity] = useState<Identity | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: localStorage is browser-only; deferring to effect prevents SSR hydration mismatch
-    setIdentity(loadOrCreateIdentity(editorName));
-  }, [editorName]);
+    setIdentity(loadOrCreateIdentity(viewerName));
+  }, [viewerName]);
 
   if (!identity) return <>{children}</>;
 

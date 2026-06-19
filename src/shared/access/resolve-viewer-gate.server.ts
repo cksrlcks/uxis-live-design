@@ -9,11 +9,12 @@ import { getProfile } from "@/shared/auth/guards.server";
 import { isEditor, type Role } from "@/shared/auth/roles";
 import { decideAccess, type AccessDecision } from "@/shared/lib/proposals/access";
 import { verifyUnlockToken, unlockCookieName } from "@/shared/access/unlock-token";
+import { deriveViewerName } from "@/shared/access/viewer-name";
 
 export type ViewerGate = {
   proposal: Proposal | null;
   decision: AccessDecision;
-  editorName: string | null;
+  viewerName: string | null;
   viewer: { id: string; displayName: string | null } | null;
 };
 
@@ -22,7 +23,7 @@ export type ViewerGate = {
 export const resolveViewerGate = cache(async (publicId: string): Promise<ViewerGate> => {
   const rows = await db.select().from(proposals).where(eq(proposals.publicId, publicId)).limit(1);
   const proposal = rows[0] ?? null;
-  if (!proposal) return { proposal: null, decision: "forbidden", editorName: null, viewer: null };
+  if (!proposal) return { proposal: null, decision: "forbidden", viewerName: null, viewer: null };
 
   const profile = await getProfile();
   const editor = isEditor(profile?.role as Role | undefined);
@@ -41,5 +42,5 @@ export const resolveViewerGate = cache(async (publicId: string): Promise<ViewerG
   });
 
   const viewer = profile ? { id: profile.id, displayName: profile.displayName } : null;
-  return { proposal, decision, editorName: editor ? (profile?.displayName ?? null) : null, viewer };
+  return { proposal, decision, viewerName: deriveViewerName(profile), viewer };
 });

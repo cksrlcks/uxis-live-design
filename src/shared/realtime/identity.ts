@@ -34,15 +34,15 @@ export function parseIdentity(raw: string | null): Identity | null {
 const STORAGE_KEY = "uxis:identity";
 
 // Browser-only: load the saved identity or create a fresh anonymous one.
-// `editorName`, when present (logged-in editor), overrides the display name.
-export function loadOrCreateIdentity(editorName: string | null): Identity {
+// `authedName`, when present (any logged-in user, role 무관), overrides the display name.
+export function loadOrCreateIdentity(authedName: string | null): Identity {
   let identity = typeof localStorage !== "undefined" ? parseIdentity(localStorage.getItem(STORAGE_KEY)) : null;
   if (!identity) {
     const seed = Math.floor(Math.random() * 1_000_000);
     const id = (typeof crypto !== "undefined" && "randomUUID" in crypto) ? crypto.randomUUID() : String(seed);
     identity = { id, name: defaultGuestName(seed), color: pickColor(seed) };
   }
-  if (editorName) identity = { ...identity, name: editorName };
+  if (authedName) identity = { ...identity, name: authedName };
   saveIdentity(identity);
   return identity;
 }
