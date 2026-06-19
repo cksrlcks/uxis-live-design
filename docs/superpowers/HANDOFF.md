@@ -1,6 +1,8 @@
 # Refactor Handoff — FSD + React Query + Zod/RHF + No-SSR-Fetch
 
-**Last updated:** 2026-06-19 · **Branch:** `refactor/fsd-react-query` (this branch) · **Live/deployed:** `origin/master` (untouched — do NOT push master).
+**Status: ✅ REFACTOR COMPLETE (Stages 0–6 all done).** `src/legacy` deleted; permission audit 0 findings; final whole-branch review SHIP (all 6 goals met). Awaiting the deploy/merge decision (master still untouched). Pre-deploy checklist below.
+
+**Last updated:** 2026-06-19 · **Branch:** `refactor/fsd-react-query` (this branch) · **Live/deployed:** `origin/master` (untouched — do NOT push master until the deploy decision).
 
 > This doc is the portable resume point (the equivalent of local machine memory). Read it first when continuing on another machine.
 
@@ -76,6 +78,8 @@ src/            @ → ./src
 
 **Stage 5d — Promote RealtimeProvider → `shared/realtime` + `widgets/realtime-shell` (Stage 5 COMPLETE):** the `RealtimeProvider` moved `src/legacy/components/realtime/realtime-provider.tsx` → `src/shared/realtime/realtime-provider.tsx`, made **generic** — it relays **opaque `unknown` payloads** (local generic `PinEvent = {type;pin:unknown}|{pin_deleted;id}`), so it imports ONLY `@/shared/*` (NO `@/entities`/`@/legacy`); the domain typing is cast at the consumers (`chat-panel` casts → `ChatMessageDTO`, `pin-layer` casts `PinEvent.pin` → `PinDTO`). Channel/presence/cursor/relay logic (self:false, joined-guards, RAF, `!*.id` guards, stable subscribe refs) byte-unchanged. The shell + segments moved → `src/widgets/realtime-shell/ui/{realtime-shell,chat-panel,presence-bar}.tsx` (barrel exports `RealtimeShell`); `widgets/preview-canvas/{canvas-cursors,pin-layer}` repoint `useRealtimeOptional` → `@/shared/realtime/realtime-provider` (last widget→legacy edges gone); `app/p/[publicId]/layout.tsx` imports `RealtimeShell` from `@/widgets/realtime-shell` (mount logic unchanged — channel still mounts at the layout). `src/legacy/components/realtime/` deleted. **Stage 5 (realtime) is fully done:** pins/chat/cursors/presence all on the new architecture (persisted data in React Query, session in `shared/realtime`); the editor preview stays provider-less. Tests **139**, build **27 routes**. Audit: 0 findings. **`src/legacy` now contains exactly ONE file: `src/legacy/components/proposals/variant-tabs.tsx`** (already FSD-clean — imports only `@/shared/ui` + `@/features/{add-variant,manage-variants}` + nuqs/react; consumed by `src/pages/proposal-detail` + `widgets/preview-canvas/proposal-editor-preview`). It just needs a physical relocation in Stage 6.
 
+**Stage 6 — Cleanup + permission audit + delete `src/legacy` (REFACTOR COMPLETE):** the last legacy file `variant-tabs.tsx` relocated → `src/pages/proposal-detail/ui/variant-tabs.tsx` (page-local; its only importer was the proposal-detail page); the dead entity `PinEvent` removed (`entities/pin`); **`src/legacy` deleted entirely** (`src/` is now exactly `app/entities/features/pages/shared/widgets` — zero `@/legacy` references anywhere); 6 unused `fetch*` barrel aliases dropped (final-review nit). **Full permission audit (5-lens workflow): 0 findings** — every read = one guarded server fn (`requireEditor`/`requireAdmin`/`resolveViewerGate`/`getProfile`), every mutation guarded, NO route handler touches `db`/`drizzle` directly, no barrel exports a `*.server` module, the public-viewer gate asymmetry is correct, secrets stay server-side. **Final whole-branch review (opus, 97 commits / 265 files): SHIP** — all 6 goals met (React Query reads · RHF+Zod forms · guarded reads · no-SSR data-fetch · FSD layout · Prettier); FSD layering airtight (no upward/cross-layer edges); cross-stage consistency high; security boundary retained server-side. Tests **139**, build **27 routes**.
+
 Verification at each stage: `tsc --noEmit` + `lint` + `test` (128→139) + `build` (26–27 routes), plus no-SSR / FSD-layering / server-only / legacy-gone grep gates.
 
 ## Next steps
@@ -89,7 +93,14 @@ Verification at each stage: `tsc --noEmit` + `lint` + `test` (128→139) + `buil
    - ~~**5b**~~ — **Done** (see above): chat data → React Query; `resolveViewerGate` → `shared/access`; provider chat = relay-only.
    - ~~**5c**~~ — **Done** (see above): pin data → React Query; chat.ts cleanup finished; `src/legacy/lib/` now empty.
    - ~~**5d**~~ — **Done** (see above): RealtimeProvider → `shared/realtime` (generic relay); shell/chat/presence → `widgets/realtime-shell`; `src/legacy/components/realtime/` deleted. **Stage 5 COMPLETE.**
-6. **Stage 6 — Cleanup (NEXT):** (a) relocate the last legacy file `src/legacy/components/proposals/variant-tabs.tsx` (already FSD-clean — only `@/shared/ui` + `@/features/*` + nuqs/react) → `widgets/preview-canvas` (it pairs with `proposal-editor-preview`) or `src/pages/proposal-detail`; repoint its 2 consumers; **delete `src/legacy` entirely** + remove any empty leftover dirs. (b) **Dead code:** drop the now-orphaned `PinEvent` from `src/entities/pin/model/types.ts` + its barrel re-export (the shared provider defines its own generic `PinEvent`; nothing imports the entity one anymore). (c) **Full permission audit:** confirm every read = one guarded server fn + every mutation guarded (Stage-0 goal); grep for any `db`/`drizzle` in route handlers (should be none — all thin). (d) Address the carry-forwards below. (e) Final whole-branch review + the deploy/merge decision (master untouched throughout).
+6. ~~**Stage 6 — Cleanup**~~ — **Done** (see above). **REFACTOR COMPLETE.**
+
+## Pre-deploy checklist (do BEFORE merging master / deploying)
+
+1. **Bucket-public ops step** — run `npx tsx --env-file=.env.local scripts/setup-bucket.mts` on EACH environment (staging, production) to flip the `proposals` bucket to `public: true`. Image reads now use `publicUrl` (not signed reads) → they 404 until this runs.
+2. **Runtime smoke (against staging)** — auth (login/signup/logout) · proposals CRUD · upload (add variant/version + confirm pages) · public viewer (public / password / private; `GET /api/p/<id>/variants` 200/403/404) · realtime (chat send/receive, pin place/edit/resolve/delete, cursors, presence across 2 browsers) · editor preview (provider-less, no realtime errors). Static gates are green but these flows were never run live (no local Supabase + `ACCESS_TOKEN_SECRET`).
+3. **Rotate Supabase secrets** — DB password + service-role secret key were exposed in chat earlier; rotate before/at deploy.
+4. **(Optional hardening, post-deploy ok)** wrap the multi-step mutations in `db.transaction()` (see carry-forwards); introduce a `Proposal` DTO with ISO-string timestamps when a proposal timestamp is first rendered.
 
 ## Carry-forwards (fold into the stage that touches them)
 
