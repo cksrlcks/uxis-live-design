@@ -1,7 +1,7 @@
 "use client";
 import { useQueryState, parseAsStringEnum } from "nuqs";
 import type { ProposalPage } from "@/entities/proposal";
-import type { PinContext } from "@/legacy/lib/pins/types";
+import type { PinContext } from "@/entities/pin";
 import { FullscreenSlides } from "./fullscreen-slides";
 import { CanvasView } from "./canvas-view";
 import { Button } from "@/shared/ui/button";

@@ -1,9 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toContent } from "@/shared/realtime/coords";
 import { locatePin, placePin, type PageBox } from "../lib/locate";
-import { usePins } from "@/legacy/lib/pins/use-pins";
-import type { PinContext } from "@/legacy/lib/pins/types";
+import { pinQueries, type PinDTO, type PinContext } from "@/entities/pin";
+import { useCreatePin, useEditPin, useToggleResolved, useDeletePin } from "@/features/pin-comment";
+import { useRealtimeOptional } from "@/legacy/components/realtime/realtime-provider";
 import type { ProposalPage } from "@/entities/proposal";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -31,13 +33,44 @@ export function PinLayer({
   pin: PinContext;
   mode: "pan" | "comment";
 }) {
-  const { pins, createPin, editPin, toggleResolved, deletePin } = usePins(pin);
+  const { publicId, variantId, versionId } = pin;
+  const rt = useRealtimeOptional();
+  const { data: pins = [] } = useQuery(pinQueries.list(publicId, variantId, versionId));
+  const qc = useQueryClient();
+  const createMut = useCreatePin(publicId, variantId, versionId);
+  const editMut = useEditPin(publicId, variantId, versionId);
+  const resolveMut = useToggleResolved(publicId, variantId, versionId);
+  const deleteMut = useDeletePin(publicId, variantId, versionId);
+
   const [draft, setDraft] = useState<Draft>(null);
   const [draftBody, setDraftBody] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBody, setEditBody] = useState("");
   const isGuest = pin.viewerId == null;
+
+  // 실시간 병합(현재 버전 대상만). subscribePins는 안정 참조(provider useCallback)라
+  // dep으로 쓰면, rt 전체(매 렌더 새 객체)와 달리 커서 등 고빈도 갱신마다
+  // 재구독되지 않는다 — 재구독 사이 broadcast 누락 윈도우 방지.
+  const subscribePins = rt?.subscribePins;
+  useEffect(() => {
+    if (!subscribePins) return;
+    return subscribePins((e) => {
+      const key = pinQueries.list(publicId, variantId, versionId).queryKey;
+      if (e.type === "pin_deleted") {
+        qc.setQueryData<PinDTO[]>(key, (prev) => prev?.filter((p) => p.id !== e.id));
+        return;
+      }
+      const p = e.pin;
+      if (p.variantId !== variantId || p.versionId !== versionId) return;
+      qc.setQueryData<PinDTO[]>(key, (prev) => {
+        if (!prev) return prev;
+        return prev.some((x) => x.id === p.id)
+          ? prev.map((x) => (x.id === p.id ? p : x))
+          : [...prev, p];
+      });
+    });
+  }, [subscribePins, qc, publicId, variantId, versionId]);
 
   // 페이지 박스를 매 렌더/클릭 시점의 실제 DOM에서 직접 측정한다. offset*은 레이아웃
   // 좌표라 줌/팬(CSS transform)과 무관하다. 단발성 측정(useLayoutEffect+state)은
@@ -77,15 +110,20 @@ export function PinLayer({
     setDraft(loc);
   }
 
-  async function submitDraft() {
+  function submitDraft() {
     if (!draft) return;
     const body = draftBody.trim();
     if (!body) return;
-    const ok = await createPin({ ...draft, body });
-    if (ok) {
-      setDraft(null);
-      setDraftBody("");
-    }
+    createMut.mutate(
+      { ...draft, body, variantId, versionId, authorColor: rt?.myColor ?? "#3b82f6" },
+      {
+        onSuccess: (saved) => {
+          rt?.broadcastPin(saved);
+          setDraft(null);
+          setDraftBody("");
+        },
+      },
+    );
   }
 
   // 렌더 시점 실측: contentRef.current를 읽지만 반응형 상태가 아닌 DOM 레이아웃
@@ -141,9 +179,17 @@ export function PinLayer({
                 </div>
                 {editingId === p.id ? (
                   <form
-                    onSubmit={async (e) => {
+                    onSubmit={(e) => {
                       e.preventDefault();
-                      if (await editPin(p.id, editBody.trim())) setEditingId(null);
+                      editMut.mutate(
+                        { pinId: p.id, body: editBody.trim() },
+                        {
+                          onSuccess: (saved) => {
+                            rt?.broadcastPinUpdated(saved);
+                            setEditingId(null);
+                          },
+                        },
+                      );
                     }}
                     className="mt-2 space-y-2"
                   >
@@ -174,7 +220,15 @@ export function PinLayer({
                 )}
                 {!isGuest && editingId !== p.id && (
                   <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                    <button className="underline" onClick={() => toggleResolved(p.id, !p.resolved)}>
+                    <button
+                      className="underline"
+                      onClick={() =>
+                        resolveMut.mutate(
+                          { pinId: p.id, resolved: !p.resolved },
+                          { onSuccess: (saved) => rt?.broadcastPinUpdated(saved) },
+                        )
+                      }
+                    >
                       {p.resolved ? "재오픈" : "처리됨"}
                     </button>
                     {mine && (
@@ -191,7 +245,11 @@ export function PinLayer({
                     {mine && (
                       <button
                         className="text-destructive underline"
-                        onClick={() => deletePin(p.id)}
+                        onClick={() =>
+                          deleteMut.mutate(p.id, {
+                            onSuccess: (id) => rt?.broadcastPinDeleted(id),
+                          })
+                        }
                       >
                         삭제
                       </button>

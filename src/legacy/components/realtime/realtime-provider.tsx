@@ -5,7 +5,7 @@ import { createSupabaseBrowser } from "@/shared/supabase/client";
 import { channelName } from "@/shared/realtime/channel";
 import type { Identity } from "@/shared/realtime/identity";
 import type { ChatMessageDTO } from "@/entities/chat-message";
-import type { PinDTO, PinEvent } from "@/legacy/lib/pins/types";
+import type { PinDTO, PinEvent } from "@/entities/pin";
 
 export type Participant = { id: string; name: string; color: string };
 export type RemoteCursor = { id: string; name: string; color: string; cx: number; cy: number };
@@ -122,7 +122,7 @@ export function RealtimeProvider({
       supabase.removeChannel(ch);
       channelRef.current = null;
     };
-    // 핀 구독 Set은 provider가 비우지 않는다 — 각 소비자(usePins)가 자기 effect cleanup으로
+    // 핀 구독 Set은 provider가 비우지 않는다 — 각 소비자(pin-layer bridge effect)가 자기 effect cleanup으로
     // 핸들러를 제거하고, subscribePins는 안정 참조라 채널 재생성과 무관하게 구독이 유지된다.
     // Intentional: only recreate the channel when the room or stable identity id changes,
     // not on every identity object reference change (name/color updates handled separately below).

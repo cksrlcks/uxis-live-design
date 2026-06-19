@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import { useQueryStates, parseAsString } from "nuqs";
 import type { ViewerVariant } from "@/entities/proposal";
-import type { PinContext } from "@/legacy/lib/pins/types";
+import type { PinContext } from "@/entities/pin";
 import { ProposalPreview } from "./proposal-preview";
 import { CompareView } from "./compare-view";
 import { VariantViewerNav } from "./variant-viewer-nav";

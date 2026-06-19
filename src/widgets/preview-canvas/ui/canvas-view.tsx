@@ -2,7 +2,7 @@
 import { useCallback, useRef, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import type { ProposalPage } from "@/entities/proposal";
-import type { PinContext } from "@/legacy/lib/pins/types";
+import type { PinContext } from "@/entities/pin";
 import { CanvasCursorLayer, CanvasCursorCapture } from "./canvas-cursors";
 import { PinLayer } from "./pin-layer";
 import { Button } from "@/shared/ui/button";
