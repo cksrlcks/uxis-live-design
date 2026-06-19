@@ -4,11 +4,7 @@ import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { AddVariantForm } from "@/features/add-variant";
-import {
-  useUpdateVariant,
-  useDeleteVariant,
-  useReorderVariants,
-} from "@/features/manage-variants";
+import { useUpdateVariant, useDeleteVariant, useReorderVariants } from "@/features/manage-variants";
 
 type VariantTab = { id: string; label: string; slug: string };
 
@@ -33,8 +29,7 @@ export function VariantTabs({
   const deleteVariant = useDeleteVariant(proposalId);
   const reorderVariants = useReorderVariants(proposalId);
 
-  const pending =
-    updateVariant.isPending || deleteVariant.isPending || reorderVariants.isPending;
+  const pending = updateVariant.isPending || deleteVariant.isPending || reorderVariants.isPending;
 
   const active = variants.find((v) => v.id === variantId) ?? variants[0];
 
@@ -124,7 +119,7 @@ export function VariantTabs({
           </form>
         ) : (
           <>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               현재 안: <strong>{active.label}</strong> ({active.slug})
             </span>
             <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
@@ -147,7 +142,7 @@ export function VariantTabs({
           </>
         )}
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
   );
 }

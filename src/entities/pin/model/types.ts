@@ -14,12 +14,6 @@ export type PinDTO = {
   createdAt: string; // ISO 8601
 };
 
-// provider→PinLayer로 중계되는 실시간 이벤트.
-export type PinEvent =
-  | { type: "pin"; pin: PinDTO }
-  | { type: "pin_updated"; pin: PinDTO }
-  | { type: "pin_deleted"; id: string };
-
 // 캔버스로 내려보내는 핀 기능 컨텍스트. viewerId=null이면 게스트(로그인 유도).
 export type PinContext = {
   publicId: string;

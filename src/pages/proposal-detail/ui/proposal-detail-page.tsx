@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { proposalQueries } from "@/entities/proposal";
 import { ProposalSettings } from "@/features/edit-proposal-settings";
-import { VariantTabs } from "@/legacy/components/proposals/variant-tabs";
+import { VariantTabs } from "./variant-tabs";
 import { ProposalEditorPreview } from "@/widgets/preview-canvas";
 
 export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
