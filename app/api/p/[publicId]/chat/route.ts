@@ -1,12 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
-import { db } from "@/shared/db";
-import { chatMessages } from "@drizzle/schema";
-import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
-import { validateChatBody } from "@/legacy/lib/meeting/chat";
-import type { ChatMessageDTO } from "@/legacy/lib/meeting/types";
 import { getRecentChat } from "@/entities/chat-message/api/get-recent-chat.server";
 import { toErrorResponse } from "@/shared/api/to-error-response";
+import { createChatMessage } from "@/features/send-chat-message/api/create-chat-message.server";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ publicId: string }> }) {
   try {
@@ -17,49 +11,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ publicI
   }
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ publicId: string }> },
-) {
-  const { publicId } = await params;
-
-  // 저장 데이터는 항상 코드 게이트(visibility + unlock)를 통과한 경우에만(스펙 §7).
-  const { proposal, decision } = await resolveViewerGate(publicId);
-  if (!proposal || decision !== "allow") {
-    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+export async function POST(req: Request, { params }: { params: Promise<{ publicId: string }> }) {
+  try {
+    const { publicId } = await params;
+    const raw = await req.json().catch(() => null);
+    const message = await createChatMessage(publicId, raw);
+    return Response.json({ message });
+  } catch (error) {
+    return toErrorResponse(error);
   }
-
-  const json = await req.json().catch(() => null);
-
-  const body = validateChatBody(json?.body);
-  if (!body) return NextResponse.json({ error: "INVALID_BODY" }, { status: 400 });
-
-  // 작성자 이름/색은 클라(게스트 신원)가 보낸다 — 길이만 방어적으로 제한.
-  const authorName =
-    typeof json?.authorName === "string" ? json.authorName.trim().slice(0, 80) : "";
-  const authorColor =
-    typeof json?.authorColor === "string" ? json.authorColor.trim().slice(0, 32) : "";
-  if (!authorName || !authorColor) {
-    return NextResponse.json({ error: "INVALID_AUTHOR" }, { status: 400 });
-  }
-
-  const id = randomUUID();
-  const createdAt = new Date();
-  await db.insert(chatMessages).values({
-    id,
-    proposalId: proposal.id,
-    authorName,
-    authorColor,
-    body,
-    createdAt,
-  });
-
-  const message: ChatMessageDTO = {
-    id,
-    authorName,
-    authorColor,
-    body,
-    createdAt: createdAt.toISOString(),
-  };
-  return NextResponse.json({ message });
 }
