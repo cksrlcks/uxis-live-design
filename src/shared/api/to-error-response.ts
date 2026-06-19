@@ -13,6 +13,8 @@ const STATUS_BY_CODE: Record<string, number> = {
   OBJECT_MISSING: 400,
   CANNOT_MODIFY_SELF: 400,
   BAD_QUERY: 400,
+  NOT_AUTHOR: 403,
+  BAD_PAGE: 400,
 };
 
 export function toErrorResponse(error: unknown): Response {
