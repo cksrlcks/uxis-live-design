@@ -57,5 +57,11 @@ export default async function PublicViewerPage({
   }
 
   // decision === "allow": content is fetched client-side via React Query (guarded GET).
-  return <ClientViewerPage publicId={publicId} viewer={viewer ? { id: viewer.id } : null} />;
+  return (
+    <ClientViewerPage
+      publicId={publicId}
+      viewer={viewer ? { id: viewer.id } : null}
+      proposalTitle={proposal.title}
+    />
+  );
 }
