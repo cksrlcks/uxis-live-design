@@ -5,6 +5,17 @@ import { chatMessages } from "@drizzle/schema";
 import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
 import { validateChatBody } from "@/legacy/lib/meeting/chat";
 import type { ChatMessageDTO } from "@/legacy/lib/meeting/types";
+import { getRecentChat } from "@/entities/chat-message/api/get-recent-chat.server";
+import { toErrorResponse } from "@/shared/api/to-error-response";
+
+export async function GET(_req: Request, { params }: { params: Promise<{ publicId: string }> }) {
+  try {
+    const { publicId } = await params;
+    return Response.json(await getRecentChat(publicId));
+  } catch (error) {
+    return toErrorResponse(error);
+  }
+}
 
 export async function POST(
   req: NextRequest,
