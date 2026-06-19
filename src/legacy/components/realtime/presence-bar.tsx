@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRealtime } from "./realtime-provider";
+import { useRealtime } from "@/shared/realtime/realtime-provider";
 import type { Identity } from "@/shared/realtime/identity";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { RealtimeProvider } from "./realtime-provider";
+import { RealtimeProvider } from "@/shared/realtime/realtime-provider";
 import { PresenceBar } from "./presence-bar";
 import { ChatPanel } from "./chat-panel";
 import { type Identity, loadOrCreateIdentity, saveIdentity } from "@/shared/realtime/identity";

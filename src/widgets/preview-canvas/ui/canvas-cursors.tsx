@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { useRealtimeOptional } from "@/legacy/components/realtime/realtime-provider";
+import { useRealtimeOptional } from "@/shared/realtime/realtime-provider";
 import { toContent } from "@/shared/realtime/coords";
 
 // 원격 커서를 캔버스 transform 레이어 *안*에 그린다. 라이브러리가 각 뷰어의

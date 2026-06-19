@@ -5,7 +5,7 @@ import { toContent } from "@/shared/realtime/coords";
 import { locatePin, placePin, type PageBox } from "../lib/locate";
 import { pinQueries, type PinDTO, type PinContext } from "@/entities/pin";
 import { useCreatePin, useEditPin, useToggleResolved, useDeletePin } from "@/features/pin-comment";
-import { useRealtimeOptional } from "@/legacy/components/realtime/realtime-provider";
+import { useRealtimeOptional } from "@/shared/realtime/realtime-provider";
 import type { ProposalPage } from "@/entities/proposal";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -61,7 +61,7 @@ export function PinLayer({
         qc.setQueryData<PinDTO[]>(key, (prev) => prev?.filter((p) => p.id !== e.id));
         return;
       }
-      const p = e.pin;
+      const p = e.pin as PinDTO;
       if (p.variantId !== variantId || p.versionId !== versionId) return;
       qc.setQueryData<PinDTO[]>(key, (prev) => {
         if (!prev) return prev;

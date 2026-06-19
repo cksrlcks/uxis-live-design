@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRealtime } from "./realtime-provider";
+import { useRealtime } from "@/shared/realtime/realtime-provider";
 import type { Identity } from "@/shared/realtime/identity";
 import { chatQueries, MAX_CHAT_BODY, type ChatMessageDTO } from "@/entities/chat-message";
 import { useSendChatMessage } from "@/features/send-chat-message";
@@ -22,7 +22,8 @@ export function ChatPanel({ publicId, identity }: { publicId: string; identity: 
   // Bridge: fan realtime broadcast messages into the RQ cache (dedup by id).
   useEffect(
     () =>
-      subscribeChat((m) => {
+      subscribeChat((raw) => {
+        const m = raw as ChatMessageDTO;
         qc.setQueryData<ChatMessageDTO[]>(
           chatQueries.list(publicId).queryKey,
           (prev) =>

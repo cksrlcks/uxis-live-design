@@ -4,23 +4,34 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createSupabaseBrowser } from "@/shared/supabase/client";
 import { channelName } from "@/shared/realtime/channel";
 import type { Identity } from "@/shared/realtime/identity";
-import type { ChatMessageDTO } from "@/entities/chat-message";
-import type { PinDTO, PinEvent } from "@/entities/pin";
+
+// The channel is a generic transport — the relayed payloads are opaque here;
+// consumers (chat-panel / pin-layer) cast them to their entity DTOs.
+export type PinEvent =
+  | { type: "pin"; pin: unknown }
+  | { type: "pin_updated"; pin: unknown }
+  | { type: "pin_deleted"; id: string };
 
 export type Participant = { id: string; name: string; color: string };
-export type RemoteCursor = { id: string; name: string; color: string; cx: number; cy: number };
+export type RemoteCursor = {
+  id: string;
+  name: string;
+  color: string;
+  cx: number;
+  cy: number;
+};
 
 type RealtimeContextValue = {
   participants: Participant[];
   cursors: RemoteCursor[];
   sendCursor: (cx: number, cy: number) => void;
   clearCursor: () => void;
-  subscribeChat: (handler: (m: ChatMessageDTO) => void) => () => void;
-  broadcastChat: (message: ChatMessageDTO) => void;
+  subscribeChat: (handler: (message: unknown) => void) => () => void;
+  broadcastChat: (message: unknown) => void;
   myColor: string;
   subscribePins: (handler: (e: PinEvent) => void) => () => void;
-  broadcastPin: (pin: PinDTO) => void;
-  broadcastPinUpdated: (pin: PinDTO) => void;
+  broadcastPin: (pin: unknown) => void;
+  broadcastPinUpdated: (pin: unknown) => void;
   broadcastPinDeleted: (id: string) => void;
 };
 
@@ -54,7 +65,7 @@ export function RealtimeProvider({
 
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [cursors, setCursors] = useState<RemoteCursor[]>([]);
-  const chatSubsRef = useRef(new Set<(m: ChatMessageDTO) => void>());
+  const chatSubsRef = useRef(new Set<(m: unknown) => void>());
   const pinSubsRef = useRef(new Set<(e: PinEvent) => void>());
 
   // (Re)create the channel only when the room or my stable id changes.
@@ -91,20 +102,20 @@ export function RealtimeProvider({
     });
 
     ch.on("broadcast", { event: "chat" }, ({ payload }) => {
-      const m = payload as ChatMessageDTO;
+      const m = payload as { id?: string };
       if (!m?.id) return; // public channel: drop malformed/garbage chat payloads
-      chatSubsRef.current.forEach((h) => h(m));
+      chatSubsRef.current.forEach((h) => h(payload));
     });
 
     ch.on("broadcast", { event: "pin" }, ({ payload }) => {
-      const pin = payload as PinDTO;
-      if (!pin?.id) return;
-      pinSubsRef.current.forEach((h) => h({ type: "pin", pin }));
+      const p = payload as { id?: string };
+      if (!p?.id) return;
+      pinSubsRef.current.forEach((h) => h({ type: "pin", pin: payload }));
     });
     ch.on("broadcast", { event: "pin_updated" }, ({ payload }) => {
-      const pin = payload as PinDTO;
-      if (!pin?.id) return;
-      pinSubsRef.current.forEach((h) => h({ type: "pin_updated", pin }));
+      const p = payload as { id?: string };
+      if (!p?.id) return;
+      pinSubsRef.current.forEach((h) => h({ type: "pin_updated", pin: payload }));
     });
     ch.on("broadcast", { event: "pin_deleted" }, ({ payload }) => {
       const id = (payload as { id?: string }).id;
@@ -155,7 +166,7 @@ export function RealtimeProvider({
     ch.send({ type: "broadcast", event: "cursor_leave", payload: { id: identityRef.current.id } });
   }, []);
 
-  const subscribeChat = useCallback((handler: (m: ChatMessageDTO) => void) => {
+  const subscribeChat = useCallback((handler: (m: unknown) => void) => {
     chatSubsRef.current.add(handler);
     return () => {
       chatSubsRef.current.delete(handler);
@@ -164,7 +175,7 @@ export function RealtimeProvider({
 
   // 저장 성공(BFF) 후 호출. self:false라 송신자는 자기 broadcast를 못 받으므로
   // 피어에게만 전달. 채널이 joined가 아니면 broadcast는 건너뛴다.
-  const broadcastChat = useCallback((message: ChatMessageDTO) => {
+  const broadcastChat = useCallback((message: unknown) => {
     const ch = channelRef.current;
     if (ch?.state === "joined") ch.send({ type: "broadcast", event: "chat", payload: message });
   }, []);
@@ -176,11 +187,11 @@ export function RealtimeProvider({
     };
   }, []);
 
-  const broadcastPin = useCallback((pin: PinDTO) => {
+  const broadcastPin = useCallback((pin: unknown) => {
     const ch = channelRef.current;
     if (ch?.state === "joined") ch.send({ type: "broadcast", event: "pin", payload: pin });
   }, []);
-  const broadcastPinUpdated = useCallback((pin: PinDTO) => {
+  const broadcastPinUpdated = useCallback((pin: unknown) => {
     const ch = channelRef.current;
     if (ch?.state === "joined") ch.send({ type: "broadcast", event: "pin_updated", payload: pin });
   }, []);
