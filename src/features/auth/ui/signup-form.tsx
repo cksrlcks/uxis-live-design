@@ -8,6 +8,7 @@ import { HttpError } from "@/shared/api/http";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { isSafeInternalPath } from "@/shared/lib/safe-redirect";
 import { signupSchema, type SignupInput } from "../model/schema";
 import { useSignup } from "../api/use-auth";
 
@@ -22,7 +23,7 @@ function signupErrorMessage(err: unknown): string {
   return "회원가입 중 오류가 발생했습니다.";
 }
 
-export function SignupForm() {
+export function SignupForm({ returnTo }: { returnTo?: string }) {
   const router = useRouter();
   const signupMutation = useSignup();
   const [formError, setFormError] = useState<string | null>(null);
@@ -37,7 +38,7 @@ export function SignupForm() {
     setFormError(null);
     try {
       await signupMutation.mutateAsync(values);
-      router.replace("/pending");
+      router.replace(isSafeInternalPath(returnTo) ? returnTo : "/pending");
       router.refresh();
     } catch (err) {
       setFormError(signupErrorMessage(err));
