@@ -6,7 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Card } from "@/shared/ui/card";
-import { unlock } from "./actions";
+import { unlock } from "@/features/unlock-access";
 
 export default async function PublicViewerPage({
   params,
