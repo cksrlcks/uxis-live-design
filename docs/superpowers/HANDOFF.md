@@ -12,7 +12,7 @@
 git fetch origin
 git checkout refactor/fsd-react-query   # tracks origin; has all refactor work
 npm install                              # deps were added in Stage 0
-npm test                                 # expect all green (128 tests)
+npm test                                 # expect all green (139 tests)
 npm run build                            # expect PASS
 ```
 
@@ -37,9 +37,9 @@ src/            @ → ./src
   pages/        FSD page compositions (client). proposals-list/, proposal-new/.
   features/     user actions (mutations + RHF/Zod forms). create-proposal/, unlock-access/, …
   entities/     domain model + reads. proposal/, user/ (queryOptions factory + guarded *.server.ts + model schema).
-  widgets/      composite UI blocks (above features, below pages). preview-canvas/ (shared preview tree + viewer/editor compositions; Stage 5a). realtime-shell/ planned (Stage 5d).
+  widgets/      composite UI blocks (above features, below pages). preview-canvas/ (shared preview tree + viewer/editor compositions). realtime-shell/ (RealtimeShell + chat-panel + presence-bar).
   shared/       api/(http, query-client, to-error-response, same-origin) · ui · lib · auth · access · supabase · db · storage · storage-client · realtime · config.
-  legacy/       TEMP holding area for not-yet-migrated code. Promoted slice-by-slice; deleted in the final stage.
+  (legacy/ removed in Stage 6 — migration complete.)
 ```
 
 **Key patterns:**
