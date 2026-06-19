@@ -8,9 +8,11 @@ import { Button } from "@/shared/ui/button";
 export function PresenceBar({
   identity,
   onRename,
+  isAuthed,
 }: {
   identity: Identity;
   onRename: (name: string) => void;
+  isAuthed: boolean;
 }) {
   const { participants } = useRealtime();
   const [editing, setEditing] = useState(false);
@@ -60,6 +62,14 @@ export function PresenceBar({
           <span className="font-medium">{identity.name}</span>
           <span className="text-muted-foreground">(나)</span>
         </button>
+      )}
+      {!isAuthed && (
+        <a
+          href={`/login?returnTo=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname + window.location.search : "/")}`}
+          className="text-muted-foreground ml-1 text-xs underline"
+        >
+          로그인
+        </a>
       )}
     </div>
   );

@@ -35,7 +35,7 @@ export function RealtimeShell({
   return (
     <RealtimeProvider publicId={publicId} identity={identity}>
       {children}
-      <PresenceBar identity={identity} onRename={rename} />
+      <PresenceBar identity={identity} onRename={rename} isAuthed={viewerName != null} />
       <ChatPanel publicId={publicId} identity={identity} />
     </RealtimeProvider>
   );
