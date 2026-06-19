@@ -10,7 +10,7 @@ export function LogoutButton({ className }: { className?: string }) {
 
   async function onClick() {
     // Always navigate to /login even if the POST fails (network/500/403) — the old server
-    // action redirected unconditionally; the proxy re-gates /dashboard if the cookie survived.
+    // action redirected unconditionally; the proxy re-gates /studio if the cookie survived.
     try {
       await logoutMutation.mutateAsync();
     } finally {

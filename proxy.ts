@@ -36,7 +36,7 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect the dashboard + admin areas: unauthenticated -> /login
+  // Protect the studio area: unauthenticated -> /login
   if (path.startsWith("/studio")) {
     if (!user) {
       const url = request.nextUrl.clone();
