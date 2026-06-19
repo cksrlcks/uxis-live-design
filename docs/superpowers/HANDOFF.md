@@ -1,6 +1,6 @@
 # Refactor Handoff — FSD + React Query + Zod/RHF + No-SSR-Fetch
 
-**Last updated:** 2026-06-18 · **Branch:** `refactor/fsd-react-query` (this branch) · **Live/deployed:** `origin/master` (untouched — do NOT push master).
+**Last updated:** 2026-06-19 · **Branch:** `refactor/fsd-react-query` (this branch) · **Live/deployed:** `origin/master` (untouched — do NOT push master).
 
 > This doc is the portable resume point (the equivalent of local machine memory). Read it first when continuing on another machine.
 
@@ -10,7 +10,7 @@
 git fetch origin
 git checkout refactor/fsd-react-query   # tracks origin; has all refactor work
 npm install                              # deps were added in Stage 0
-npm test                                 # expect all green (124 tests)
+npm test                                 # expect all green (128 tests)
 npm run build                            # expect PASS
 ```
 
@@ -63,15 +63,18 @@ src/            @ → ./src
 
 **Stage 3 — Admin users (user management + role assignment):** `entities/user` read slice added: `model/types.ts` (`AdminUser` DTO with `id`/`email`/`role`), `model/role-schema.ts` (`updateRoleSchema` + `UpdateRoleInput` — Zod enum of the three valid roles), `api/get-users.server.ts` (guarded `getUsers` — `requireAdmin()` + Drizzle `select {id,email,role} from profiles order by createdAt desc`, no join), `api/get-users.ts` (client fetcher via `@/shared/api/http`), `api/user.query.ts` (`userQueries.list()` queryOptions factory), `api/update-user-role.server.ts` (guarded `updateUserRole` — `requireAdmin()` + `CANNOT_MODIFY_SELF` 400 guard + `updateRoleSchema.parse` + DB update), `index.ts` barrel (exports `userQueries`, `fetchUsers`, `AdminUser` — no `*.server` modules). Thin routes: `GET /api/admin/users` (calls `getUsers`) and `PATCH /api/admin/users/[id]` (calls `updateUserRole`) — no direct DB access in route handlers (grep-verified). `features/manage-users` created: `useUpdateUserRole` mutation hook + `UserRowActions` UI component — replaces legacy `src/legacy/components/admin/user-row-actions.tsx` (deleted). `src/pages/admin-users` client page: `AdminUsersPage` (`"use client"`) — `useQuery(userQueries.list())` + renders `UserRowActions` per row. `app/(dashboard)/admin/users/page.tsx` is a thin server gate: `requireAdmin` profile check → redirect to `/dashboard` if not admin → renders `<AdminUsersPage />` (no `db.select` in the route file — grep-verified). `CANNOT_MODIFY_SELF` 400 added to `to-error-response`. Legacy `src/legacy/components/admin/user-row-actions.tsx` deleted (grep-verified absent). Tests: **128** (+4 from pre-Stage-3 124: `updateRoleSchema` × 3 + `CANNOT_MODIFY_SELF` via role-schema test × 1). Build: 26 routes (unchanged count; `/admin/users`, `/api/admin/users`, `/api/admin/users/[id]` all present as thin/client routes).
 
-Verification at each stage: `tsc --noEmit` + `lint` + `test` (128) + `build` (26 routes), plus no-SSR / FSD-layering / server-only / legacy-gone grep gates.
+**Stage 4 — Public viewer access + variant-content read (`/p/[publicId]`):** the public viewer's access gate + variant read migrated out of `src/legacy`; the realtime/pins/chat/preview-UI cluster is left intact (Stage 5). **Access promoted out of legacy:** the HMAC unlock-token helpers (`signUnlockToken`/`verifyUnlockToken`/`unlockCookieName`/`UNLOCK_TTL_SECONDS`) moved `src/legacy/lib/access/cookie.ts` → `src/shared/access/unlock-token.ts` (pure `node:crypto`, NO `server-only` — it's unit-tested); `resolveViewerGate` moved → `src/entities/proposal/api/resolve-viewer-gate.server.ts` (`server-only` + `React.cache()` kept; `ViewerGate` type → `entities/proposal/model/types.ts`; imports only `@/shared/*`+`@drizzle/*`); the `unlock` server action moved `app/p/[publicId]/actions.ts` → `src/features/unlock-access/api/unlock.ts` (named `unlock.ts` NOT `.server.ts` — it's a `"use server"` Server Action, client-callable; barrel `features/unlock-access` re-exports it). `src/legacy/lib/access/` is now gone. **Variant read client-side:** new guarded `getViewerVariants(publicId)` (`src/entities/proposal/api/get-viewer-variants.server.ts` — `resolveViewerGate` → `NOT_FOUND`/`FORBIDDEN` else load variants+pages with `publicUrl`, viewer-shaped, no `versions`), `proposalQueries.viewerVariants(publicId)`, client fetcher (`fetchViewerVariants`), thin guarded `GET /api/p/[publicId]/variants` (returns 403/404 with no content when not allowed). `app/p/[publicId]/page.tsx` stays a **server gate** — `notFound` / forbidden UI / need-password `<form action={unlock.bind(null,publicId)}>` branches preserved server-side; only the `allow` branch flipped to render the client `src/pages/public-viewer` (`useQuery(viewerVariants)` → legacy `<PublicViewer>`, page→`@/legacy/components` exception). Legacy `src/legacy/lib/preview/load-variants.ts` deleted; its two type importers (`public-viewer.tsx` `ViewerVariant`, `proposal-editor-preview.tsx` `EditorVariant`) repointed to `@/entities/proposal`. `app/p/[publicId]/layout.tsx` (RealtimeShell + gate) + the pins×2/chat routes only had the `resolveViewerGate` import repointed to the entity — realtime/pins/chat behavior unchanged. `loading.tsx` comment updated (gate-only). **The preview/pins/cursors/chat/realtime-provider/RealtimeShell cluster stays in `src/legacy`** and the viewer still renders the legacy `<PublicViewer>` — relocated as one unit in **Stage 5**. Tests: **128** (unchanged — the cookie/unlock-token test moved, not added). Build: **27 routes** (+1: `GET /api/p/[publicId]/variants`). Manual runtime smoke (public/password/private + GET 200/403/404) deferred — no local Supabase/`ACCESS_TOKEN_SECRET` env. Audit-fixed pre-execution: the missed `EditorVariant` importer (would have TS2307'd the loader delete), `unlock.ts` naming, the `loading.tsx` stale-comment guard false-positive.
+
+Verification at each stage: `tsc --noEmit` + `lint` + `test` (128) + `build` (26–27 routes), plus no-SSR / FSD-layering / server-only / legacy-gone grep gates.
 
 ## Next steps
 
 1. ~~**Stage 2b**~~ — **Done** (see above).
 2. ~~**Stage 2c**~~ — **Done** (see above).
 3. ~~**Stage 3**~~ — **Done** (see above).
-4. **Stage 4** — public viewer `/p/[publicId]` + access control; relocate shared preview components (`proposal-preview`, `fullscreen-slides`, `canvas-view`) + `variant-tabs` / `proposal-editor-preview` shells out of `src/legacy` (deferred from Stage 2c due to pins + public-viewer coupling).
-5. Stages 5–6 per the spec: realtime (pins/chat) → cleanup + full permission audit + delete `src/legacy`.
+4. ~~**Stage 4**~~ — **Done** (see above): public viewer access gate + variant read migrated; access helpers promoted out of legacy. The shared preview UI + `variant-tabs`/`proposal-editor-preview` shells remain in `src/legacy` (they're realtime/pins-coupled — folded into Stage 5, not 4).
+5. **Stage 5 — Realtime (pins / chat / cursors):** relocate the realtime cluster out of `src/legacy` as one unit — `entities/{pin,chat-message}` (query factories + client fetchers + guarded server reads), gate-mirrored `GET /api/p/[publicId]/chat`, thin pins/chat write routes, `features/{pin-comment,send-chat-message}` (RHF+Zod), `widgets/{preview-canvas,realtime-shell}` (the preview components `proposal-preview`/`fullscreen-slides`/`canvas-view` + cursors + pin-layer + chat-panel + presence). Replace the Context-based pin/chat **data** state with React Query while keeping channel/presence/cursor **session** state in `shared/realtime`. The viewer page + `src/pages/public-viewer` then drop their `@/legacy/components` import. (No plan yet.)
+6. **Stage 6 — Cleanup:** full permission audit + delete `src/legacy` + remove empty leftover dirs.
 
 ## Carry-forwards (fold into the stage that touches them)
 
