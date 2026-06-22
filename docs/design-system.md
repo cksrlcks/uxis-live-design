@@ -33,6 +33,14 @@
 - **DetailPanel** — 우측 상세 패널: key/value 메타 + 상태 컨트롤 + 태그 칩.
 - **Sidebar(확장)** — 상단 워크스페이스 스위처 + 아이콘 그룹 네비 + 블루 액티브 인디케이터.
 
+**셸 확정 값 (하위작업 1, 2026-06-22)**
+
+- **앱 캔버스:** 스튜디오 셸 컨테이너에 `bg-muted`(#f7f7f7). 전역 `--background`는 흰색 불변(뷰어/인증 회귀 방지). 카드는 `bg-card`(흰색) + hairline 보더로 떠 보임.
+- **사이드바:** 폭 `w-56`(224px), 흰 배경 `border-r`. 워크스페이스 마크(블루 8px 라운드 머리글자) + 그룹 라벨(eyebrow-sm) + 네비. 액티브 = `bg-primary/10 text-primary` + 좌측 3px 블루 인디케이터(`before:`). 하단 유저 푸터(아바타 + 이메일 + 로그아웃).
+- **상단바:** `h-12` sticky, `bg-background/80 backdrop-blur`, `border-b`. 좌측 브레드크럼 `uxis › 섹션`. 우측 슬롯 예약.
+- **PageHeader:** 아이브로우(eyebrow-sm) + 제목(display-sm, `font-medium`) + 설명(body-sm muted) + 우측 액션 슬롯. 캔버스 상단에 `mb-6`.
+- **네비 단일출처:** `src/widgets/studio-shell/model/nav-config.ts` 의 `NAV_ITEMS` 가 사이드바·브레드크럼 공용.
+
 **적용 범위**
 
 - 스튜디오(관리) = 대시보드 셸 전면 적용. 공개 뷰어 `/p` = 풀스크린 발표 유지(새 토큰만).
