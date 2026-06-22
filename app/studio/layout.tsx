@@ -5,7 +5,7 @@ import { StudioShell } from "@/widgets/studio-shell";
 
 export default async function StudioLayout({ children }: { children: React.ReactNode }) {
   const profile = await getProfile();
-  if (!profile) redirect("/login");
+  if (!profile) redirect("/login?returnTo=/studio");
   if (!isEditor(profile.role as Role)) redirect("/pending");
 
   return (

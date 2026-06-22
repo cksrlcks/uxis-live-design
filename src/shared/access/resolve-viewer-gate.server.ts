@@ -1,15 +1,13 @@
 import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
-import { eq } from "drizzle-orm";
-import { db } from "@/shared/db";
-import { proposals } from "@drizzle/schema";
 import type { Proposal } from "@drizzle/schema";
 import { getProfile } from "@/shared/auth/guards.server";
 import { isEditor, type Role } from "@/shared/auth/roles";
 import { decideAccess, type AccessDecision } from "@/shared/lib/proposals/access";
 import { verifyUnlockToken, unlockCookieName } from "@/shared/access/unlock-token";
 import { deriveViewerName } from "@/shared/access/viewer-name";
+import { findViewerProposal } from "@/shared/access/find-viewer-proposal.server";
 
 export type ViewerGate = {
   proposal: Proposal | null;
@@ -21,8 +19,9 @@ export type ViewerGate = {
 // Single source of truth for public-viewer access, shared by the layout (to gate the
 // realtime shell) and the page (to gate content). React.cache() dedupes within a request.
 export const resolveViewerGate = cache(async (publicId: string): Promise<ViewerGate> => {
-  const rows = await db.select().from(proposals).where(eq(proposals.publicId, publicId)).limit(1);
-  const proposal = rows[0] ?? null;
+  // publicId 또는 공개 도메인 슬러그 둘 다 허용. 쿠키/토큰은 URL 파라미터 기준으로
+  // 일관되게 키잉되므로(도메인 접근이면 도메인으로 일관) 추가 처리는 불필요.
+  const proposal = await findViewerProposal(publicId);
   if (!proposal) return { proposal: null, decision: "forbidden", viewerName: null, viewer: null };
 
   const profile = await getProfile();

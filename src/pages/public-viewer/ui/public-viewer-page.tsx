@@ -25,5 +25,12 @@ export function PublicViewerPage({
   if (isError || !variants)
     return <p className="text-destructive p-6 text-sm">시안을 불러오지 못했습니다.</p>;
 
-  return <PublicViewer variants={variants} publicId={publicId} viewer={viewer} />;
+  return (
+    <PublicViewer
+      variants={variants}
+      publicId={publicId}
+      viewer={viewer}
+      proposalTitle={proposalTitle}
+    />
+  );
 }

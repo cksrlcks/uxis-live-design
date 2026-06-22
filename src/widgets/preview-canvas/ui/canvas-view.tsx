@@ -1,16 +1,74 @@
 "use client";
-import { useCallback, useRef, useState } from "react";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Eye, EyeOff, Hand, MessageSquare, MessagesSquare, Pen } from "lucide-react";
+import {
+  TransformWrapper,
+  TransformComponent,
+  type ReactZoomPanPinchRef,
+} from "react-zoom-pan-pinch";
 import type { ProposalPage } from "@/entities/proposal";
 import type { PinContext } from "@/entities/pin";
 import { CanvasCursorLayer, CanvasCursorCapture } from "./canvas-cursors";
 import { PinLayer } from "./pin-layer";
-import { Button } from "@/shared/ui/button";
+import { WhiteboardLayer } from "./whiteboard-layer";
+import { CommentsPanel } from "./comments-panel";
+import { pinElementId } from "../lib/format";
+import { cn } from "@/shared/lib/utils";
 
-export function CanvasView({ pages, pin }: { pages: ProposalPage[]; pin?: PinContext }) {
+export function CanvasView({
+  pages,
+  pin,
+  controlsHidden = false,
+}: {
+  pages: ProposalPage[];
+  pin?: PinContext;
+  // 하단 dock이 접히면 일반/코멘트 컨트롤러도 함께 숨긴다.
+  controlsHidden?: boolean;
+}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [mode, setMode] = useState<"pan" | "comment">("pan");
+  const transformRef = useRef<ReactZoomPanPinchRef>(null);
+  const [mode, setMode] = useState<"pan" | "comment" | "draw">("pan");
+  // 스페이스를 누르고 있는 동안은 코멘트 모드여도 좌클릭 드래그로 화면 이동.
+  const [spaceHeld, setSpaceHeld] = useState(false);
+  // 핀 선택 상태는 여기서 들고, 캔버스(PinLayer)·코멘트 리스트가 공유한다.
+  const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
+  const [listOpen, setListOpen] = useState(false);
+  // 화이트보드 그림 표시/숨김(로컬 보기 설정). 숨기면 그리기·지우기도 비활성.
+  const [strokesVisible, setStrokesVisible] = useState(true);
+
+  // 리스트에서 핀 클릭 → 선택 + 해당 핀이 화면 중앙에 오도록 이동(줌 레벨은 유지).
+  const focusPin = useCallback((id: string) => {
+    setSelectedPinId(id);
+    const api = transformRef.current;
+    const el = typeof document !== "undefined" ? document.getElementById(pinElementId(id)) : null;
+    if (!api || !el) return;
+    const scale = Math.max(api.state.scale, 0.7);
+    api.zoomToElement(el, scale, 300);
+  }, []);
+
+  useEffect(() => {
+    const isTyping = (t: EventTarget | null) =>
+      t instanceof HTMLElement &&
+      (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+    const down = (e: KeyboardEvent) => {
+      if (e.code !== "Space" || e.repeat || isTyping(e.target)) return;
+      e.preventDefault(); // 스페이스로 인한 페이지 스크롤 방지
+      setSpaceHeld(true);
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.code === "Space") setSpaceHeld(false);
+    };
+    const reset = () => setSpaceHeld(false);
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", reset);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", reset);
+    };
+  }, []);
 
   const applyInvScale = useCallback((scale: number) => {
     const el = contentRef.current;
@@ -22,37 +80,119 @@ export function CanvasView({ pages, pin }: { pages: ProposalPage[]; pin?: PinCon
   }
 
   const commenting = !!pin && mode === "comment";
+  // 그리기 모드에서도 좌클릭은 펜 입력이므로 패닝 비활성(스페이스 예외).
+  const drawing = !!pin && mode === "draw";
 
   return (
-    <div ref={rootRef} className="bg-muted relative h-full w-full">
-      {pin && (
-        <div className="border-border bg-background/90 absolute top-3 left-3 z-10 flex gap-1 rounded-md border p-1 shadow-sm backdrop-blur">
-          <Button
-            size="sm"
-            variant={mode === "pan" ? "default" : "outline"}
-            className="h-7"
-            onClick={() => setMode("pan")}
-          >
-            일반
-          </Button>
-          <Button
-            size="sm"
-            variant={mode === "comment" ? "default" : "outline"}
-            className="h-7"
-            onClick={() => setMode("comment")}
-          >
-            코멘트
-          </Button>
+    <div ref={rootRef} className="bg-dot-grid relative h-full w-full">
+      {pin && !controlsHidden && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-20 z-40 flex justify-center px-4">
+          <div className="bg-foreground/95 pointer-events-auto flex items-center gap-1 rounded-full px-1.5 py-1.5 shadow-lg backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => setMode("pan")}
+              className={cn(
+                "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
+                mode === "pan"
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-white/60 hover:bg-white/10 hover:text-white",
+              )}
+            >
+              <Hand className="h-3.5 w-3.5" aria-hidden="true" />
+              일반
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("comment")}
+              className={cn(
+                "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
+                mode === "comment"
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-white/60 hover:bg-white/10 hover:text-white",
+              )}
+            >
+              <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+              코멘트
+            </button>
+            <button
+              type="button"
+              // 그리기에 진입하면 숨김 상태였더라도 그림을 다시 보이게 한다(숨긴 채 그리는 혼란 방지).
+              onClick={() => {
+                setMode("draw");
+                setStrokesVisible(true);
+              }}
+              className={cn(
+                "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
+                mode === "draw"
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-white/60 hover:bg-white/10 hover:text-white",
+              )}
+            >
+              <Pen className="h-3.5 w-3.5" aria-hidden="true" />
+              그리기
+            </button>
+            <button
+              type="button"
+              onClick={() => setStrokesVisible((v) => !v)}
+              aria-pressed={!strokesVisible}
+              title={strokesVisible ? "화이트보드 숨기기" : "화이트보드 보이기"}
+              className={cn(
+                "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
+                !strokesVisible
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-white/60 hover:bg-white/10 hover:text-white",
+              )}
+            >
+              {strokesVisible ? (
+                <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+              ) : (
+                <EyeOff className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
+              화이트보드
+            </button>
+
+            <span className="mx-0.5 h-5 w-px bg-white/15" aria-hidden="true" />
+
+            <button
+              type="button"
+              onClick={() => setListOpen((v) => !v)}
+              aria-pressed={listOpen}
+              className={cn(
+                "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
+                listOpen
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-white/60 hover:bg-white/10 hover:text-white",
+              )}
+            >
+              <MessagesSquare className="h-3.5 w-3.5" aria-hidden="true" />
+              목록
+            </button>
+          </div>
         </div>
       )}
+
+      {pin && !controlsHidden && listOpen && (
+        <CommentsPanel
+          pin={pin}
+          selectedId={selectedPinId}
+          onSelect={focusPin}
+          onClose={() => setListOpen(false)}
+        />
+      )}
       <TransformWrapper
+        ref={transformRef}
         minScale={0.1}
         maxScale={3}
         initialScale={0.2}
         centerOnInit
         limitToBounds={false}
         wheel={{ step: 0.001 }}
-        panning={{ disabled: commenting }}
+        panning={{
+          // 코멘트/그리기 모드에서는 좌클릭이 핀 배치·펜 입력이므로 패닝 비활성. 단 스페이스를 누르면 좌클릭 패닝 허용.
+          allowLeftClickPan: !(commenting || drawing) || spaceHeld,
+          // 휠(미들) 클릭 드래그는 어느 모드에서나 화면 이동.
+          allowMiddleClickPan: true,
+        }}
         onInit={(ref) => applyInvScale(ref.state.scale)}
         onTransform={(_ref, state) => applyInvScale(state.scale)}
       >
@@ -84,7 +224,31 @@ export function CanvasView({ pages, pin }: { pages: ProposalPage[]; pin?: PinCon
               ))}
             </div>
             <CanvasCursorLayer />
-            {pin && <PinLayer contentRef={contentRef} pages={pages} pin={pin} mode={mode} />}
+            {pin && (
+              <PinLayer
+                contentRef={contentRef}
+                pages={pages}
+                pin={pin}
+                mode={mode}
+                spaceHeld={spaceHeld}
+                selectedId={selectedPinId}
+                onSelectId={setSelectedPinId}
+              />
+            )}
+            {pin && (
+              <WhiteboardLayer
+                contentRef={contentRef}
+                pages={pages}
+                ctx={{
+                  publicId: pin.publicId,
+                  variantId: pin.variantId,
+                  versionId: pin.versionId,
+                }}
+                mode={mode}
+                spaceHeld={spaceHeld}
+                visible={strokesVisible}
+              />
+            )}
           </div>
         </TransformComponent>
         <CanvasCursorCapture rootRef={rootRef} contentRef={contentRef} />

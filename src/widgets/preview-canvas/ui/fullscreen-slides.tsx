@@ -27,7 +27,7 @@ export function FullscreenSlides({ pages }: { pages: ProposalPage[] }) {
           (narrow screens crop the right edge — never scale down). Click = next. */}
       <div
         key={page.id}
-        className="no-scrollbar h-full w-full overflow-x-hidden overflow-y-auto"
+        className="no-scrollbar h-full w-full overflow-x-hidden overflow-y-auto bg-gray-100"
         onClick={() => setIndex((i) => nextIndex(i, pages.length))}
       >
         {/* max-w-none keeps the image at its native (1920px) width — no scaling */}
@@ -37,7 +37,7 @@ export function FullscreenSlides({ pages }: { pages: ProposalPage[] }) {
           alt=""
           width={page.width}
           height={page.height}
-          className="block max-w-none select-none"
+          className="block max-w-none select-none mx-auto"
           draggable={false}
         />
       </div>

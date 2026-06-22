@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, unique, check, index, real, boolean } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, integer, unique, check, index, real, boolean, jsonb } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const profiles = pgTable("profiles", {
@@ -18,6 +18,7 @@ export type Profile = typeof profiles.$inferSelect;
 export const proposals = pgTable("proposals", {
   id: uuid("id").primaryKey().defaultRandom(),
   publicId: text("public_id").notNull().unique(),
+  domain: text("domain").unique(), // 사람이 읽는 공개 URL 식별자(슬러그). nullable: 기존 행 호환
   title: text("title").notNull(),
   ownerId: uuid("owner_id").notNull(),
   visibility: text("visibility").notNull().default("private"), // 'private' | 'public'
@@ -71,10 +72,13 @@ export type ProposalPage = typeof proposalPages.$inferSelect;
 export const chatMessages = pgTable("chat_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   proposalId: uuid("proposal_id").notNull(),     // FK added via SQL (기존 컨벤션)
+  authorId: uuid("author_id"),                    // FK via SQL (set null), 소유권 기준 — 게스트는 null
   authorName: text("author_name").notNull(),
   authorColor: text("author_color").notNull(),
   body: text("body").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  editedAt: timestamp("edited_at", { withTimezone: true }),   // 수정 시각(수정됨 표시)
+  deletedAt: timestamp("deleted_at", { withTimezone: true }), // 소프트 삭제 시각(삭제된 메시지 표시)
 }, (t) => [
   index("chat_messages_proposal_created_idx").on(t.proposalId, t.createdAt),
 ]);
@@ -100,3 +104,26 @@ export const pinComments = pgTable("pin_comments", {
 ]);
 
 export type PinComment = typeof pinComments.$inferSelect;
+
+// 버전 종속 화이트보드 스트로크(프리핸드 경로). pin_comments와 동일한 스코프 체계지만
+// 점+본문 대신 정규화 경로(points)를 저장한다. 게스트도 그릴 수 있어 author_id는 nullable.
+export const whiteboardStrokes = pgTable("whiteboard_strokes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  proposalId: uuid("proposal_id").notNull(),     // FK via SQL
+  variantId: uuid("variant_id").notNull(),       // FK via SQL
+  versionId: uuid("version_id").notNull(),        // FK via SQL
+  // 경로의 시작점이 속한 페이지. 모든 점은 이 페이지 박스 기준으로 정규화된다(핀과 동일, 시안 밖 허용).
+  pageOrder: integer("page_order").notNull(),
+  // [{x,y}, ...] 페이지 박스 기준 정규화 좌표(±10). 한 stroke = 한 프리핸드 선.
+  points: jsonb("points").$type<{ x: number; y: number }[]>().notNull(),
+  color: text("color").notNull(),
+  width: real("width").notNull(),                 // 페이지 폭 기준 정규화 선 굵기
+  authorId: uuid("author_id"),                    // FK via SQL (set null), 게스트는 null
+  authorName: text("author_name").notNull(),
+  authorColor: text("author_color").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("whiteboard_strokes_variant_version_page_idx").on(t.variantId, t.versionId, t.pageOrder),
+]);
+
+export type WhiteboardStroke = typeof whiteboardStrokes.$inferSelect;

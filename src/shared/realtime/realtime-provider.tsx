@@ -12,6 +12,16 @@ export type PinEvent =
   | { type: "pin_updated"; pin: unknown }
   | { type: "pin_deleted"; id: string };
 
+export type StrokeEvent =
+  | { type: "stroke"; stroke: unknown }
+  | { type: "stroke_deleted"; id: string };
+
+// 그리는 중(in-progress) 라이브 스트로크. ephemeral(저장 안 함) — 커서처럼 고빈도 broadcast.
+// pen-up 시 영구 stroke 이벤트가 도착하고 draw_end로 라이브를 제거한다.
+export type DrawEvent =
+  | { type: "draw"; data: unknown }
+  | { type: "draw_end"; drawId: string };
+
 export type Participant = { id: string; name: string; color: string };
 export type RemoteCursor = {
   id: string;
@@ -29,10 +39,17 @@ type RealtimeContextValue = {
   subscribeChat: (handler: (message: unknown) => void) => () => void;
   broadcastChat: (message: unknown) => void;
   myColor: string;
+  myName: string;
   subscribePins: (handler: (e: PinEvent) => void) => () => void;
   broadcastPin: (pin: unknown) => void;
   broadcastPinUpdated: (pin: unknown) => void;
   broadcastPinDeleted: (id: string) => void;
+  subscribeStrokes: (handler: (e: StrokeEvent) => void) => () => void;
+  broadcastStroke: (stroke: unknown) => void;
+  broadcastStrokeDeleted: (id: string) => void;
+  subscribeDraw: (handler: (e: DrawEvent) => void) => () => void;
+  broadcastDraw: (data: unknown) => void;
+  broadcastDrawEnd: (drawId: string) => void;
 };
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
@@ -67,6 +84,8 @@ export function RealtimeProvider({
   const [cursors, setCursors] = useState<RemoteCursor[]>([]);
   const chatSubsRef = useRef(new Set<(m: unknown) => void>());
   const pinSubsRef = useRef(new Set<(e: PinEvent) => void>());
+  const strokeSubsRef = useRef(new Set<(e: StrokeEvent) => void>());
+  const drawSubsRef = useRef(new Set<(e: DrawEvent) => void>());
 
   // (Re)create the channel only when the room or my stable id changes.
   useEffect(() => {
@@ -121,6 +140,28 @@ export function RealtimeProvider({
       const id = (payload as { id?: string }).id;
       if (!id) return;
       pinSubsRef.current.forEach((h) => h({ type: "pin_deleted", id }));
+    });
+
+    ch.on("broadcast", { event: "stroke" }, ({ payload }) => {
+      const s = payload as { id?: string };
+      if (!s?.id) return;
+      strokeSubsRef.current.forEach((h) => h({ type: "stroke", stroke: payload }));
+    });
+    ch.on("broadcast", { event: "stroke_deleted" }, ({ payload }) => {
+      const id = (payload as { id?: string }).id;
+      if (!id) return;
+      strokeSubsRef.current.forEach((h) => h({ type: "stroke_deleted", id }));
+    });
+
+    ch.on("broadcast", { event: "stroke_draw" }, ({ payload }) => {
+      const d = payload as { drawId?: string };
+      if (!d?.drawId) return;
+      drawSubsRef.current.forEach((h) => h({ type: "draw", data: payload }));
+    });
+    ch.on("broadcast", { event: "stroke_draw_end" }, ({ payload }) => {
+      const drawId = (payload as { drawId?: string }).drawId;
+      if (!drawId) return;
+      drawSubsRef.current.forEach((h) => h({ type: "draw_end", drawId }));
     });
 
     ch.subscribe(async (status) => {
@@ -201,6 +242,41 @@ export function RealtimeProvider({
       ch.send({ type: "broadcast", event: "pin_deleted", payload: { id } });
   }, []);
 
+  const subscribeStrokes = useCallback((handler: (e: StrokeEvent) => void) => {
+    strokeSubsRef.current.add(handler);
+    return () => {
+      strokeSubsRef.current.delete(handler);
+    };
+  }, []);
+
+  const broadcastStroke = useCallback((stroke: unknown) => {
+    const ch = channelRef.current;
+    if (ch?.state === "joined") ch.send({ type: "broadcast", event: "stroke", payload: stroke });
+  }, []);
+  const broadcastStrokeDeleted = useCallback((id: string) => {
+    const ch = channelRef.current;
+    if (ch?.state === "joined")
+      ch.send({ type: "broadcast", event: "stroke_deleted", payload: { id } });
+  }, []);
+
+  const subscribeDraw = useCallback((handler: (e: DrawEvent) => void) => {
+    drawSubsRef.current.add(handler);
+    return () => {
+      drawSubsRef.current.delete(handler);
+    };
+  }, []);
+
+  // 고빈도 라이브 점 전송 — 커서와 동일하게 joined일 때만(REST 폴백 방지).
+  const broadcastDraw = useCallback((data: unknown) => {
+    const ch = channelRef.current;
+    if (ch?.state === "joined") ch.send({ type: "broadcast", event: "stroke_draw", payload: data });
+  }, []);
+  const broadcastDrawEnd = useCallback((drawId: string) => {
+    const ch = channelRef.current;
+    if (ch?.state === "joined")
+      ch.send({ type: "broadcast", event: "stroke_draw_end", payload: { drawId } });
+  }, []);
+
   return (
     <RealtimeContext.Provider
       value={{
@@ -211,10 +287,17 @@ export function RealtimeProvider({
         subscribeChat,
         broadcastChat,
         myColor: identity.color,
+        myName: identity.name,
         subscribePins,
         broadcastPin,
         broadcastPinUpdated,
         broadcastPinDeleted,
+        subscribeStrokes,
+        broadcastStroke,
+        broadcastStrokeDeleted,
+        subscribeDraw,
+        broadcastDraw,
+        broadcastDrawEnd,
       }}
     >
       {children}

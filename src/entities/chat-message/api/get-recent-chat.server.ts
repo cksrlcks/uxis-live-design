@@ -20,9 +20,13 @@ export async function getRecentChat(publicId: string): Promise<ChatMessageDTO[]>
     .limit(INITIAL_CHAT_LIMIT);
   return rows.reverse().map((r) => ({
     id: r.id,
+    authorId: r.authorId,
     authorName: r.authorName,
+    // 삭제된 메시지의 원문은 클라이언트로 내보내지 않는다(빈 문자열).
+    body: r.deletedAt ? "" : r.body,
     authorColor: r.authorColor,
-    body: r.body,
     createdAt: r.createdAt.toISOString(),
+    editedAt: r.editedAt?.toISOString() ?? null,
+    deletedAt: r.deletedAt?.toISOString() ?? null,
   }));
 }

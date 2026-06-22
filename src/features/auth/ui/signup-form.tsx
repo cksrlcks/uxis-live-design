@@ -2,7 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { HttpError } from "@/shared/api/http";
 import { Button } from "@/shared/ui/button";
@@ -24,7 +23,6 @@ function signupErrorMessage(err: unknown): string {
 }
 
 export function SignupForm({ returnTo }: { returnTo?: string }) {
-  const router = useRouter();
   const signupMutation = useSignup();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -38,32 +36,54 @@ export function SignupForm({ returnTo }: { returnTo?: string }) {
     setFormError(null);
     try {
       await signupMutation.mutateAsync(values);
-      router.replace(isSafeInternalPath(returnTo) ? returnTo : "/pending");
-      router.refresh();
+      // Full-document load so any stale client router cache is discarded before the new session renders.
+      window.location.replace(isSafeInternalPath(returnTo) ? returnTo : "/pending");
     } catch (err) {
       setFormError(signupErrorMessage(err));
     }
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">이름</Label>
-        <Input id="name" type="text" {...register("name")} />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-2.5">
+        <Label htmlFor="name" className="text-muted-foreground font-normal">
+          이름
+        </Label>
+        <Input id="name" type="text" className="h-12 rounded-lg px-4" {...register("name")} />
         {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="email">이메일</Label>
-        <Input id="email" type="email" {...register("email")} />
+      <div className="space-y-2.5">
+        <Label htmlFor="email" className="text-muted-foreground font-normal">
+          이메일
+        </Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          className="h-12 rounded-lg px-4"
+          {...register("email")}
+        />
         {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">비밀번호</Label>
-        <Input id="password" type="password" {...register("password")} />
+      <div className="space-y-2.5">
+        <Label htmlFor="password" className="text-muted-foreground font-normal">
+          비밀번호
+        </Label>
+        <Input
+          id="password"
+          type="password"
+          placeholder="6자 이상"
+          className="h-12 rounded-lg px-4"
+          {...register("password")}
+        />
         {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
       </div>
       {formError && <p className="text-destructive text-sm">{formError}</p>}
-      <Button type="submit" className="w-full" disabled={signupMutation.isPending}>
+      <Button
+        type="submit"
+        className="h-12 w-full rounded-lg text-base font-semibold"
+        disabled={signupMutation.isPending}
+      >
         {signupMutation.isPending ? "가입 중…" : "가입하기"}
       </Button>
     </form>

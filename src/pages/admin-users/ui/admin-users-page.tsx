@@ -4,47 +4,93 @@ import { useQuery } from "@tanstack/react-query";
 import { userQueries } from "@/entities/user";
 import { UserRowActions } from "@/features/manage-users";
 import { PageHeader } from "@/widgets/studio-shell";
+import { cn } from "@/shared/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Badge } from "@/shared/ui/badge";
+
+const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-wide";
+const bodyCell = "px-5 py-3.5 align-middle";
+
+const roleBadge: Record<string, { variant: "info" | "success" | "warning"; label: string }> = {
+  admin: { variant: "info", label: "관리자" },
+  editor: { variant: "success", label: "편집자" },
+  pending: { variant: "warning", label: "대기" },
+};
+
+// BFF JSON으로 넘어온 날짜는 문자열 — Date로 감싸 안전하게 포맷한다.
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
 
 export function AdminUsersPage() {
   const { data: rows, isPending, isError } = useQuery(userQueries.list());
 
   return (
     <div>
-      <PageHeader eyebrow="워크스페이스" title="사용자 관리" />
+      <PageHeader title="사용자 관리" />
 
-      <div className="bg-card overflow-hidden rounded-lg border">
+      {rows && rows.length > 0 && (
+        <p className="text-muted-foreground mb-3 text-sm">전체 {rows.length}개</p>
+      )}
+      
+      <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>이메일</TableHead>
-              <TableHead>역할</TableHead>
-              <TableHead className="text-right">작업</TableHead>
+            <TableRow className="border-border/60 border-b hover:bg-transparent">
+              <TableHead className={headCell}>이름</TableHead>
+              <TableHead className={headCell}>이메일</TableHead>
+              <TableHead className={headCell}>역할</TableHead>
+              <TableHead className={headCell}>가입일</TableHead>
+              <TableHead className={cn(headCell, "text-right")}>작업</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isPending && (
-              <TableRow>
-                <TableCell colSpan={3} className="text-muted-foreground">
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5} className="text-muted-foreground px-5 py-16 text-center">
                   불러오는 중…
                 </TableCell>
               </TableRow>
             )}
+
             {isError && (
-              <TableRow>
-                <TableCell colSpan={3} className="text-destructive">
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5} className="text-destructive px-5 py-16 text-center">
                   사용자 목록을 불러오지 못했습니다.
                 </TableCell>
               </TableRow>
             )}
-            {rows?.map((u) => (
-              <TableRow key={u.id}>
-                <TableCell>{u.email}</TableCell>
-                <TableCell>
-                  <Badge variant="neutral">{u.role}</Badge>
+
+            {rows?.length === 0 && (
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={5}
+                  className="text-muted-foreground px-5 py-16 text-center text-sm"
+                >
+                  아직 사용자가 없습니다.
                 </TableCell>
-                <TableCell className="text-right">
+              </TableRow>
+            )}
+
+            {rows?.map((u) => (
+              <TableRow key={u.id} className="border-border/60 border-b last:border-0">
+                <TableCell className={cn(bodyCell, "font-medium")}>
+                  {u.name ?? <span className="text-muted-foreground">—</span>}
+                </TableCell>
+                <TableCell className={bodyCell}>{u.email}</TableCell>
+                <TableCell className={bodyCell}>
+                  <Badge variant={roleBadge[u.role]?.variant ?? "neutral"} size="md">
+                    {roleBadge[u.role]?.label ?? u.role}
+                  </Badge>
+                </TableCell>
+                <TableCell className={cn(bodyCell, "text-muted-foreground tabular-nums")}>
+                  {formatDate(u.createdAt)}
+                </TableCell>
+                <TableCell className={cn(bodyCell, "text-right")}>
                   <UserRowActions id={u.id} role={u.role} />
                 </TableCell>
               </TableRow>

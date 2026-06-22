@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export const UNLOCK_TTL_SECONDS = 12 * 60 * 60; // 12h
+export const UNLOCK_TTL_SECONDS = 12 * 60 * 60; // 12h (기본: 세션 한정)
+export const REMEMBER_TTL_SECONDS = 24 * 60 * 60; // 24h ("하루동안 기억하기")
 
 export function unlockCookieName(publicId: string): string {
   return `pu_${publicId}`;

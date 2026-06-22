@@ -10,3 +10,6 @@ export const createChatInputSchema = z.object({
   authorColor: z.string().trim().min(1).max(32),
 });
 export type CreateChatInput = z.infer<typeof createChatInputSchema>;
+
+export const editChatInputSchema = z.object({ body: chatBodySchema });
+export type EditChatInput = z.infer<typeof editChatInputSchema>;

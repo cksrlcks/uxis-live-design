@@ -1,1 +1,1 @@
-export { AddVariantForm } from "./ui/add-variant-form";
+export { useAddVariant } from "./api/use-add-variant";

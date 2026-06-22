@@ -12,12 +12,12 @@ export default async function PublicViewerLayout({
   children: React.ReactNode;
 }) {
   const { publicId } = await params;
-  const { decision, viewerName } = await resolveViewerGate(publicId);
+  const { decision, viewerName, viewer } = await resolveViewerGate(publicId);
 
   if (decision !== "allow") return <>{children}</>;
 
   return (
-    <RealtimeShell publicId={publicId} viewerName={viewerName}>
+    <RealtimeShell publicId={publicId} viewerName={viewerName} viewerId={viewer?.id ?? null}>
       {children}
     </RealtimeShell>
   );

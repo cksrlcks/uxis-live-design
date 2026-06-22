@@ -153,6 +153,14 @@
     0 3px 7px rgba(0, 0, 0, 0.09);
 }
 
+/* Faint dot-grid canvas — light-gray base with a barely-visible dot pattern.
+   Shared by the public viewer list and the canvas view. */
+@utility bg-dot-grid {
+  background-color: #f4f4f5;
+  background-image: radial-gradient(circle, #e2e2e5 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
 /* Hide scrollbar but keep scrollability — so a vertical scrollbar never eats
    horizontal space and shrinks the native-1920 slide image. */
 .no-scrollbar {

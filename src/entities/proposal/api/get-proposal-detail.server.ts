@@ -4,7 +4,12 @@ import { db } from "@/shared/db";
 import { proposals, proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
 import { requireEditor } from "@/shared/auth/guards.server";
 import { publicUrl } from "@/shared/lib/proposals/constants";
-import type { ProposalDetail, EditorVariant, ProposalPage } from "../model/types";
+import type {
+  ProposalDetail,
+  EditorVariant,
+  ProposalPage,
+  ProposalVersionView,
+} from "../model/types";
 
 export async function getProposalDetail(id: string): Promise<ProposalDetail> {
   await requireEditor();
@@ -28,14 +33,14 @@ export async function getProposalDetail(id: string): Promise<ProposalDetail> {
         .orderBy(asc(proposalVersions.versionNo))
     : [];
 
-  const currentVersionIds = variants
-    .map((v) => v.currentVersionId)
-    .filter((vid): vid is string => vid !== null);
-  const pages = currentVersionIds.length
+  // 편집 화면은 버전을 전환하며 각 버전의 이미지를 직접 편집하므로, 현재 버전뿐
+  // 아니라 모든 버전의 페이지를 한 번에 싣는다(클라이언트에서 즉시 전환).
+  const versionIds = versions.map((v) => v.id);
+  const pages = versionIds.length
     ? await db
         .select()
         .from(proposalPages)
-        .where(inArray(proposalPages.versionId, currentVersionIds))
+        .where(inArray(proposalPages.versionId, versionIds))
         .orderBy(asc(proposalPages.pageOrder))
     : [];
 
@@ -52,10 +57,15 @@ export async function getProposalDetail(id: string): Promise<ProposalDetail> {
     pagesByVersion.set(pg.versionId, list);
   }
 
-  const versionsByVariant = new Map<string, EditorVariant["versions"]>();
+  const versionsByVariant = new Map<string, ProposalVersionView[]>();
   for (const ver of versions) {
     const list = versionsByVariant.get(ver.variantId) ?? [];
-    list.push({ id: ver.id, versionNo: ver.versionNo, note: ver.note });
+    list.push({
+      id: ver.id,
+      versionNo: ver.versionNo,
+      note: ver.note,
+      pages: pagesByVersion.get(ver.id) ?? [],
+    });
     versionsByVariant.set(ver.variantId, list);
   }
 
@@ -73,6 +83,7 @@ export async function getProposalDetail(id: string): Promise<ProposalDetail> {
       id: proposal.id,
       title: proposal.title,
       publicId: proposal.publicId,
+      domain: proposal.domain,
       visibility: proposal.visibility,
       hasPassword: !!proposal.accessPasswordHash,
     },

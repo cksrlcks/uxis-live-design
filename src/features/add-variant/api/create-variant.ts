@@ -1,25 +1,14 @@
 "use client";
 
 import { http } from "@/shared/api/http";
-import { measureAll, uploadAll, type ConfirmPage } from "@/shared/storage-client";
 
-type CreateResponse = {
-  variantId: string;
-  versionId: string;
-  slug: string;
-  label: string;
-  uploads: { pageId: string; path: string; token: string; signedUrl: string; pageOrder: number }[];
-};
+type CreateResponse = { variantId: string; versionId: string; slug: string; label: string };
 
-export async function createVariantWithUploads(proposalId: string, files: File[]): Promise<void> {
-  const measured = await measureAll(files);
+// 빈 안을 생성한다 — 이미지는 생성 후 카드 그리드에서 추가/교체한다.
+export async function createEmptyVariant(proposalId: string): Promise<{ variantId: string }> {
   const created = await http<CreateResponse>(`/api/proposals/${proposalId}/variants`, {
     method: "POST",
-    body: JSON.stringify({ files: files.map((f) => ({ contentType: f.type, size: f.size })) }),
+    body: JSON.stringify({}),
   });
-  const pages: ConfirmPage[] = await uploadAll(created.uploads, measured);
-  await http(
-    `/api/proposals/${proposalId}/variants/${created.variantId}/versions/${created.versionId}/pages`,
-    { method: "POST", body: JSON.stringify({ pages }) },
-  );
+  return { variantId: created.variantId };
 }

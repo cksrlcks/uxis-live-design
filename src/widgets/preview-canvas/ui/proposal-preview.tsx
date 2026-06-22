@@ -1,42 +1,29 @@
 "use client";
-import { useQueryState, parseAsStringEnum } from "nuqs";
 import type { ProposalPage } from "@/entities/proposal";
 import type { PinContext } from "@/entities/pin";
 import { FullscreenSlides } from "./fullscreen-slides";
 import { CanvasView } from "./canvas-view";
-import { Button } from "@/shared/ui/button";
 
-// Remembered in the URL as ?view=canvas (default "fullscreen" is omitted from the URL).
-// nuqs defaults to shallow + history:replace → toggling updates the URL without a server round-trip.
-const viewParser = parseAsStringEnum(["fullscreen", "canvas"] as const).withDefault("fullscreen");
-
-export function ProposalPreview({ pages, pin }: { pages: ProposalPage[]; pin?: PinContext }) {
-  const [view, setView] = useQueryState("view", viewParser);
+// 풀화면/캔버스 선택은 부모(public-viewer)가 하단 플로팅 독에서 관리한다.
+export function ProposalPreview({
+  pages,
+  pin,
+  view,
+  controlsHidden = false,
+}: {
+  pages: ProposalPage[];
+  pin?: PinContext;
+  view: "fullscreen" | "canvas";
+  // 하단 dock이 접혔을 때 캔버스의 일반/코멘트 컨트롤러도 함께 숨긴다.
+  controlsHidden?: boolean;
+}) {
   return (
-    <div className="flex h-full w-full flex-col">
-      <div className="border-border flex shrink-0 items-center gap-2 border-b p-2">
-        <Button
-          size="sm"
-          variant={view === "fullscreen" ? "default" : "outline"}
-          onClick={() => setView("fullscreen")}
-        >
-          풀화면
-        </Button>
-        <Button
-          size="sm"
-          variant={view === "canvas" ? "default" : "outline"}
-          onClick={() => setView("canvas")}
-        >
-          캔버스
-        </Button>
-      </div>
-      <div className="min-h-0 flex-1">
-        {view === "fullscreen" ? (
-          <FullscreenSlides pages={pages} />
-        ) : (
-          <CanvasView pages={pages} pin={pin} />
-        )}
-      </div>
+    <div className="h-full w-full">
+      {view === "fullscreen" ? (
+        <FullscreenSlides pages={pages} />
+      ) : (
+        <CanvasView pages={pages} pin={pin} controlsHidden={controlsHidden} />
+      )}
     </div>
   );
 }

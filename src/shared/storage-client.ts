@@ -23,6 +23,15 @@ export async function measureAll(files: File[]): Promise<MeasuredFile[]> {
   return Promise.all(files.map(measureImage));
 }
 
+// Upload a single file to its signed URL (used by per-page add/replace flows).
+export async function uploadSingle(path: string, token: string, file: File): Promise<void> {
+  const supabase = createSupabaseBrowser();
+  const { error } = await supabase.storage
+    .from(PROPOSALS_BUCKET)
+    .uploadToSignedUrl(path, token, file);
+  if (error) throw new Error(`upload failed: ${error.message}`);
+}
+
 // Upload each file to its signed URL, returning the confirm payload (pageOrder maps to measured[]).
 export async function uploadAll(
   uploads: UploadSpec[],

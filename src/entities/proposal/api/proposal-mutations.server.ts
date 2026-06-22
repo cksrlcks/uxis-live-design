@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { proposals, proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
 import { requireEditor } from "@/shared/auth/guards.server";
@@ -9,13 +9,25 @@ import { updateSettingsSchema } from "../model/edit-schemas";
 
 export async function updateProposalSettings(id: string, input: unknown): Promise<void> {
   await requireEditor();
-  const { title, visibility, password } = updateSettingsSchema.parse(input);
+  const { title, visibility, password, domain } = updateSettingsSchema.parse(input);
 
   const updates: Partial<typeof proposals.$inferInsert> = {};
   if (title !== undefined) updates.title = title;
   if (visibility !== undefined) updates.visibility = visibility;
   if (password !== undefined)
     updates.accessPasswordHash = password === null ? null : hashPassword(password);
+  if (domain !== undefined) {
+    // 도메인 슬러그 중복 체크 — 자기 자신 제외, DB unique 제약 전에 친화적 에러로 차단.
+    if (domain !== null) {
+      const taken = await db
+        .select({ id: proposals.id })
+        .from(proposals)
+        .where(and(eq(proposals.domain, domain), ne(proposals.id, id)))
+        .limit(1);
+      if (taken.length > 0) throw new Error("DOMAIN_TAKEN");
+    }
+    updates.domain = domain;
+  }
   updates.updatedAt = new Date();
 
   await db.update(proposals).set(updates).where(eq(proposals.id, id));

@@ -9,8 +9,20 @@ import type { Role } from "@/shared/auth/roles";
 export async function getUsers(): Promise<AdminUser[]> {
   await requireAdmin();
   const rows = await db
-    .select({ id: profiles.id, email: profiles.email, role: profiles.role })
+    .select({
+      id: profiles.id,
+      name: profiles.displayName,
+      email: profiles.email,
+      role: profiles.role,
+      createdAt: profiles.createdAt,
+    })
     .from(profiles)
     .orderBy(desc(profiles.createdAt));
-  return rows.map((r) => ({ id: r.id, email: r.email, role: r.role as Role }));
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    role: r.role as Role,
+    createdAt: r.createdAt.toISOString(),
+  }));
 }

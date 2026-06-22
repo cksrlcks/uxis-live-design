@@ -7,9 +7,9 @@ describe("proposalQueries", () => {
     expect(proposalQueries.lists()).toEqual(["proposals", "list"]);
   });
 
-  it("list() returns queryOptions with the list key and a queryFn", () => {
-    const opts = proposalQueries.list();
-    expect(opts.queryKey).toEqual(["proposals", "list"]);
-    expect(typeof opts.queryFn).toBe("function");
+  it("list() returns queryOptions with a page-scoped key and a queryFn", () => {
+    expect(proposalQueries.list().queryKey).toEqual(["proposals", "list", 1]);
+    expect(proposalQueries.list(3).queryKey).toEqual(["proposals", "list", 3]);
+    expect(typeof proposalQueries.list().queryFn).toBe("function");
   });
 });

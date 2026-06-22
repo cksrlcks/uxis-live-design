@@ -7,6 +7,7 @@ const STATUS_BY_CODE: Record<string, number> = {
   NOT_FOUND: 404,
   INVALID_CREDENTIALS: 401,
   EMAIL_TAKEN: 409,
+  DOMAIN_TAKEN: 409,
   SIGNUP_FAILED: 400,
   RATE_LIMITED: 429,
   LAST_VARIANT: 409,
@@ -15,6 +16,7 @@ const STATUS_BY_CODE: Record<string, number> = {
   BAD_QUERY: 400,
   NOT_AUTHOR: 403,
   BAD_PAGE: 400,
+  ALREADY_DELETED: 409,
 };
 
 export function toErrorResponse(error: unknown): Response {

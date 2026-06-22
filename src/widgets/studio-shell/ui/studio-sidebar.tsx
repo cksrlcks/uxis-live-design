@@ -1,5 +1,7 @@
 "use client";
 
+import { LogOut } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutButton } from "@/features/auth";
@@ -21,29 +23,17 @@ export function StudioSidebar({ displayName, email, role }: StudioSidebarProps) 
   const initial = (displayName ?? email).charAt(0).toUpperCase();
 
   return (
-    <aside className="bg-background flex w-56 shrink-0 flex-col border-r p-3">
-      {/* 워크스페이스 마크 — 단일 워크스페이스라 비기능(스위처는 후속). /studio 로 이동. */}
+    <aside className="bg-background sticky top-0 flex h-screen w-56 shrink-0 flex-col border-r p-3">
+      {/* 워크스페이스 마크 — /studio 로 이동. */}
       <Link
         href="/studio"
-        className="hover:bg-muted flex items-center gap-2.5 rounded-lg border p-2 transition-colors"
+        className="flex items-center rounded-lg p-2 transition-opacity hover:opacity-70"
       >
-        <span className="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md text-sm font-medium">
-          U
-        </span>
-        <span className="leading-tight">
-          <span className="block text-sm font-medium">uxis</span>
-          <span className="text-muted-foreground block text-xs">live design</span>
-        </span>
-        <span className="text-muted-foreground ml-auto text-xs">▾</span>
+        <Image src="/logo.svg" alt="COVA" width={62} height={16} className="h-4 w-auto" priority />
       </Link>
 
-      {/* 그룹 라벨 */}
-      <p className="text-muted-foreground mt-4 mb-1.5 px-2 text-xs font-medium tracking-[0.07em] uppercase">
-        워크스페이스
-      </p>
-
       {/* 네비 */}
-      <nav className="flex flex-col gap-0.5">
+      <nav className="flex flex-col gap-0.5 mt-4">
         {items.map((item) => {
           const isActive = active?.href === item.href;
           const Icon = item.icon;
@@ -67,18 +57,33 @@ export function StudioSidebar({ displayName, email, role }: StudioSidebarProps) 
 
       <div className="flex-1" />
 
-      {/* 유저 푸터 — 정보 + 로그아웃(기존 컴포넌트 재사용). 계정 드롭다운은 후속. */}
+      {/* 유저 푸터 — 정보 카드 + 아이콘 로그아웃. 계정 드롭다운은 후속. */}
       <div className="mt-3 border-t pt-3">
-        <div className="mb-2 flex items-center gap-2.5 px-1">
-          <span className="bg-accent-purple flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white" aria-hidden="true">
-            {initial}
-          </span>
-          <span className="min-w-0 leading-tight">
-            <span className="block truncate text-sm font-medium">{name}</span>
-            <span className="text-muted-foreground block truncate text-xs">{email}</span>
-          </span>
+        <div className="flex items-center gap-2.5 rounded-xl p-2">
+          <Link
+            href="/studio/me"
+            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg transition-opacity hover:opacity-70"
+          >
+            <span
+              className="bg-foreground text-background flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-medium"
+              aria-hidden="true"
+            >
+              {initial}
+            </span>
+            <span className="min-w-0 flex-1 leading-tight">
+              <span className="block truncate text-sm font-medium">{name}</span>
+              <span className="text-muted-foreground block truncate text-xs">{email}</span>
+            </span>
+          </Link>
+          <LogoutButton
+            variant="ghost"
+            size="icon-sm"
+            aria-label="로그아웃"
+            className="text-muted-foreground hover:text-foreground shrink-0 hover:bg-transparent dark:hover:bg-transparent"
+          >
+            <LogOut className="size-4" />
+          </LogoutButton>
         </div>
-        <LogoutButton className="w-full" />
       </div>
     </aside>
   );

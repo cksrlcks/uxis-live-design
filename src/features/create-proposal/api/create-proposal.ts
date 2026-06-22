@@ -16,6 +16,15 @@ export async function createProposalWithUploads(
   title: string,
   files: File[],
 ): Promise<{ proposalId: string }> {
+  // 이름만으로 생성 — 업로드/페이지 확정 단계를 건너뛴다.
+  if (files.length === 0) {
+    const created = await http<CreateResponse>("/api/proposals", {
+      method: "POST",
+      body: JSON.stringify({ title, files: [] } satisfies CreateProposalInput),
+    });
+    return { proposalId: created.proposalId };
+  }
+
   const measured = await measureAll(files);
 
   const body: CreateProposalInput = {

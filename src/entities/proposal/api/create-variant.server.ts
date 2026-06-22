@@ -29,6 +29,9 @@ export async function createVariant(id: string, input: unknown) {
 
   const variantId = randomUUID();
   const versionId = randomUUID();
+  // 순환 FK(version.variantId ↔ variant.currentVersionId) 때문에 안→버전 순으로
+  // 삽입한 뒤 currentVersionId를 채운다. 안은 곧바로 편집 가능한 빈 페이지 묶음
+  // 하나를 가진다 — 이후 이미지 추가/교체가 이 버전을 대상으로 동작한다.
   await db.insert(proposalVariants).values({
     id: variantId,
     proposalId: id,
@@ -40,6 +43,10 @@ export async function createVariant(id: string, input: unknown) {
   await db
     .insert(proposalVersions)
     .values({ id: versionId, variantId, versionNo: 1, createdBy: editor.id });
+  await db
+    .update(proposalVariants)
+    .set({ currentVersionId: versionId })
+    .where(eq(proposalVariants.id, variantId));
 
   const uploads = [];
   for (let i = 0; i < files.length; i++) {

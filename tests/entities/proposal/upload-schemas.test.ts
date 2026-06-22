@@ -12,8 +12,9 @@ describe("createVariantSchema", () => {
   it("accepts ≥1 valid file", () => {
     expect(createVariantSchema.safeParse({ files: [okFile] }).success).toBe(true);
   });
-  it("rejects empty files", () => {
-    expect(createVariantSchema.safeParse({ files: [] }).success).toBe(false);
+  it("accepts empty files (빈 안 — 이미지는 이후 추가)", () => {
+    expect(createVariantSchema.safeParse({ files: [] }).success).toBe(true);
+    expect(createVariantSchema.safeParse({}).success).toBe(true);
   });
   it("rejects a disallowed content type", () => {
     expect(
@@ -23,12 +24,9 @@ describe("createVariantSchema", () => {
 });
 
 describe("createVersionSchema", () => {
-  it("accepts files with an optional note", () => {
-    expect(createVersionSchema.safeParse({ files: [okFile] }).success).toBe(true);
-    expect(createVersionSchema.safeParse({ note: "메모", files: [okFile] }).success).toBe(true);
-  });
-  it("rejects empty files", () => {
-    expect(createVersionSchema.safeParse({ note: "메모", files: [] }).success).toBe(false);
+  it("accepts an empty body and an optional note (새 버전은 빈 상태)", () => {
+    expect(createVersionSchema.safeParse({}).success).toBe(true);
+    expect(createVersionSchema.safeParse({ note: "메모" }).success).toBe(true);
   });
 });
 

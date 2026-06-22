@@ -5,9 +5,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { HttpError } from "@/shared/api/http";
+import { titleSchema, domainSchema } from "@/entities/proposal/model/create-schema";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+import { Badge } from "@/shared/ui/badge";
+import { Switch } from "@/shared/ui/switch";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/shared/ui/card";
+import { checkDomain } from "../api/check-domain";
 import { useUpdateSettings, useDeleteProposal } from "../api/use-edit-settings";
 
 const passwordSchema = z.object({
@@ -15,12 +27,24 @@ const passwordSchema = z.object({
 });
 type PasswordValues = z.infer<typeof passwordSchema>;
 
+const titleFormSchema = z.object({ title: titleSchema });
+type TitleValues = z.infer<typeof titleFormSchema>;
+
+const domainFormSchema = z.object({ domain: domainSchema });
+type DomainValues = z.infer<typeof domainFormSchema>;
+
+type DomainCheck = { available: boolean; message: string };
+
 export function ProposalSettings({
   proposalId,
+  title,
+  domain,
   visibility,
   hasPassword,
 }: {
   proposalId: string;
+  title: string;
+  domain: string | null;
   visibility: string;
   hasPassword: boolean;
 }) {
@@ -28,6 +52,8 @@ export function ProposalSettings({
   const updateSettings = useUpdateSettings(proposalId);
   const deleteProposal = useDeleteProposal(proposalId);
   const [error, setError] = useState<string | null>(null);
+  const [domainCheck, setDomainCheck] = useState<DomainCheck | null>(null);
+  const [checking, setChecking] = useState(false);
 
   const {
     register,
@@ -36,7 +62,59 @@ export function ProposalSettings({
     formState: { errors },
   } = useForm<PasswordValues>({ resolver: zodResolver(passwordSchema) });
 
+  const titleForm = useForm<TitleValues>({
+    resolver: zodResolver(titleFormSchema),
+    defaultValues: { title },
+  });
+
+  const domainForm = useForm<DomainValues>({
+    resolver: zodResolver(domainFormSchema),
+    defaultValues: { domain: domain ?? "" },
+  });
+
   const pending = updateSettings.isPending || deleteProposal.isPending;
+
+  function onSetTitle({ title: next }: TitleValues) {
+    setError(null);
+    updateSettings.mutate(
+      { title: next },
+      { onError: () => setError("변경에 실패했습니다.") },
+    );
+  }
+
+  async function onCheckDomain() {
+    setDomainCheck(null);
+    const valid = await domainForm.trigger("domain");
+    if (!valid) return;
+    setChecking(true);
+    try {
+      const { available } = await checkDomain(domainForm.getValues("domain"), proposalId);
+      setDomainCheck({
+        available,
+        message: available ? "사용 가능한 도메인입니다." : "이미 사용 중인 도메인입니다.",
+      });
+    } catch {
+      setDomainCheck({ available: false, message: "확인에 실패했습니다." });
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  function onSetDomain({ domain: next }: DomainValues) {
+    setError(null);
+    updateSettings.mutate(
+      { domain: next },
+      {
+        onSuccess: () => setDomainCheck(null),
+        onError: (err) =>
+          setError(
+            err instanceof HttpError && err.code === "DOMAIN_TAKEN"
+              ? "이미 사용 중인 도메인입니다."
+              : "변경에 실패했습니다.",
+          ),
+      },
+    );
+  }
 
   function change(input: Parameters<typeof updateSettings.mutate>[0]) {
     setError(null);
@@ -61,60 +139,205 @@ export function ProposalSettings({
   }
 
   return (
-    <div className="border-border space-y-4 rounded-[8px] border p-4">
-      <div className="flex items-center gap-2">
-        <span className="text-sm">공개 상태:</span>
-        <Button
-          size="sm"
-          variant={visibility === "private" ? "default" : "outline"}
-          disabled={pending}
-          onClick={() => change({ visibility: "private" })}
-        >
-          비공개
-        </Button>
-        <Button
-          size="sm"
-          variant={visibility === "public" ? "default" : "outline"}
-          disabled={pending}
-          onClick={() => change({ visibility: "public" })}
-        >
-          공개
-        </Button>
-      </div>
-
-      <form onSubmit={handleSubmit(onSetPassword)} className="space-y-2">
-        <Label htmlFor="password">
-          접근 비밀번호{" "}
-          {hasPassword && <span className="text-muted-foreground text-xs">(설정됨)</span>}
-        </Label>
-        <div className="flex gap-2">
-          <Input id="password" type="password" placeholder="4자 이상" {...register("password")} />
-          <Button type="submit" size="sm" variant="outline" disabled={pending}>
-            설정/변경
-          </Button>
-          {hasPassword && (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={pending}
-              onClick={() => change({ password: null })}
-            >
-              비번 해제
+    <div className="space-y-5">
+      {/* 제목 */}
+      <form onSubmit={titleForm.handleSubmit(onSetTitle)}>
+        <Card>
+          <CardHeader>
+            <CardTitle>제목</CardTitle>
+            <CardDescription>시안 목록과 뷰어에 표시되는 이름입니다.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Input
+              aria-label="제목"
+              placeholder="시안 제목"
+              className="h-9 max-w-md"
+              {...titleForm.register("title")}
+            />
+            {titleForm.formState.errors.title && (
+              <p className="text-destructive mt-2 text-sm">
+                {titleForm.formState.errors.title.message}
+              </p>
+            )}
+          </CardContent>
+          <CardFooter>
+            <p className="text-muted-foreground text-sm">변경하면 즉시 반영됩니다.</p>
+            <Button type="submit" size="lg" className="ml-auto" disabled={pending}>
+              저장
             </Button>
-          )}
-        </div>
-        {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
-        <p className="text-muted-foreground text-xs">비밀번호는 공개 시안에만 적용됩니다.</p>
+          </CardFooter>
+        </Card>
+      </form>
+
+      {/* 공개 상태 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>공개 상태</CardTitle>
+          <CardDescription>
+            비공개는 관리자만, 공개는 링크를 아는 누구나 볼 수 있습니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <label className="flex w-fit cursor-pointer items-center gap-3">
+            <Switch
+              checked={visibility === "public"}
+              disabled={pending}
+              onCheckedChange={(checked) =>
+                change({ visibility: checked ? "public" : "private" })
+              }
+            />
+            <span className="text-sm font-medium">
+              {visibility === "public" ? "공개" : "비공개"}
+            </span>
+          </label>
+        </CardContent>
+      </Card>
+
+      {/* 공개 도메인 */}
+      <form onSubmit={domainForm.handleSubmit(onSetDomain)}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              공개 도메인
+              {domain && (
+                <Badge variant="neutral" size="sm">
+                  설정됨
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription>공개 URL에 쓰이는 식별자 · 소문자·숫자·하이픈</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex max-w-md gap-2">
+              <Input
+                aria-label="공개 도메인"
+                placeholder="예: main-renewal"
+                className="h-9"
+                {...domainForm.register("domain", { onChange: () => setDomainCheck(null) })}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="h-9 shrink-0"
+                disabled={pending || checking}
+                onClick={onCheckDomain}
+              >
+                {checking ? "확인 중…" : "중복확인"}
+              </Button>
+            </div>
+            {domainForm.formState.errors.domain && (
+              <p className="text-destructive text-sm">
+                {domainForm.formState.errors.domain.message}
+              </p>
+            )}
+            {domainCheck && (
+              <p
+                className={
+                  domainCheck.available ? "text-sm text-emerald-600" : "text-destructive text-sm"
+                }
+              >
+                {domainCheck.message}
+              </p>
+            )}
+          </CardContent>
+          <CardFooter>
+            <p className="text-muted-foreground text-sm">/p/도메인 형태로 접속합니다.</p>
+            <div className="ml-auto flex gap-1">
+              {domain && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  disabled={pending}
+                  onClick={() => {
+                    domainForm.reset({ domain: "" });
+                    setDomainCheck(null);
+                    change({ domain: null });
+                  }}
+                >
+                  해제
+                </Button>
+              )}
+              <Button type="submit" size="lg" disabled={pending}>
+                설정/변경
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+      </form>
+
+      {/* 접근 비밀번호 */}
+      <form onSubmit={handleSubmit(onSetPassword)}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              접근 비밀번호
+              {hasPassword && (
+                <Badge variant="neutral" size="sm">
+                  설정됨
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription>비밀번호는 공개 시안에만 적용됩니다.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Input
+              type="password"
+              aria-label="접근 비밀번호"
+              placeholder="4자 이상"
+              className="h-9 max-w-md"
+              {...register("password")}
+            />
+            {errors.password && (
+              <p className="text-destructive mt-2 text-sm">{errors.password.message}</p>
+            )}
+          </CardContent>
+          <CardFooter>
+            <p className="text-muted-foreground text-sm">설정하면 열람 시 비밀번호를 묻습니다.</p>
+            <div className="ml-auto flex gap-1">
+              {hasPassword && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  disabled={pending}
+                  onClick={() => change({ password: null })}
+                >
+                  비번 해제
+                </Button>
+              )}
+              <Button type="submit" size="lg" disabled={pending}>
+                설정/변경
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
       </form>
 
       {error && <p className="text-destructive text-sm">{error}</p>}
 
-      <div className="border-border border-t pt-4">
-        <Button variant="destructive" size="sm" disabled={pending} onClick={onDelete}>
-          시안 삭제
-        </Button>
-      </div>
+      {/* 위험 구역 */}
+      <Card className="ring-destructive/30">
+        <CardHeader>
+          <CardTitle className="text-destructive">시안 삭제</CardTitle>
+          <CardDescription>
+            모든 버전과 이미지가 영구 삭제됩니다. 되돌릴 수 없습니다.
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="bg-destructive/5">
+          <p className="text-destructive text-sm">이 작업은 취소할 수 없습니다.</p>
+          <Button
+            variant="destructive"
+            size="lg"
+            className="ml-auto"
+            disabled={pending}
+            onClick={onDelete}
+          >
+            시안 삭제
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

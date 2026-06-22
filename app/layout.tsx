@@ -4,7 +4,7 @@ import { pretendard } from "@/shared/config/fonts";
 import { QueryProvider } from "@/app/providers/query-provider";
 import "@/app/styles/globals.css";
 
-export const metadata: Metadata = { title: "uxis live design" };
+export const metadata: Metadata = { title: "UXIS COVA - co + view area" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

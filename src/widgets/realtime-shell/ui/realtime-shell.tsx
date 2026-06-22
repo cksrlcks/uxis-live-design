@@ -1,17 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { RealtimeProvider } from "@/shared/realtime/realtime-provider";
-import { PresenceBar } from "./presence-bar";
-import { ChatPanel } from "./chat-panel";
+import { CollaborationDock } from "./collaboration-dock";
 import { type Identity, loadOrCreateIdentity, saveIdentity } from "@/shared/realtime/identity";
 
 export function RealtimeShell({
   publicId,
   viewerName,
+  viewerId,
   children,
 }: {
   publicId: string;
   viewerName: string | null;
+  viewerId: string | null;
   children: React.ReactNode;
 }) {
   const [identity, setIdentity] = useState<Identity | null>(null);
@@ -35,8 +36,13 @@ export function RealtimeShell({
   return (
     <RealtimeProvider publicId={publicId} identity={identity}>
       {children}
-      <PresenceBar identity={identity} onRename={rename} isAuthed={viewerName != null} />
-      <ChatPanel publicId={publicId} identity={identity} />
+      <CollaborationDock
+        publicId={publicId}
+        identity={identity}
+        onRename={rename}
+        isAuthed={viewerName != null}
+        viewerId={viewerId}
+      />
     </RealtimeProvider>
   );
 }

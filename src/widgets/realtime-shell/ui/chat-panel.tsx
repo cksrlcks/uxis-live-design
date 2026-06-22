@@ -1,113 +1,321 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { Check, ExternalLink, Pencil, SendHorizontal, Trash2, X } from "lucide-react";
 import { useRealtime } from "@/shared/realtime/realtime-provider";
 import type { Identity } from "@/shared/realtime/identity";
-import { chatQueries, MAX_CHAT_BODY, type ChatMessageDTO } from "@/entities/chat-message";
+import { chatQueries, MAX_CHAT_BODY } from "@/entities/chat-message";
+import type { ChatMessageDTO } from "@/entities/chat-message";
 import { useSendChatMessage } from "@/features/send-chat-message";
+import { useDeleteChatMessage, useEditChatMessage } from "@/features/manage-chat-message";
 import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/button";
+import { cn } from "@/shared/lib/utils";
 
-export function ChatPanel({ publicId, identity }: { publicId: string; identity: Identity }) {
-  const { subscribeChat, broadcastChat } = useRealtime();
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+}
+
+// 연속 메시지 묶음 기준: 같은 작성자가 이 시간 안에 보내면 헤더를 숨기고 간격을 좁힌다(슬랙/디스코드식).
+const GROUP_WINDOW_MS = 5 * 60 * 1000;
+
+function sameAuthor(a: ChatMessageDTO, b: ChatMessageDTO): boolean {
+  return a.authorName === b.authorName && a.authorColor === b.authorColor;
+}
+
+export function ChatPanel({
+  publicId,
+  identity,
+  viewerId,
+  onClose,
+  onPopOut,
+  className,
+}: {
+  publicId: string;
+  identity: Identity;
+  viewerId: string | null;
+  onClose?: () => void;
+  onPopOut?: () => void;
+  className?: string;
+}) {
+  const { broadcastChat } = useRealtime();
   const { data: chatMessages = [] } = useQuery(chatQueries.list(publicId));
-  const qc = useQueryClient();
   const send = useSendChatMessage(publicId);
+  const editMessage = useEditChatMessage(publicId);
+  const deleteMessage = useDeleteChatMessage(publicId);
 
-  const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [failed, setFailed] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Bridge: fan realtime broadcast messages into the RQ cache (dedup by id).
-  useEffect(
-    () =>
-      subscribeChat((raw) => {
-        const m = raw as ChatMessageDTO;
-        qc.setQueryData<ChatMessageDTO[]>(chatQueries.list(publicId).queryKey, (prev) =>
-          prev && prev.some((x) => x.id === m.id) ? prev : [...(prev ?? []), m],
-        );
-      }),
-    [subscribeChat, qc, publicId],
-  );
-
+  // 캐시 갱신(broadcast → RQ)은 항상 마운트된 useChatBridge가 담당. 여기선 캐시를 읽기만 한다.
   // 새 메시지/열림 시 맨 아래로.
   useEffect(() => {
-    if (open && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
-  }, [chatMessages, open]);
+    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+  }, [chatMessages]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const body = text.trim();
-    if (!body || send.isPending) return;
+    if (!body) return;
     setFailed(false);
+    setText(""); // 낙관적: 입력창을 즉시 비운다(메시지는 mutation onMutate가 바로 띄움)
     send.mutate(
       { body, authorName: identity.name, authorColor: identity.color },
       {
-        onSuccess: (message) => {
-          broadcastChat(message);
-          setText("");
+        onSuccess: (message) => broadcastChat(message),
+        onError: () => {
+          setFailed(true);
+          setText(body); // 실패 시 입력 복구
         },
-        onError: () => setFailed(true),
       },
     );
   }
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="border-border bg-background/90 fixed bottom-3 left-3 z-50 rounded-full border px-4 py-2 text-sm font-medium shadow-sm backdrop-blur"
-      >
-        채팅
-        {chatMessages.length > 0 && (
-          <span className="text-muted-foreground ml-1">{chatMessages.length}</span>
-        )}
-      </button>
+  // 정렬용 "내 메시지": 게스트도 우측 정렬되도록 이름+색으로 식별.
+  function isMine(m: ChatMessageDTO): boolean {
+    return m.authorName === identity.name && m.authorColor === identity.color;
+  }
+
+  // 수정/삭제 권한: 로그인 사용자가 자기 메시지일 때만(삭제된 건 제외).
+  // 서버가 authorId === profile.id로 한 번 더 검증하므로 여기선 버튼 노출 판단용.
+  function canManage(m: ChatMessageDTO): boolean {
+    return viewerId != null && m.authorId === viewerId && !m.deletedAt;
+  }
+
+  function startEdit(m: ChatMessageDTO) {
+    setEditingId(m.id);
+    setEditText(m.body);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditText("");
+  }
+
+  function submitEdit(m: ChatMessageDTO) {
+    const body = editText.trim();
+    if (!body || editMessage.isPending) return;
+    if (body === m.body) return cancelEdit();
+    editMessage.mutate(
+      { id: m.id, body },
+      {
+        onSuccess: (message) => {
+          broadcastChat(message);
+          cancelEdit();
+        },
+      },
     );
   }
 
+  function removeMessage(m: ChatMessageDTO) {
+    if (deleteMessage.isPending) return;
+    deleteMessage.mutate(m.id, { onSuccess: (message) => broadcastChat(message) });
+  }
+
   return (
-    <div className="border-border bg-background/95 fixed bottom-3 left-3 z-50 flex h-96 w-80 flex-col rounded-lg border shadow-lg backdrop-blur">
-      <div className="border-border flex shrink-0 items-center justify-between border-b px-3 py-2">
-        <span className="text-sm font-medium">채팅</span>
-        <button onClick={() => setOpen(false)} className="text-muted-foreground text-sm">
-          닫기
-        </button>
-      </div>
-      <div ref={listRef} className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+    <div
+      className={cn(
+        "bg-foreground/95 text-background flex h-120 w-96 flex-col overflow-hidden rounded-l-xl shadow-2xl backdrop-blur-md",
+        className,
+      )}
+    >
+      <header className="flex shrink-0 items-center justify-between border-b border-white/10 px-3.5 py-2.5">
+        <div className="flex items-center gap-2">
+          <span className="bg-accent-green relative inline-flex h-2 w-2 rounded-full" />
+          <span className="text-base font-medium">채팅</span>
+        </div>
+        <div className="flex items-center gap-0.5">
+          {onPopOut && (
+            <button
+              onClick={onPopOut}
+              aria-label="새 창으로 열기"
+              title="새 창으로 열기"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              aria-label="채팅 닫기"
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      </header>
+
+      <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
         {chatMessages.length === 0 && (
-          <p className="text-muted-foreground text-xs">아직 메시지가 없습니다.</p>
-        )}
-        {chatMessages.map((m) => (
-          <div key={m.id} className="text-sm">
-            <span className="font-medium" style={{ color: m.authorColor }}>
-              {m.authorName}
-            </span>
-            <span className="ml-2 break-words whitespace-pre-wrap">{m.body}</span>
+          <div className="flex h-full flex-col items-center justify-center gap-1 text-center text-white/50">
+            <p className="text-sm">아직 메시지가 없습니다.</p>
+            <p className="text-xs">첫 메시지를 남겨보세요.</p>
           </div>
-        ))}
+        )}
+        {chatMessages.map((m, i) => {
+          const mine = isMine(m);
+          const deleted = !!m.deletedAt;
+          const editing = editingId === m.id;
+          const prev = chatMessages[i - 1];
+          const grouped =
+            !!prev &&
+            sameAuthor(prev, m) &&
+            new Date(m.createdAt).getTime() - new Date(prev.createdAt).getTime() < GROUP_WINDOW_MS;
+
+          return (
+            <div
+              key={m.id}
+              className={cn(
+                "group flex flex-col first:mt-0",
+                mine ? "items-end" : "items-start",
+                grouped ? "mt-0.5" : "mt-3",
+              )}
+            >
+              {!mine && !grouped && (
+                <div className="mb-1 flex items-center gap-1.5 px-1">
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: m.authorColor }}
+                  />
+                  <span className="text-[13px] font-medium text-white/70">{m.authorName}</span>
+                </div>
+              )}
+
+              {editing ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    submitEdit(m);
+                  }}
+                  className="flex w-[92%] flex-col gap-1"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      maxLength={MAX_CHAT_BODY}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") cancelEdit();
+                      }}
+                      aria-label="메시지 수정"
+                      className="h-10 rounded-lg border-white/15 bg-white/10 text-[15px] text-white placeholder:text-white/40"
+                    />
+                    <button
+                      type="submit"
+                      aria-label="수정 저장"
+                      disabled={editMessage.isPending || !editText.trim()}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Check className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      aria-label="수정 취소"
+                      className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                      <X className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </div>
+                  <span className="px-1 text-[10px] text-white/40">Enter 저장 · Esc 취소</span>
+                </form>
+              ) : (
+                <div
+                  className={cn(
+                    "relative flex max-w-[85%] items-end gap-1.5",
+                    mine ? "flex-row-reverse" : "flex-row",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "rounded-2xl px-3.5 py-3 text-[15px] leading-tight wrap-break-word whitespace-pre-wrap",
+                      deleted
+                        ? "border border-dashed border-white/15 bg-transparent text-white/40 not-italic"
+                        : mine
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-white/10 text-white",
+                      !deleted && !grouped && (mine ? "rounded-tr-sm" : "rounded-tl-sm"),
+                    )}
+                  >
+                    {deleted ? "삭제된 메시지" : m.body}
+                    {!deleted && m.editedAt && (
+                      <span className="ml-1.5 text-[10px] opacity-60 not-italic">(수정됨)</span>
+                    )}
+                  </div>
+
+                  <time className="shrink-0 pb-0.5 text-[11px] tabular-nums text-white/35">
+                    {formatTime(m.createdAt)}
+                  </time>
+
+                  {/* 플로팅 액션 툴바 — 시간 옆(말풍선 바깥)에 떠오른다.
+                      absolute라 공간을 차지하지 않고 본문도 가리지 않음. */}
+                  {canManage(m) && (
+                    <div
+                      className={cn(
+                        "absolute bottom-0 z-10 flex items-center gap-0.5 rounded-lg border border-white/10 bg-white/10 p-0.5 opacity-0 shadow-lg backdrop-blur-md transition-opacity group-hover:opacity-100 focus-within:opacity-100",
+                        mine ? "right-full mr-1.5" : "left-full ml-1.5",
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => startEdit(m)}
+                        aria-label="메시지 수정"
+                        title="수정"
+                        className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+                      >
+                        <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeMessage(m)}
+                        aria-label="메시지 삭제"
+                        title="삭제"
+                        className="hover:text-destructive flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-white/70 transition-colors hover:bg-white/15"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
+
       {(failed || send.isError) && (
-        <p className="text-destructive shrink-0 px-3 pb-1 text-xs">
+        <p className="text-destructive shrink-0 px-3.5 pb-1 text-xs">
           전송 실패 — 다시 시도해 주세요.
         </p>
       )}
+
       <form
         onSubmit={submit}
-        className="border-border flex shrink-0 items-center gap-2 border-t p-2"
+        className="flex shrink-0 items-center gap-2 border-t border-white/10 p-2.5"
       >
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
           maxLength={MAX_CHAT_BODY}
-          placeholder="메시지 입력"
+          placeholder="메시지 입력…"
           aria-label="메시지 입력"
-          className="h-8"
+          className="h-10 rounded-full border-white/15 bg-white/10 px-4 text-[15px] text-white placeholder:text-white/40"
         />
-        <Button type="submit" size="sm" className="h-8" disabled={send.isPending || !text.trim()}>
-          전송
-        </Button>
+        <button
+          type="submit"
+          aria-label="전송"
+          disabled={!text.trim()}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <SendHorizontal className="h-4.5 w-4.5" aria-hidden="true" />
+        </button>
       </form>
     </div>
   );

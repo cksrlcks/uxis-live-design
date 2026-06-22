@@ -14,8 +14,10 @@ describe("createProposalSchema", () => {
     expect(createProposalSchema.safeParse({ title: "   ", files: [okFile] }).success).toBe(false);
   });
 
-  it("requires at least one file", () => {
-    expect(createProposalSchema.safeParse({ title: "A", files: [] }).success).toBe(false);
+  it("allows a name-only payload (files default to empty)", () => {
+    expect(createProposalSchema.safeParse({ title: "A", files: [] }).success).toBe(true);
+    // files 자체가 없어도 기본값 []로 통과한다.
+    expect(createProposalSchema.safeParse({ title: "A" }).success).toBe(true);
   });
 
   it("rejects a disallowed content type", () => {

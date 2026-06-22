@@ -5,7 +5,6 @@ import { db } from "@/shared/db";
 import { pinComments, proposalVariants, proposalVersions, proposalPages } from "@drizzle/schema";
 import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
 import { getProfile } from "@/shared/auth/guards.server";
-import { clamp01 } from "@/shared/realtime/coords";
 import { createPinInputSchema } from "@/entities/pin";
 import type { PinDTO } from "@/entities/pin";
 
@@ -41,16 +40,15 @@ export async function createPinComment(publicId: string, raw: unknown): Promise<
   const id = randomUUID();
   const createdAt = new Date();
   const authorName = profile.displayName ?? profile.email.split("@")[0] ?? "사용자";
-  const cx = clamp01(xNorm);
-  const cy = clamp01(yNorm);
+  // 시안 밖 핀을 허용하므로 0..1로 강제하지 않는다(범위는 createPinInputSchema가 보장).
   await db.insert(pinComments).values({
     id,
     proposalId: proposal.id,
     variantId,
     versionId,
     pageOrder,
-    xNorm: cx,
-    yNorm: cy,
+    xNorm,
+    yNorm,
     authorId: profile.id,
     authorName,
     authorColor,
@@ -62,8 +60,8 @@ export async function createPinComment(publicId: string, raw: unknown): Promise<
     variantId,
     versionId,
     pageOrder,
-    xNorm: cx,
-    yNorm: cy,
+    xNorm,
+    yNorm,
     authorId: profile.id,
     authorName,
     authorColor,

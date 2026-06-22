@@ -42,9 +42,12 @@ export function loadOrCreateIdentity(authedName: string | null): Identity {
     const id = (typeof crypto !== "undefined" && "randomUUID" in crypto) ? crypto.randomUUID() : String(seed);
     identity = { id, name: defaultGuestName(seed), color: pickColor(seed) };
   }
-  if (authedName) identity = { ...identity, name: authedName };
+  // Persist only the GUEST identity — never the authed name. Otherwise logging in
+  // would overwrite the stored guest name, and after logout the anonymous viewer
+  // would keep showing the previously logged-in name.
   saveIdentity(identity);
-  return identity;
+  // The authed name is a session-only override applied on top of the guest identity.
+  return authedName ? { ...identity, name: authedName } : identity;
 }
 
 export function saveIdentity(identity: Identity): void {
