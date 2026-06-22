@@ -140,6 +140,18 @@
   }
 }
 
+/* Layered drop shadow — design-system §5 elevation level 2 (brand signature).
+   For cards that should float above the white canvas (auth card, comment
+   popover, etc.). */
+@utility shadow-layered-2 {
+  box-shadow:
+    0 84px 24px rgba(0, 0, 0, 0),
+    0 54px 22px rgba(0, 0, 0, 0.01),
+    0 30px 18px rgba(0, 0, 0, 0.04),
+    0 13px 13px rgba(0, 0, 0, 0.08),
+    0 3px 7px rgba(0, 0, 0, 0.09);
+}
+
 /* Hide scrollbar but keep scrollability — so a vertical scrollbar never eats
    horizontal space and shrinks the native-1920 slide image. */
 .no-scrollbar {

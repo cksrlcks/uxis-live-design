@@ -46,16 +46,16 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
     <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">이메일</Label>
-        <Input id="email" type="email" {...register("email")} />
+        <Input id="email" type="email" className="rounded-[4px]" {...register("email")} />
         {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="password">비밀번호</Label>
-        <Input id="password" type="password" {...register("password")} />
+        <Input id="password" type="password" className="rounded-[4px]" {...register("password")} />
         {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
       </div>
       {formError && <p className="text-destructive text-sm">{formError}</p>}
-      <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+      <Button type="submit" className="h-10 w-full" disabled={loginMutation.isPending}>
         {loginMutation.isPending ? "로그인 중…" : "로그인"}
       </Button>
     </form>
