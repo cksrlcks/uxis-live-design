@@ -65,7 +65,8 @@
   --card-foreground: #080808;
   --popover: #ffffff;
   --popover-foreground: #080808;
-  --primary: #080808;
+  /* v2 (2026-06-22): primary = GitGuardian blue. near-black stays as --foreground (ink). */
+  --primary: #146ef5;
   --primary-foreground: #ffffff;
   --secondary: #ffffff;
   --secondary-foreground: #080808;
