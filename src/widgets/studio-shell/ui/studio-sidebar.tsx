@@ -70,7 +70,7 @@ export function StudioSidebar({ displayName, email, role }: StudioSidebarProps) 
       {/* 유저 푸터 — 정보 + 로그아웃(기존 컴포넌트 재사용). 계정 드롭다운은 후속. */}
       <div className="mt-3 border-t pt-3">
         <div className="mb-2 flex items-center gap-2.5 px-1">
-          <span className="bg-accent-purple flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white">
+          <span className="bg-accent-purple flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white" aria-hidden="true">
             {initial}
           </span>
           <span className="min-w-0 leading-tight">
