@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# superpowers brainstorming scratch (mockups) — NOT docs/superpowers (tracked specs)
+/.superpowers/
