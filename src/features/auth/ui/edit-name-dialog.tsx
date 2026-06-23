@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Settings } from "lucide-react";
 import { HttpError } from "@/shared/api/http";
 import { Button } from "@/shared/ui/button";
 import {
@@ -72,12 +73,13 @@ export function EditNameDialog({ displayName }: { displayName: string | null }) 
         render={
           <button
             type="button"
-            className="hover:text-foreground/70 mt-4 text-lg font-semibold tracking-tight underline-offset-4 transition-colors hover:underline"
+            className="hover:text-foreground/70 mt-4 inline-flex cursor-pointer items-center gap-1.5 text-lg font-semibold tracking-tight underline-offset-4 transition-colors hover:underline"
             aria-label="이름 변경"
           />
         }
       >
         {name}
+        <Settings className="text-muted-foreground size-4" aria-hidden="true" />
       </DialogTrigger>
       <DialogContent showCloseButton={false} className="gap-5 p-6">
         <DialogHeader>
