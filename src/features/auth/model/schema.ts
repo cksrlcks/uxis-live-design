@@ -43,3 +43,8 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const updateNameSchema = z.object({
+  name: z.string().trim().min(1, "이름을 입력하세요").max(50, "이름은 50자 이하여야 합니다"),
+});
+export type UpdateNameInput = z.infer<typeof updateNameSchema>;
