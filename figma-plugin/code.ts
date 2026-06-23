@@ -17,7 +17,7 @@ type UiMessage =
   | { type: "notify"; message: string; error?: boolean }
   | { type: "close" };
 
-figma.showUI(__html__, { width: 400, height: 600, themeColors: true });
+figma.showUI(__html__, { width: 480, height: 720, themeColors: true });
 
 // export 가능한(이미지로 뽑을 수 있는) 선택 노드만 추린다.
 function exportableSelection(): SceneNode[] {

@@ -5,142 +5,185 @@
     <style>
       :root {
         --bg: var(--figma-color-bg, #fff);
-        --bg2: var(--figma-color-bg-secondary, #f5f5f5);
+        --bg2: var(--figma-color-bg-secondary, #f5f7fa);
         --text: var(--figma-color-text, #1a1a1a);
-        --text-dim: var(--figma-color-text-secondary, #7a7a7a);
-        --border: var(--figma-color-border, #e6e6e6);
-        --brand: var(--figma-color-bg-brand, #0d99ff);
-        --brand-text: var(--figma-color-text-onbrand, #fff);
+        --dim: var(--figma-color-text-secondary, #8a8f98);
+        --border: var(--figma-color-border, #e6e8eb);
         --danger: var(--figma-color-text-danger, #e03e1a);
         --ok: var(--figma-color-text-success, #1e944a);
+        --cova: #0a3aa8;
+        --cova-2: #3b89ff;
+        --radius: 9px;
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; height: 100%; }
       body {
-        font: 12px/1.5 Inter, -apple-system, sans-serif;
+        font: 13px/1.55 Inter, -apple-system, BlinkMacSystemFont, sans-serif;
         color: var(--text); background: var(--bg);
         display: flex; flex-direction: column; height: 100vh;
+        -webkit-font-smoothing: antialiased;
       }
       .hidden { display: none !important; }
-      label { display: block; font-size: 11px; color: var(--text-dim); margin: 10px 0 4px; }
+      .logo { display: block; color: currentColor; }
+
+      label { display: block; font-size: 12px; font-weight: 500; color: var(--dim); margin: 14px 0 6px; }
       input {
-        width: 100%; height: 30px; padding: 0 8px;
-        border: 1px solid var(--border); border-radius: 6px;
+        width: 100%; height: 38px; padding: 0 12px;
+        border: 1px solid var(--border); border-radius: var(--radius);
         background: var(--bg); color: var(--text); font: inherit;
       }
-      input:focus { outline: 1px solid var(--brand); border-color: var(--brand); }
+      input::placeholder { color: var(--dim); }
+      input:focus { outline: none; border-color: var(--cova-2); box-shadow: 0 0 0 3px rgba(59, 137, 255, 0.18); }
+
       button {
-        height: 30px; padding: 0 12px; border: 0; border-radius: 6px;
-        background: var(--brand); color: var(--brand-text); font: inherit;
-        font-weight: 500; cursor: pointer;
+        height: 38px; padding: 0 16px; border: 0; border-radius: var(--radius);
+        background: linear-gradient(135deg, var(--cova-2), var(--cova));
+        color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+        transition: filter 0.12s, opacity 0.12s;
       }
-      button:disabled { opacity: 0.45; cursor: default; }
-      button.ghost { background: transparent; color: var(--text-dim); }
-      button.ghost:hover:not(:disabled) { color: var(--text); }
-      button.sm { height: 26px; padding: 0 10px; font-size: 11px; }
-      .err { color: var(--danger); margin-top: 10px; min-height: 16px; font-size: 11px; }
+      button:hover:not(:disabled) { filter: brightness(1.08); }
+      button:disabled { opacity: 0.4; cursor: default; }
+      button.ghost { background: none; color: var(--dim); font-weight: 500; }
+      button.ghost:hover:not(:disabled) { color: var(--text); filter: none; }
+      button.sm { height: 30px; padding: 0 12px; font-size: 12px; }
+      .err { color: var(--danger); margin-top: 12px; min-height: 16px; font-size: 12px; }
 
-      /* login */
-      #login { padding: 16px; }
-      #login button { width: 100%; margin-top: 14px; }
-      .brandmark { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-      .sub { color: var(--text-dim); margin: 2px 0 4px; }
+      /* ---- login ---- */
+      .hero {
+        padding: 34px 24px 30px;
+        color: #fff;
+        background-color: #0a3aa8;
+        background-image: radial-gradient(at 22% 18%, #3b89ff 0, transparent 55%),
+          radial-gradient(at 82% 88%, #082567 0, transparent 55%);
+      }
+      .hero .logo { height: 30px; }
+      .hero .tag {
+        margin-top: 14px; font-size: 11px; font-weight: 600;
+        letter-spacing: 0.13em; text-transform: uppercase; color: rgba(255, 255, 255, 0.65);
+      }
+      .hero .desc { margin-top: 10px; font-size: 12.5px; line-height: 1.6; color: rgba(255, 255, 255, 0.9); }
+      .loginbody { padding: 4px 24px 24px; }
+      .loginbody button { width: 100%; margin-top: 22px; height: 42px; }
 
-      /* app shell */
+      /* ---- app shell ---- */
       header {
-        display: flex; align-items: center; gap: 8px;
-        padding: 10px 12px; border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 10px;
+        padding: 13px 16px; border-bottom: 1px solid var(--border);
       }
-      header .who { flex: 1; min-width: 0; }
-      header .who .email { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      header .who .role { color: var(--text-dim); font-size: 11px; }
-      .warn { background: var(--bg2); color: var(--danger); padding: 6px 12px; font-size: 11px; }
+      header .logo { height: 16px; flex: none; }
+      header .who { flex: 1; min-width: 0; text-align: right; }
+      header .who .email { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      header .who .role { color: var(--dim); font-size: 11px; }
+      .warn { background: rgba(224, 62, 26, 0.1); color: var(--danger); padding: 9px 16px; font-size: 12px; }
 
       .selbar {
-        padding: 8px 12px; font-size: 11px; color: var(--text-dim);
+        padding: 11px 16px; font-size: 12px; color: var(--dim);
         background: var(--bg2); border-bottom: 1px solid var(--border);
       }
-      .selbar.has { color: var(--text); }
+      .selbar.has { color: var(--text); font-weight: 500; }
 
-      .tabs { display: flex; gap: 4px; padding: 8px 12px 0; }
+      .tabs { display: flex; padding: 0 16px; border-bottom: 1px solid var(--border); }
       .tabs button {
-        flex: 1; background: transparent; color: var(--text-dim);
-        border-bottom: 2px solid transparent; border-radius: 0; height: 28px;
+        flex: 1; background: none; color: var(--dim); font-weight: 500;
+        border-bottom: 2px solid transparent; border-radius: 0; height: 42px;
       }
-      .tabs button.active { color: var(--text); border-bottom-color: var(--brand); }
+      .tabs button:hover:not(.active) { color: var(--text); filter: none; }
+      .tabs button.active { color: var(--cova-2); border-bottom-color: var(--cova-2); }
 
-      .view { flex: 1; overflow: auto; padding: 12px; }
-      #viewNew button { width: 100%; margin-top: 12px; }
+      .view { flex: 1; overflow: auto; padding: 16px; }
+      #viewNew button { width: 100%; margin-top: 18px; }
 
-      .toolbar { display: flex; gap: 6px; margin-bottom: 8px; }
+      .toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
       .toolbar input { flex: 1; }
-      .count { color: var(--text-dim); margin-bottom: 6px; font-size: 11px; }
+      .count { color: var(--dim); margin-bottom: 8px; font-size: 12px; }
       .item {
-        display: flex; align-items: center; gap: 8px;
-        padding: 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;
+        display: flex; align-items: center; gap: 10px;
+        padding: 13px; border: 1px solid var(--border); border-radius: 11px; margin-bottom: 10px;
+        background: var(--bg);
       }
       .item .info { flex: 1; min-width: 0; }
       .item .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .item .meta { color: var(--text-dim); font-size: 11px; margin-top: 2px; }
-      .item.clickable { cursor: pointer; }
-      .item.clickable:hover { border-color: var(--brand); }
-      .item .chev { color: var(--text-dim); font-size: 16px; }
-      .empty, .loading { color: var(--text-dim); text-align: center; padding: 24px 0; }
+      .item .meta { color: var(--dim); font-size: 11.5px; margin-top: 3px; }
+      .item.clickable { cursor: pointer; transition: border-color 0.12s, background 0.12s; }
+      .item.clickable:hover { border-color: var(--cova-2); background: var(--bg2); }
+      .item .chev { color: var(--dim); font-size: 18px; flex: none; }
+      .empty, .loading { color: var(--dim); text-align: center; padding: 36px 0; }
 
-      .detailhead { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+      .detailhead { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
       .detailhead .detailtitle {
-        flex: 1; min-width: 0; font-weight: 600;
+        flex: 1; min-width: 0; font-weight: 600; font-size: 14px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
-      #addVariantBtn { width: 100%; margin-top: 4px; background: transparent; color: var(--brand); border: 1px dashed var(--border); }
-      #addVariantBtn:hover:not(:disabled) { border-color: var(--brand); }
+      #addVariantBtn {
+        width: 100%; margin-top: 6px; background: none; color: var(--cova-2);
+        border: 1px dashed var(--border); font-weight: 600;
+      }
+      #addVariantBtn:hover:not(:disabled) { border-color: var(--cova-2); background: var(--bg2); filter: none; }
 
-      .hint { color: var(--text-dim); font-size: 11px; margin-bottom: 8px; }
+      .hint { color: var(--dim); font-size: 11.5px; margin-bottom: 12px; }
       .page {
-        display: flex; align-items: center; gap: 10px;
-        padding: 8px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px; border: 1px solid var(--border); border-radius: 11px; margin-bottom: 10px;
       }
       .page img {
-        width: 44px; height: 44px; object-fit: cover; border-radius: 4px;
-        background: var(--bg2); flex: none;
+        width: 52px; height: 52px; object-fit: cover; border-radius: 7px;
+        background: var(--bg2); border: 1px solid var(--border); flex: none;
       }
       .page .info { flex: 1; min-width: 0; }
       .page .info .title { font-weight: 600; }
-      .page .info .meta { color: var(--text-dim); font-size: 11px; }
+      .page .info .meta { color: var(--dim); font-size: 11.5px; }
 
       .statusbar {
         display: flex; align-items: center; gap: 8px;
-        padding: 8px 12px; border-top: 1px solid var(--border); min-height: 30px;
+        padding: 11px 16px; border-top: 1px solid var(--border); min-height: 40px;
       }
-      .status { flex: 1; font-size: 11px; color: var(--text-dim); }
+      .status { flex: 1; font-size: 12px; color: var(--dim); }
       .status.err { color: var(--danger); }
       .status.ok { color: var(--ok); }
     </style>
   </head>
   <body>
+    <!-- cova 로고(워드마크) — 재사용용 심볼 -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="covaLogo" viewBox="0 0 103 25">
+        <path d="M89.8351 25C86.3624 25 83.4579 23.8208 81.1217 21.4623C78.8171 19.0723 77.6648 16.0849 77.6648 12.5C77.6648 8.88365 78.8645 5.89623 81.2638 3.53774C83.6947 1.17925 86.7413 0 90.4034 0C94.034 0 97.0332 1.16352 99.4009 3.49057C101.8 5.81761 103 8.74214 103 12.2642V24.5283H98.5486V20.2358C97.6014 21.7138 96.3386 22.8774 94.7601 23.7264C93.2132 24.5755 91.5715 25 89.8351 25ZM98.1697 12.5C98.1697 10.2358 97.4278 8.34906 95.944 6.83962C94.4602 5.33019 92.5818 4.57547 90.3087 4.57547C88.0672 4.57547 86.2046 5.33019 84.7208 6.83962C83.237 8.34906 82.495 10.2358 82.495 12.5C82.495 14.7956 83.237 16.6981 84.7208 18.2075C86.2046 19.6855 88.0672 20.4245 90.3087 20.4245C92.5818 20.4245 94.4602 19.6855 95.944 18.2075C97.4278 16.6981 98.1697 14.7956 98.1697 12.5Z" fill="currentColor"/>
+        <path d="M68.769 21.5095C68.2639 22.7673 67.6956 23.6321 67.0642 24.1038C66.4328 24.5441 65.6277 24.7642 64.6491 24.7642C63.6704 24.7642 62.8496 24.5283 62.1866 24.0566C61.5236 23.585 60.9711 22.7359 60.5291 21.5095L52.1946 0.471741H57.309L64.2702 19.2453C64.3649 19.4969 64.5228 19.6227 64.7438 19.6227C64.9332 19.6227 65.0753 19.4969 65.17 19.2453L71.9892 0.471741H77.0088L68.769 21.5095Z" fill="currentColor"/>
+        <path d="M47.9921 21.5094C45.6244 23.8365 42.6094 25 38.9473 25C35.2851 25 32.2543 23.8365 29.855 21.5094C27.4872 19.1509 26.3033 16.1478 26.3033 12.5C26.3033 8.88365 27.4872 5.89623 29.855 3.53774C32.2543 1.17925 35.2851 0 38.9473 0C42.6094 0 45.6244 1.17925 47.9921 3.53774C50.3915 5.89623 51.5912 8.88365 51.5912 12.5C51.5912 16.1478 50.3915 19.1509 47.9921 21.5094ZM33.312 18.2075C34.7958 19.6855 36.6742 20.4245 38.9473 20.4245C41.2203 20.4245 43.083 19.6855 44.5352 18.2075C46.019 16.6981 46.7609 14.7956 46.7609 12.5C46.7609 10.2044 46.019 8.31761 44.5352 6.83962C43.083 5.33019 41.2203 4.57547 38.9473 4.57547C36.6742 4.57547 34.7958 5.33019 33.312 6.83962C31.8597 8.31761 31.1336 10.2044 31.1336 12.5C31.1336 14.7956 31.8597 16.6981 33.312 18.2075Z" fill="currentColor"/>
+        <path d="M24.3407 15.7075C23.7093 18.5063 22.3202 20.7547 20.1734 22.4528C18.0266 24.1509 15.4379 25 12.4071 25C8.83969 25 5.87208 23.8208 3.5043 21.4623C1.1681 19.1038 0 16.1164 0 12.5C0 8.88365 1.1681 5.89623 3.5043 3.53774C5.87208 1.17925 8.83969 0 12.4071 0C15.4379 0 18.0266 0.864781 20.1734 2.59434C22.3518 4.29245 23.7409 6.54088 24.3407 9.33962H19.3684C18.8317 7.89308 17.9477 6.74528 16.7165 5.89623C15.4852 5.01572 14.0488 4.57547 12.4071 4.57547C10.2288 4.57547 8.41349 5.33019 6.96125 6.83962C5.54059 8.34906 4.83026 10.2358 4.83026 12.5C4.83026 14.7956 5.54059 16.6981 6.96125 18.2075C8.38192 19.6855 10.1972 20.4245 12.4071 20.4245C14.0172 20.4245 15.4379 20 16.6691 19.1509C17.9319 18.2704 18.8317 17.1226 19.3684 15.7075H24.3407Z" fill="currentColor"/>
+      </symbol>
+    </svg>
+
     <!-- 로그인 -->
     <section id="login">
-      <div class="brandmark">cova</div>
-      <div class="sub">피그마에서 시안을 올리고 관리합니다.</div>
+      <div class="hero">
+        <svg class="logo" viewBox="0 0 103 25" width="124" height="30"><use href="#covaLogo" /></svg>
+        <div class="tag">UXIS Co-view Area</div>
+        <div class="desc">
+          디자이너와 클라이언트가 시안을 한곳에서 함께 확인하는 프리뷰 협업 공간.
+          피그마에서 바로 올리고 관리하세요.
+        </div>
+      </div>
+      <div class="loginbody">
+        <label for="email">이메일</label>
+        <input id="email" type="email" autocomplete="username" placeholder="you@example.com" />
 
-      <label for="email">이메일</label>
-      <input id="email" type="email" autocomplete="username" placeholder="you@example.com" />
+        <label for="password">비밀번호</label>
+        <input id="password" type="password" autocomplete="current-password" />
 
-      <label for="password">비밀번호</label>
-      <input id="password" type="password" autocomplete="current-password" />
-
-      <button id="loginBtn">로그인</button>
-      <div class="err" id="loginErr"></div>
+        <button id="loginBtn">로그인</button>
+        <div class="err" id="loginErr"></div>
+      </div>
     </section>
 
     <!-- 앱 (로그인 후) -->
     <section id="app" class="hidden" style="display: contents">
       <header>
+        <svg class="logo" viewBox="0 0 103 25" width="66" height="16"><use href="#covaLogo" /></svg>
         <div class="who">
           <div class="email" id="userEmail"></div>
           <div class="role" id="userRole"></div>
         </div>
-        <button class="ghost" id="logoutBtn">로그아웃</button>
+        <button class="ghost sm" id="logoutBtn">로그아웃</button>
       </header>
       <div class="warn hidden" id="roleWarn">편집 권한이 없는 계정입니다. 업로드가 막힙니다.</div>
 
