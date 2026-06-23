@@ -47,7 +47,12 @@ export async function getGoogleOAuthUrl(next: string): Promise<string> {
   const redirectTo = `${await resolveOrigin()}/auth/callback?next=${encodeURIComponent(next)}`;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo, skipBrowserRedirect: true },
+    options: {
+      redirectTo,
+      skipBrowserRedirect: true,
+      // 매 로그인마다 구글 계정 선택 화면을 강제로 띄운다.
+      queryParams: { prompt: "select_account" },
+    },
   });
   if (error || !data.url) throw new Error("OAUTH_INIT_FAILED");
   return data.url;
