@@ -6,6 +6,7 @@ import {
   changePassword,
   requestPasswordReset,
   resetPassword,
+  updateName,
 } from "./auth";
 
 export function useLogin() {
@@ -34,4 +35,8 @@ export function useRequestPasswordReset() {
 
 export function useResetPassword() {
   return useMutation({ mutationFn: resetPassword });
+}
+
+export function useUpdateName() {
+  return useMutation({ mutationFn: updateName });
 }

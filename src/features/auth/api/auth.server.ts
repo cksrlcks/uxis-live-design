@@ -1,12 +1,16 @@
 import "server-only";
 import { headers } from "next/headers";
 import { createSupabaseServer } from "@/shared/supabase/server";
+import { eq } from "drizzle-orm";
+import { db } from "@/shared/db";
+import { profiles } from "@drizzle/schema";
 import {
   changePasswordSchema,
   forgotPasswordSchema,
   loginSchema,
   resetPasswordSchema,
   signupSchema,
+  updateNameSchema,
 } from "../model/schema";
 import { signupErrorCode } from "./signup-error";
 
@@ -127,4 +131,15 @@ export async function changePassword(input: unknown): Promise<void> {
     if (error.code === "weak_password") throw new Error("WEAK_PASSWORD");
     throw new Error("PASSWORD_UPDATE_FAILED");
   }
+}
+
+// 마이페이지 이름 변경. 앱이 이름을 읽는 profiles.display_name만 갱신한다.
+export async function updateDisplayName(input: unknown): Promise<void> {
+  const { name } = updateNameSchema.parse(input);
+  const supabase = await createSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("UNAUTHORIZED");
+  await db.update(profiles).set({ displayName: name }).where(eq(profiles.id, user.id));
 }

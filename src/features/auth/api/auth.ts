@@ -5,6 +5,7 @@ import type {
   LoginInput,
   ResetPasswordInput,
   SignupInput,
+  UpdateNameInput,
 } from "../model/schema";
 
 export function login(input: LoginInput): Promise<void> {
@@ -29,4 +30,8 @@ export function requestPasswordReset(input: ForgotPasswordInput): Promise<void> 
 
 export function resetPassword(input: ResetPasswordInput): Promise<void> {
   return http<void>("/api/auth/reset-password", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function updateName(input: UpdateNameInput): Promise<void> {
+  return http<void>("/api/auth/profile", { method: "PATCH", body: JSON.stringify(input) });
 }

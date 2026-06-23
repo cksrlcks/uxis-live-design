@@ -5,4 +5,5 @@ export { ResetPasswordForm } from "./ui/reset-password-form";
 export { SignupForm } from "./ui/signup-form";
 export { LogoutButton } from "./ui/logout-button";
 export { ChangePasswordDialog } from "./ui/change-password-dialog";
+export { EditNameDialog } from "./ui/edit-name-dialog";
 export { useLogout } from "./api/use-auth";

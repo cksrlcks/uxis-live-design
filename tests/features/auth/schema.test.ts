@@ -4,6 +4,7 @@ import {
   signupSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updateNameSchema,
 } from "@/features/auth/model/schema";
 
 describe("loginSchema", () => {
@@ -87,5 +88,17 @@ describe("resetPasswordSchema", () => {
     if (!r.success) {
       expect(r.error.issues.some((i) => i.path[0] === "confirmPassword")).toBe(true);
     }
+  });
+});
+
+describe("updateNameSchema", () => {
+  it("accepts a non-empty name", () => {
+    expect(updateNameSchema.safeParse({ name: "홍길동" }).success).toBe(true);
+  });
+  it("trims and rejects a blank name", () => {
+    expect(updateNameSchema.safeParse({ name: "   " }).success).toBe(false);
+  });
+  it("rejects a name over 50 chars", () => {
+    expect(updateNameSchema.safeParse({ name: "가".repeat(51) }).success).toBe(false);
   });
 });
