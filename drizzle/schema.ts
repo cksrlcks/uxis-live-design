@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, unique, check, index, real, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, integer, unique, check, index, real, boolean, jsonb, primaryKey } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const profiles = pgTable("profiles", {
@@ -129,3 +129,40 @@ export const whiteboardStrokes = pgTable("whiteboard_strokes", {
 ]);
 
 export type WhiteboardStroke = typeof whiteboardStrokes.$inferSelect;
+
+// 시안 태그 — 관리자가 관리하는 분류(그룹/옵션) + 시안별 선택(조인 테이블).
+// FK·CASCADE·RLS는 레포 컨벤션대로 SQL 마이그레이션에서 추가한다.
+export const tagGroups = pgTable("tag_groups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(), // 고정키(라벨 변경에도 안정)
+  label: text("label").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const tagOptions = pgTable("tag_options", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  groupId: uuid("group_id").notNull(), // FK → tag_groups (SQL)
+  code: text("code").notNull(),
+  label: text("label").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  unique("tag_options_group_code_unique").on(t.groupId, t.code),
+]);
+
+export const proposalTags = pgTable("proposal_tags", {
+  proposalId: uuid("proposal_id").notNull(), // FK → proposals (SQL, cascade)
+  optionId: uuid("option_id").notNull(),     // FK → tag_options (SQL, cascade)
+  createdBy: uuid("created_by"),             // FK → profiles (SQL, set null)
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.proposalId, t.optionId] }),
+  index("proposal_tags_option_idx").on(t.optionId),
+]);
+
+export type TagGroup = typeof tagGroups.$inferSelect;
+export type TagOption = typeof tagOptions.$inferSelect;
+export type ProposalTag = typeof proposalTags.$inferSelect;
