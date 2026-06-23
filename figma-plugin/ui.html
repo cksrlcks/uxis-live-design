@@ -2,60 +2,91 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
     <style>
+      /* cova 서비스 디자인 토큰 (globals.css) */
       :root {
-        --bg: var(--figma-color-bg, #fff);
-        --bg2: var(--figma-color-bg-secondary, #f5f7fa);
-        --text: var(--figma-color-text, #1a1a1a);
-        --dim: var(--figma-color-text-secondary, #8a8f98);
-        --border: var(--figma-color-border, #e6e8eb);
-        --danger: var(--figma-color-text-danger, #e03e1a);
-        --ok: var(--figma-color-text-success, #1e944a);
-        --cova: #0a3aa8;
-        --cova-2: #3b89ff;
-        --radius: 9px;
+        --background: #ffffff;
+        --foreground: #080808;
+        --card: #ffffff;
+        --primary: #146ef5;
+        --primary-foreground: #ffffff;
+        --muted: #f7f7f7;
+        --muted-foreground: #5a5a5a;
+        --border: #d8d8d8;
+        --input: #d8d8d8;
+        --destructive: #ee1d36;
+        --success: #00d722;
+        --ring: #146ef5;
+        --radius: 8px;
+      }
+      html.dark {
+        --background: oklch(0.145 0 0);
+        --foreground: oklch(0.985 0 0);
+        --card: oklch(0.205 0 0);
+        --primary: oklch(0.922 0 0);
+        --primary-foreground: oklch(0.205 0 0);
+        --muted: oklch(0.269 0 0);
+        --muted-foreground: oklch(0.708 0 0);
+        --border: oklch(1 0 0 / 12%);
+        --input: oklch(1 0 0 / 15%);
+        --destructive: oklch(0.704 0.191 22.216);
+        --success: #00d722;
+        --ring: oklch(0.556 0 0);
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; height: 100%; }
       body {
-        font: 15px/1.55 Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-        color: var(--text); background: var(--bg);
+        font: 15px/1.5 "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+          system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+        color: var(--foreground); background: var(--background);
         display: flex; flex-direction: column; height: 100vh;
         -webkit-font-smoothing: antialiased;
       }
       .hidden { display: none !important; }
       .logo { display: block; color: currentColor; }
 
-      label { display: block; font-size: 13px; font-weight: 500; color: var(--dim); margin: 16px 0 7px; }
+      label { display: block; font-size: 13px; color: var(--muted-foreground); margin: 16px 0 7px; }
       input {
-        width: 100%; height: 44px; padding: 0 13px;
-        border: 1px solid var(--border); border-radius: var(--radius);
-        background: var(--bg); color: var(--text); font: inherit;
+        width: 100%; height: 44px; padding: 0 14px;
+        border: 1px solid var(--input); border-radius: var(--radius);
+        background: var(--background); color: var(--foreground); font: inherit;
+        transition: border-color 0.12s, box-shadow 0.12s;
       }
-      input::placeholder { color: var(--dim); }
-      input:focus { outline: none; border-color: var(--cova-2); box-shadow: 0 0 0 3px rgba(59, 137, 255, 0.18); }
+      input::placeholder { color: var(--muted-foreground); }
+      input:focus {
+        outline: none; border-color: var(--ring);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
+      }
 
       button {
-        height: 44px; padding: 0 18px; border: 0; border-radius: var(--radius);
-        background: var(--cova);
-        color: #fff; font: inherit; font-weight: 600; cursor: pointer;
-        transition: filter 0.12s, opacity 0.12s;
+        height: 44px; padding: 0 18px; border: 1px solid transparent; border-radius: var(--radius);
+        background: var(--primary); color: var(--primary-foreground);
+        font: inherit; font-weight: 600; cursor: pointer;
+        transition: background 0.12s, box-shadow 0.12s, border-color 0.12s;
       }
-      button:hover:not(:disabled) { filter: brightness(1.12); }
-      button:disabled { opacity: 0.4; cursor: default; }
-      button.ghost { background: none; color: var(--dim); font-weight: 500; }
-      button.ghost:hover:not(:disabled) { color: var(--text); filter: none; }
-      button.sm { height: 34px; padding: 0 13px; font-size: 13px; }
-      .err { color: var(--danger); margin-top: 12px; min-height: 18px; font-size: 13px; }
+      button:hover:not(:disabled) { background: color-mix(in oklab, var(--primary), #000 12%); }
+      button:active:not(:disabled) { transform: translateY(1px); }
+      button:focus-visible {
+        outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
+      }
+      button:disabled { opacity: 0.5; cursor: default; }
+      button.ghost { background: none; color: var(--muted-foreground); font-weight: 500; }
+      button.ghost:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
+      button.sm { height: 34px; padding: 0 12px; font-size: 13px; }
+      .err { color: var(--destructive); margin-top: 12px; min-height: 18px; font-size: 13px; }
 
       /* ---- login ---- */
-      .loginbody { padding: 40px 26px 28px; }
-      .login-logo { height: 26px; color: var(--text); }
-      .login-title { margin: 24px 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
-      .login-sub { margin: 6px 0 6px; font-size: 14px; color: var(--dim); }
+      .loginbody { padding: 40px 28px 28px; }
+      .login-logo { height: 26px; color: var(--foreground); }
+      .login-title { margin: 24px 0 0; font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+      .login-sub { margin: 6px 0 4px; font-size: 14px; color: var(--muted-foreground); }
       .loginbody button { width: 100%; margin-top: 24px; height: 48px; font-size: 15px; }
-      .signup { margin-top: 18px; text-align: center; font-size: 13px; color: var(--dim); }
-      .signup a { color: var(--cova-2); font-weight: 600; text-decoration: none; cursor: pointer; }
+      .signup { margin-top: 20px; text-align: center; font-size: 14px; color: var(--muted-foreground); }
+      .signup a { color: var(--primary); font-weight: 600; text-decoration: none; cursor: pointer; }
       .signup a:hover { text-decoration: underline; }
 
       /* ---- app shell ---- */
@@ -67,40 +98,43 @@
       header .who { flex: 1; min-width: 0; text-align: right; }
       header .who .name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .vbar { width: 1px; height: 20px; background: var(--border); flex: none; }
-      .warn { background: rgba(224, 62, 26, 0.1); color: var(--danger); padding: 10px 16px; font-size: 13px; }
+      .warn {
+        background: color-mix(in srgb, var(--destructive) 10%, transparent);
+        color: var(--destructive); padding: 10px 16px; font-size: 13px;
+      }
 
       .selbar {
-        padding: 13px 16px; font-size: 13.5px; color: var(--dim);
-        background: var(--bg2); border-bottom: 1px solid var(--border);
+        padding: 13px 16px; font-size: 13.5px; color: var(--muted-foreground);
+        background: var(--muted); border-bottom: 1px solid var(--border);
       }
-      .selbar.has { color: var(--text); font-weight: 500; }
+      .selbar.has { color: var(--foreground); font-weight: 500; }
 
       .tabs { display: flex; padding: 0 16px; border-bottom: 1px solid var(--border); }
       .tabs button {
-        flex: 1; background: none; color: var(--dim); font-weight: 500; font-size: 14px;
-        border-bottom: 2px solid transparent; border-radius: 0; height: 48px;
+        flex: 1; background: none; color: var(--muted-foreground); font-weight: 500; font-size: 14px;
+        border: 0; border-bottom: 2px solid transparent; border-radius: 0; height: 48px;
       }
-      .tabs button:hover:not(.active) { color: var(--text); filter: none; }
-      .tabs button.active { color: var(--cova-2); border-bottom-color: var(--cova-2); }
+      .tabs button:hover:not(.active) { color: var(--foreground); background: none; }
+      .tabs button.active { color: var(--primary); border-bottom-color: var(--primary); }
 
       .view { flex: 1; overflow: auto; padding: 18px; }
       #viewNew button { width: 100%; margin-top: 20px; }
 
       .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
       .toolbar input { flex: 1; }
-      .count { color: var(--dim); margin-bottom: 10px; font-size: 13px; }
+      .count { color: var(--muted-foreground); margin-bottom: 10px; font-size: 13px; }
       .item {
         display: flex; align-items: center; gap: 12px;
-        padding: 15px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 11px;
-        background: var(--bg);
+        padding: 15px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 11px;
+        background: var(--card);
       }
       .item .info { flex: 1; min-width: 0; }
       .item .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .item .meta { color: var(--dim); font-size: 13px; margin-top: 3px; }
+      .item .meta { color: var(--muted-foreground); font-size: 13px; margin-top: 3px; }
       .item.clickable { cursor: pointer; transition: border-color 0.12s, background 0.12s; }
-      .item.clickable:hover { border-color: var(--cova-2); background: var(--bg2); }
-      .item .chev { color: var(--dim); font-size: 22px; flex: none; }
-      .empty, .loading { color: var(--dim); text-align: center; padding: 40px 0; font-size: 14px; }
+      .item.clickable:hover { border-color: var(--primary); background: var(--muted); }
+      .item .chev { color: var(--muted-foreground); font-size: 22px; flex: none; }
+      .empty, .loading { color: var(--muted-foreground); text-align: center; padding: 40px 0; font-size: 14px; }
 
       .detailhead { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
       .detailhead .detailtitle {
@@ -108,31 +142,31 @@
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       #addVariantBtn {
-        width: 100%; margin-top: 6px; background: none; color: var(--cova-2);
+        width: 100%; margin-top: 6px; background: none; color: var(--primary);
         border: 1px dashed var(--border); font-weight: 600;
       }
-      #addVariantBtn:hover:not(:disabled) { border-color: var(--cova-2); background: var(--bg2); filter: none; }
+      #addVariantBtn:hover:not(:disabled) { border-color: var(--primary); background: var(--muted); }
 
-      .hint { color: var(--dim); font-size: 13px; margin-bottom: 14px; }
+      .hint { color: var(--muted-foreground); font-size: 13px; margin-bottom: 14px; }
       .page {
         display: flex; align-items: center; gap: 13px;
-        padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 11px;
+        padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 11px;
       }
       .page img {
-        width: 58px; height: 58px; object-fit: cover; border-radius: 8px;
-        background: var(--bg2); border: 1px solid var(--border); flex: none;
+        width: 58px; height: 58px; object-fit: cover; border-radius: 6px;
+        background: var(--muted); border: 1px solid var(--border); flex: none;
       }
       .page .info { flex: 1; min-width: 0; }
       .page .info .title { font-weight: 600; }
-      .page .info .meta { color: var(--dim); font-size: 13px; }
+      .page .info .meta { color: var(--muted-foreground); font-size: 13px; }
 
       .statusbar {
         display: flex; align-items: center; gap: 8px;
         padding: 12px 16px; border-top: 1px solid var(--border); min-height: 42px;
       }
-      .status { flex: 1; font-size: 13px; color: var(--dim); }
-      .status.err { color: var(--danger); }
-      .status.ok { color: var(--ok); }
+      .status { flex: 1; font-size: 13px; color: var(--muted-foreground); }
+      .status.err { color: var(--destructive); }
+      .status.ok { color: var(--success); }
     </style>
   </head>
   <body>
@@ -228,6 +262,32 @@
     </section>
 
     <script>
+      // Figma 테마(라이트/다크)에 맞춰 서비스 다크 토큰을 적용한다.
+      (function () {
+        function lum(rgb) {
+          return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+        }
+        function parse(c) {
+          c = c.trim();
+          if (c.charAt(0) === "#") {
+            if (c.length === 4) c = "#" + c[1] + c[1] + c[2] + c[2] + c[3] + c[3];
+            return [
+              parseInt(c.substr(1, 2), 16),
+              parseInt(c.substr(3, 2), 16),
+              parseInt(c.substr(5, 2), 16),
+            ];
+          }
+          var m = c.match(/\d+/g);
+          return m && m.length >= 3 ? [+m[0], +m[1], +m[2]] : null;
+        }
+        var bg = getComputedStyle(document.documentElement).getPropertyValue("--figma-color-bg");
+        var rgb = bg ? parse(bg) : null;
+        var dark = rgb
+          ? lum(rgb) < 128
+          : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+
       // ---- 메인(샌드박스)과의 통신 ----
       function toMain(msg) {
         parent.postMessage({ pluginMessage: msg }, "*");
