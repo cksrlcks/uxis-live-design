@@ -1,0 +1,14 @@
+{
+  "name": "cova-figma-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "cova 시안 업로드/버전/이미지 교체용 Figma 플러그인",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json --watch"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.100.0",
+    "typescript": "^5.6.0"
+  }
+}

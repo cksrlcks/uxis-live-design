@@ -50,7 +50,7 @@ export function NewProposalDialog() {
   async function onSubmit({ title }: FormValues) {
     setFormError(null);
     try {
-      const { proposalId } = await createProposal.mutateAsync({ title, files: [] });
+      const { proposalId } = await createProposal.mutateAsync({ title });
       toast.success("시안을 만들었습니다");
       onOpenChange(false);
       router.push(`/studio/proposals/${proposalId}`);

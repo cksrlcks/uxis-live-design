@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css"
+    />
+    <style>
+      /* cova 서비스 디자인 토큰 (globals.css) */
+      :root {
+        --background: #ffffff;
+        --foreground: #080808;
+        --card: #ffffff;
+        --primary: #146ef5;
+        --primary-foreground: #ffffff;
+        --muted: #f7f7f7;
+        --muted-foreground: #5a5a5a;
+        --border: #d8d8d8;
+        --input: #d8d8d8;
+        --destructive: #ee1d36;
+        --success: #00d722;
+        --ring: #146ef5;
+        --radius: 8px;
+      }
+      html.dark {
+        --background: oklch(0.145 0 0);
+        --foreground: oklch(0.985 0 0);
+        --card: oklch(0.205 0 0);
+        --primary: oklch(0.922 0 0);
+        --primary-foreground: oklch(0.205 0 0);
+        --muted: oklch(0.269 0 0);
+        --muted-foreground: oklch(0.708 0 0);
+        --border: oklch(1 0 0 / 12%);
+        --input: oklch(1 0 0 / 15%);
+        --destructive: oklch(0.704 0.191 22.216);
+        --success: #00d722;
+        --ring: oklch(0.556 0 0);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        font: 15px/1.5 "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+          system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+        color: var(--foreground); background: var(--background);
+        display: flex; flex-direction: column; height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+      .hidden { display: none !important; }
+      .logo { display: block; width: auto; color: currentColor; }
+
+      label { display: block; font-size: 13px; color: var(--muted-foreground); margin: 16px 0 7px; }
+      input {
+        width: 100%; height: 44px; padding: 0 14px;
+        border: 1px solid var(--input); border-radius: var(--radius);
+        background: var(--background); color: var(--foreground); font: inherit;
+        transition: border-color 0.12s, box-shadow 0.12s;
+      }
+      input::placeholder { color: var(--muted-foreground); }
+      input:focus {
+        outline: none; border-color: var(--ring);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
+      }
+
+      button {
+        display: inline-flex; align-items: center; justify-content: center;
+        height: 44px; padding: 0 18px; border: 1px solid transparent; border-radius: var(--radius);
+        background: var(--primary); color: var(--primary-foreground);
+        font: inherit; font-weight: 600; line-height: 1; cursor: pointer;
+        transition: background 0.12s, box-shadow 0.12s, border-color 0.12s;
+      }
+      button:hover:not(:disabled) { background: color-mix(in oklab, var(--primary), #000 12%); }
+      button:active:not(:disabled) { transform: translateY(1px); }
+      button:focus-visible {
+        outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent);
+      }
+      button:disabled { opacity: 0.5; cursor: default; }
+      button.ghost { background: none; color: var(--muted-foreground); font-weight: 500; }
+      button.ghost:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
+      button.soft { background: var(--muted); color: var(--foreground); font-weight: 500; }
+      button.soft:hover:not(:disabled) { background: color-mix(in srgb, var(--muted), var(--foreground) 8%); }
+      button.sm { height: 34px; padding: 0 12px; font-size: 13px; }
+      .err { color: var(--destructive); margin-top: 12px; min-height: 18px; font-size: 13px; }
+
+      /* ---- login ---- */
+      .loginbody { padding: 40px 28px 28px; }
+      .login-logo { height: 22px; color: var(--foreground); }
+      .login-title { margin: 36px 0 0; font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+      .login-sub { margin: 6px 0 4px; font-size: 14px; color: var(--muted-foreground); }
+      .loginbody button { width: 100%; margin-top: 24px; height: 48px; font-size: 15px; }
+      .signup { margin-top: 20px; text-align: center; font-size: 14px; color: var(--muted-foreground); }
+      .signup a { color: var(--primary); font-weight: 600; text-decoration: none; cursor: pointer; }
+      .signup a:hover { text-decoration: underline; }
+
+      /* ---- app shell ---- */
+      header {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px; border-bottom: 1px solid var(--border);
+      }
+      header .logo { height: 18px; flex: none; }
+      header .who { flex: 1; min-width: 0; display: flex; justify-content: flex-end; align-items: baseline; gap: 5px; }
+      header .who .name { font-size: 14px; font-weight: 600; white-space: nowrap; flex: none; }
+      header .who .email { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+      .warn {
+        background: color-mix(in srgb, var(--destructive) 10%, transparent);
+        color: var(--destructive); padding: 10px 16px; font-size: 13px;
+      }
+
+      .selbar {
+        padding: 13px 16px; font-size: 13.5px; color: var(--muted-foreground);
+        background: var(--muted); border-bottom: 1px solid var(--border);
+      }
+      .selbar.has { color: var(--foreground); font-weight: 500; }
+
+      .tabs { display: flex; padding: 0 16px; border-bottom: 1px solid var(--border); }
+      .tabs button {
+        flex: 1; background: none; color: var(--muted-foreground); font-weight: 500; font-size: 14px;
+        border: 0; border-bottom: 2px solid transparent; border-radius: 0; height: 48px;
+      }
+      .tabs button:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
+      .tabs button:active:not(:disabled) { background: var(--muted); transform: none; }
+      .tabs button:focus-visible { box-shadow: none; }
+      .tabs button.active { color: var(--foreground); border-bottom-color: var(--foreground); }
+
+      .view { flex: 1; overflow: auto; padding: 18px; }
+      #viewNew button { width: 100%; margin-top: 20px; }
+
+      .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; }
+      .toolbar input { flex: 1; height: 34px; padding: 0 11px; font-size: 13px; }
+      .count { color: var(--muted-foreground); margin-bottom: 10px; font-size: 13px; }
+      .pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; }
+      .pager #pageInfo { font-size: 13px; color: var(--muted-foreground); min-width: 56px; text-align: center; }
+      .item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 15px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 11px;
+        background: var(--card);
+      }
+      .item .info { flex: 1; min-width: 0; }
+      .item .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .item .meta { color: var(--muted-foreground); font-size: 13px; margin-top: 3px; }
+      .item.clickable { cursor: pointer; transition: border-color 0.12s, background 0.12s; }
+      .item.clickable:hover { border-color: var(--primary); background: var(--muted); }
+      .item .chev { color: var(--muted-foreground); font-size: 22px; flex: none; }
+      .empty, .loading { color: var(--muted-foreground); text-align: center; padding: 40px 0; font-size: 14px; }
+
+      .detailhead { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+      .detailhead .detailtitle {
+        max-width: 100%; font-weight: 600; font-size: 16px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      #addVariantBtn {
+        width: 100%; margin-top: 6px; background: none; color: var(--primary);
+        border: 1px dashed var(--border); font-weight: 600;
+      }
+      #addVariantBtn:hover:not(:disabled) { border-color: var(--primary); background: var(--muted); }
+
+      .hint { color: var(--muted-foreground); font-size: 13px; margin-bottom: 14px; }
+      .page {
+        display: flex; align-items: center; gap: 13px;
+        padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 11px;
+      }
+      .page img {
+        width: 58px; height: 58px; object-fit: cover; border-radius: 6px;
+        background: var(--muted); border: 1px solid var(--border); flex: none;
+      }
+      .page .info { flex: 1; min-width: 0; }
+      .page .info .title { font-weight: 600; }
+      .page .info .meta { color: var(--muted-foreground); font-size: 13px; }
+
+      .statusbar {
+        display: flex; align-items: center; gap: 8px;
+        padding: 12px 16px; border-top: 1px solid var(--border); min-height: 42px;
+      }
+      .status { flex: 1; font-size: 13px; color: var(--muted-foreground); }
+      .status.err { color: var(--destructive); }
+      .status.ok { color: var(--success); }
+    </style>
+  </head>
+  <body>
+    <!-- cova 로고(워드마크) — 재사용용 심볼 -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="covaLogo" viewBox="0 0 103 25">
+        <path d="M89.8351 25C86.3624 25 83.4579 23.8208 81.1217 21.4623C78.8171 19.0723 77.6648 16.0849 77.6648 12.5C77.6648 8.88365 78.8645 5.89623 81.2638 3.53774C83.6947 1.17925 86.7413 0 90.4034 0C94.034 0 97.0332 1.16352 99.4009 3.49057C101.8 5.81761 103 8.74214 103 12.2642V24.5283H98.5486V20.2358C97.6014 21.7138 96.3386 22.8774 94.7601 23.7264C93.2132 24.5755 91.5715 25 89.8351 25ZM98.1697 12.5C98.1697 10.2358 97.4278 8.34906 95.944 6.83962C94.4602 5.33019 92.5818 4.57547 90.3087 4.57547C88.0672 4.57547 86.2046 5.33019 84.7208 6.83962C83.237 8.34906 82.495 10.2358 82.495 12.5C82.495 14.7956 83.237 16.6981 84.7208 18.2075C86.2046 19.6855 88.0672 20.4245 90.3087 20.4245C92.5818 20.4245 94.4602 19.6855 95.944 18.2075C97.4278 16.6981 98.1697 14.7956 98.1697 12.5Z" fill="currentColor"/>
+        <path d="M68.769 21.5095C68.2639 22.7673 67.6956 23.6321 67.0642 24.1038C66.4328 24.5441 65.6277 24.7642 64.6491 24.7642C63.6704 24.7642 62.8496 24.5283 62.1866 24.0566C61.5236 23.585 60.9711 22.7359 60.5291 21.5095L52.1946 0.471741H57.309L64.2702 19.2453C64.3649 19.4969 64.5228 19.6227 64.7438 19.6227C64.9332 19.6227 65.0753 19.4969 65.17 19.2453L71.9892 0.471741H77.0088L68.769 21.5095Z" fill="currentColor"/>
+        <path d="M47.9921 21.5094C45.6244 23.8365 42.6094 25 38.9473 25C35.2851 25 32.2543 23.8365 29.855 21.5094C27.4872 19.1509 26.3033 16.1478 26.3033 12.5C26.3033 8.88365 27.4872 5.89623 29.855 3.53774C32.2543 1.17925 35.2851 0 38.9473 0C42.6094 0 45.6244 1.17925 47.9921 3.53774C50.3915 5.89623 51.5912 8.88365 51.5912 12.5C51.5912 16.1478 50.3915 19.1509 47.9921 21.5094ZM33.312 18.2075C34.7958 19.6855 36.6742 20.4245 38.9473 20.4245C41.2203 20.4245 43.083 19.6855 44.5352 18.2075C46.019 16.6981 46.7609 14.7956 46.7609 12.5C46.7609 10.2044 46.019 8.31761 44.5352 6.83962C43.083 5.33019 41.2203 4.57547 38.9473 4.57547C36.6742 4.57547 34.7958 5.33019 33.312 6.83962C31.8597 8.31761 31.1336 10.2044 31.1336 12.5C31.1336 14.7956 31.8597 16.6981 33.312 18.2075Z" fill="currentColor"/>
+        <path d="M24.3407 15.7075C23.7093 18.5063 22.3202 20.7547 20.1734 22.4528C18.0266 24.1509 15.4379 25 12.4071 25C8.83969 25 5.87208 23.8208 3.5043 21.4623C1.1681 19.1038 0 16.1164 0 12.5C0 8.88365 1.1681 5.89623 3.5043 3.53774C5.87208 1.17925 8.83969 0 12.4071 0C15.4379 0 18.0266 0.864781 20.1734 2.59434C22.3518 4.29245 23.7409 6.54088 24.3407 9.33962H19.3684C18.8317 7.89308 17.9477 6.74528 16.7165 5.89623C15.4852 5.01572 14.0488 4.57547 12.4071 4.57547C10.2288 4.57547 8.41349 5.33019 6.96125 6.83962C5.54059 8.34906 4.83026 10.2358 4.83026 12.5C4.83026 14.7956 5.54059 16.6981 6.96125 18.2075C8.38192 19.6855 10.1972 20.4245 12.4071 20.4245C14.0172 20.4245 15.4379 20 16.6691 19.1509C17.9319 18.2704 18.8317 17.1226 19.3684 15.7075H24.3407Z" fill="currentColor"/>
+      </symbol>
+    </svg>
+
+    <!-- 로그인 -->
+    <section id="login">
+      <div class="loginbody">
+        <svg class="logo login-logo" viewBox="0 0 103 25" width="106" height="26"><use href="#covaLogo" /></svg>
+        <h1 class="login-title">로그인</h1>
+        <p class="login-sub">가입하신 이메일로 로그인해주세요</p>
+
+        <label for="email">이메일</label>
+        <input id="email" type="email" autocomplete="username" placeholder="you@example.com" />
+
+        <label for="password">비밀번호</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="6자 이상" />
+
+        <button id="loginBtn">로그인</button>
+        <div class="err" id="loginErr"></div>
+
+        <div class="signup">계정이 없으신가요? <a id="signupLink" href="#">회원가입</a></div>
+      </div>
+    </section>
+
+    <!-- 앱 (로그인 후) -->
+    <section id="app" class="hidden" style="display: contents">
+      <header>
+        <svg class="logo" viewBox="0 0 103 25" width="66" height="16"><use href="#covaLogo" /></svg>
+        <div class="who">
+          <div class="name" id="userName"></div>
+          <div class="email" id="userEmail"></div>
+        </div>
+        <button class="soft sm" id="logoutBtn">로그아웃</button>
+      </header>
+      <div class="warn hidden" id="roleWarn">편집 권한이 없는 계정입니다. 업로드가 막힙니다.</div>
+
+      <div class="selbar" id="selbar">Figma에서 올릴 프레임을 선택하세요</div>
+
+      <div class="tabs">
+        <button id="tabNewBtn" class="active">새 시안</button>
+        <button id="tabExistingBtn">기존 시안</button>
+      </div>
+
+      <!-- 새 시안 -->
+      <div class="view" id="viewNew">
+        <label for="title">제목</label>
+        <input id="title" placeholder="시안 제목" />
+        <button id="createBtn" disabled>선택한 프레임으로 새 시안 만들기</button>
+      </div>
+
+      <!-- 기존 시안 → 안(variant) → 새 버전 -->
+      <div class="view hidden" id="viewExisting">
+        <!-- 시안 목록 -->
+        <div id="listView">
+          <div class="toolbar">
+            <input id="search" placeholder="시안 검색…" />
+            <button class="soft sm" id="refreshBtn">새로고침</button>
+          </div>
+          <div class="count" id="count"></div>
+          <div id="list"></div>
+          <div class="pager hidden" id="pager">
+            <button class="soft sm" id="prevBtn">이전</button>
+            <span id="pageInfo"></span>
+            <button class="soft sm" id="nextBtn">다음</button>
+          </div>
+        </div>
+        <!-- 시안 상세: 안 목록 -->
+        <div id="detailView" class="hidden">
+          <div class="detailhead">
+            <button class="ghost sm" id="backBtn">← 목록</button>
+            <div class="detailtitle" id="detailTitle"></div>
+          </div>
+          <div id="variants"></div>
+          <button class="sm needsSel" id="addVariantBtn" disabled>＋ 새 안 추가 (선택 프레임)</button>
+        </div>
+        <!-- 안 상세: 페이지(이미지) 목록 -->
+        <div id="pagesView" class="hidden">
+          <div class="detailhead">
+            <button class="ghost sm" id="pagesBackBtn">← 안 목록</button>
+            <div class="detailtitle" id="pagesTitle"></div>
+          </div>
+          <div class="hint">교체는 캔버스에서 선택한 첫 프레임을 사용합니다.</div>
+          <div id="pages"></div>
+        </div>
+      </div>
+
+      <div class="statusbar">
+        <div class="status" id="status"></div>
+        <button class="sm hidden" id="openBtn">관리화면 열기 ↗</button>
+      </div>
+    </section>
+
+    <script>
+      // Figma 테마(라이트/다크)에 맞춰 서비스 다크 토큰을 적용한다.
+      (function () {
+        function lum(rgb) {
+          return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+        }
+        function parse(c) {
+          c = c.trim();
+          if (c.charAt(0) === "#") {
+            if (c.length === 4) c = "#" + c[1] + c[1] + c[2] + c[2] + c[3] + c[3];
+            return [
+              parseInt(c.substr(1, 2), 16),
+              parseInt(c.substr(3, 2), 16),
+              parseInt(c.substr(5, 2), 16),
+            ];
+          }
+          var m = c.match(/\d+/g);
+          return m && m.length >= 3 ? [+m[0], +m[1], +m[2]] : null;
+        }
+        var bg = getComputedStyle(document.documentElement).getPropertyValue("--figma-color-bg");
+        var rgb = bg ? parse(bg) : null;
+        var dark = rgb
+          ? lum(rgb) < 128
+          : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+
+      // ---- 메인(샌드박스)과의 통신 ----
+      function toMain(msg) {
+        parent.postMessage({ pluginMessage: msg }, "*");
+      }
+      var $ = function (id) {
+        return document.getElementById(id);
+      };
+
+      // cova 서버 주소. 개발: http://localhost:3000 / 배포 시 운영 도메인으로 변경.
+      var API_BASE = "http://localhost:3000";
+
+      // ---- 세션 상태 (메인의 clientStorage 에 영속) ----
+      var config = { accessToken: null, refreshToken: null, expiresAt: null, user: null };
+      function persist() {
+        toMain({ type: "save-session", session: config });
+      }
+
+      var selectionCount = 0;
+      var busy = false;
+      var listLoaded = false;
+      var pendingExport = null;
+      var lastProposalId = null; // 업로드 성공 후 "관리화면 열기" 대상
+      var currentDetail = null; // { proposalId, title } — 상세(안 목록) 화면 대상
+      var PAGE_SIZE = 8;
+      var listPage = 1;
+      var listTotal = 0;
+      var currentPages = null; // { proposalId, variantId, versionId, label } — 페이지 화면 대상
+
+      // ---- 메시지/코드 ----
+      var MSG = {
+        NETWORK: "서버에 연결할 수 없습니다. 주소와 포트를 확인하세요.",
+        INVALID_CREDENTIALS: "이메일 또는 비밀번호가 올바르지 않습니다.",
+        FORBIDDEN: "편집 권한이 없습니다.",
+        RATE_LIMITED: "요청이 많습니다. 잠시 후 다시 시도하세요.",
+        VALIDATION_ERROR: "입력값을 확인하세요(형식/용량 25MB 초과 등).",
+        UPLOAD_FAILED: "이미지 업로드에 실패했습니다.",
+        UPLOAD_NETWORK: "이미지 업로드 중 네트워크 오류가 발생했습니다.",
+        NO_VARIANT: "이 시안에 안(variant)이 없습니다.",
+        NO_SELECTION: "내보낼 프레임을 먼저 선택하세요.",
+        EXPORT_FAILED: "프레임 내보내기에 실패했습니다.",
+      };
+      function humanize(code) {
+        return MSG[code] || "오류: " + code;
+      }
+      function joinUrl(base, path) {
+        return String(base).replace(/\/+$/, "") + path;
+      }
+
+      // ---- cova API ----
+      async function api(path, opts, auth, _retried) {
+        opts = opts || {};
+        var headers = { "Content-Type": "application/json" };
+        if (auth && config.accessToken) headers["Authorization"] = "Bearer " + config.accessToken;
+        if (opts.headers) for (var k in opts.headers) headers[k] = opts.headers[k];
+        var res;
+        try {
+          res = await fetch(joinUrl(API_BASE, path), {
+            method: opts.method || "GET",
+            headers: headers,
+            body: opts.body,
+          });
+        } catch (e) {
+          throw new Error("NETWORK");
+        }
+        // 액세스 토큰 만료(401) → 리프레시 후 1회 재시도.
+        if (res.status === 401 && auth && config.refreshToken && !_retried) {
+          if (await tryRefresh()) return api(path, opts, auth, true);
+        }
+        var body = null;
+        try {
+          body = await res.json();
+        } catch (e) {}
+        if (!res.ok) throw new Error((body && body.error) || "HTTP_" + res.status);
+        return body;
+      }
+
+      async function tryRefresh() {
+        try {
+          var res = await fetch(joinUrl(API_BASE, "/api/plugin/auth/refresh"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refreshToken: config.refreshToken }),
+          });
+          if (!res.ok) return false;
+          var j = await res.json();
+          config.accessToken = j.accessToken;
+          config.refreshToken = j.refreshToken;
+          config.expiresAt = j.expiresAt;
+          persist();
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // 경로 헬퍼
+      function pagesPath(pid, vid, verId) {
+        return "/api/plugin/proposals/" + pid + "/variants/" + vid + "/versions/" + verId + "/pages";
+      }
+      function versionsPath(pid, vid) {
+        return "/api/plugin/proposals/" + pid + "/variants/" + vid + "/versions";
+      }
+      function variantsPath(pid) {
+        return "/api/plugin/proposals/" + pid + "/variants";
+      }
+
+      // ---- 선택 프레임 export 요청(메인 ↔ UI) ----
+      function requestExport() {
+        return new Promise(function (resolve, reject) {
+          pendingExport = { resolve: resolve, reject: reject };
+          toMain({ type: "export-selection" });
+        });
+      }
+      function filesMeta(images) {
+        return images.map(function (im) {
+          return { contentType: im.contentType, size: im.bytes.byteLength };
+        });
+      }
+      function confirmPages(uploads, images) {
+        return uploads.map(function (u, i) {
+          return {
+            pageId: u.pageId,
+            pageOrder: u.pageOrder,
+            path: u.path,
+            width: images[i].width,
+            height: images[i].height,
+          };
+        });
+      }
+      // 이미지를 서명 URL(절대 URL, 토큰 포함)로 Supabase 에 직접 PUT.
+      async function putToSignedUrl(signedUrl, img) {
+        var res;
+        try {
+          res = await fetch(signedUrl, {
+            method: "PUT",
+            headers: {
+              "content-type": img.contentType,
+              "cache-control": "max-age=3600",
+              "x-upsert": "false",
+            },
+            body: img.bytes,
+          });
+        } catch (e) {
+          throw new Error("UPLOAD_NETWORK");
+        }
+        if (!res.ok) throw new Error("UPLOAD_FAILED");
+      }
+      async function uploadAll(uploads, images) {
+        for (var i = 0; i < uploads.length; i++) {
+          setStatus("업로드 중 " + (i + 1) + "/" + uploads.length + "…");
+          await putToSignedUrl(uploads[i].signedUrl, images[i]);
+        }
+      }
+
+      // export → fn(images) 공통 래퍼
+      async function runUpload(label, fn) {
+        if (busy) return;
+        busy = true;
+        hideOpen();
+        updateControls();
+        setStatus(label + " — 프레임 내보내는 중…");
+        try {
+          var images = await requestExport();
+          if (!images.length) throw new Error("NO_SELECTION");
+          await fn(images);
+          setStatusOk(label + " 완료 ✓");
+        } catch (e) {
+          setStatus(humanize(e.message), true);
+          toMain({ type: "notify", message: humanize(e.message), error: true });
+        } finally {
+          busy = false;
+          updateControls();
+        }
+      }
+
+      // ---- 새 시안 ----
+      async function createNewProposal() {
+        var title = $("title").value.trim();
+        if (!title) {
+          setStatus("제목을 입력하세요.", true);
+          return;
+        }
+        await runUpload("새 시안 생성", async function (images) {
+          var created = await api(
+            "/api/plugin/proposals",
+            { method: "POST", body: JSON.stringify({ title: title, files: filesMeta(images) }) },
+            true,
+          );
+          await uploadAll(created.uploads, images);
+          await api(
+            pagesPath(created.proposalId, created.variantId, created.versionId),
+            { method: "PUT", body: JSON.stringify({ pages: confirmPages(created.uploads, images) }) },
+            true,
+          );
+          toMain({ type: "notify", message: "새 시안 “" + title + "” 생성됨" });
+          $("title").value = "";
+          listLoaded = false; // 다음에 기존 탭 열면 새로고침
+          listPage = 1;
+          showOpen(created.proposalId);
+        });
+      }
+
+      // ---- 기존 안(variant)에 새 버전 ----
+      async function addVersionToVariant(proposalId, variantId, label) {
+        await runUpload("안 " + label + " 새 버전", async function (images) {
+          var ver = await api(
+            versionsPath(proposalId, variantId),
+            { method: "POST", body: JSON.stringify({ note: "" }) },
+            true,
+          );
+          var issued = await api(
+            pagesPath(proposalId, variantId, ver.versionId),
+            { method: "POST", body: JSON.stringify({ files: filesMeta(images) }) },
+            true,
+          );
+          await uploadAll(issued.uploads, images);
+          await api(
+            pagesPath(proposalId, variantId, ver.versionId),
+            { method: "PUT", body: JSON.stringify({ pages: confirmPages(issued.uploads, images) }) },
+            true,
+          );
+          toMain({ type: "notify", message: "안 " + label + " v" + ver.versionNo + " 업로드됨" });
+          showOpen(proposalId);
+          await refreshDetail();
+        });
+      }
+
+      // ---- 기존 시안에 새 안(variant) 추가 ----
+      async function addVariantToProposal(proposalId) {
+        await runUpload("새 안 추가", async function (images) {
+          var created = await api(
+            variantsPath(proposalId),
+            { method: "POST", body: JSON.stringify({ files: filesMeta(images) }) },
+            true,
+          );
+          await uploadAll(created.uploads, images);
+          await api(
+            pagesPath(proposalId, created.variantId, created.versionId),
+            { method: "PUT", body: JSON.stringify({ pages: confirmPages(created.uploads, images) }) },
+            true,
+          );
+          toMain({ type: "notify", message: "새 안 " + created.label + " 추가됨" });
+          showOpen(proposalId);
+          await refreshDetail();
+        });
+      }
+
+      // ---- 시안 목록 ----
+      var searchTimer = null;
+      async function loadProposals() {
+        listLoaded = true;
+        var q = $("search").value.trim();
+        $("count").textContent = "";
+        $("list").innerHTML = '<div class="loading">불러오는 중…</div>';
+        try {
+          var data = await api(
+            "/api/plugin/proposals?page=" +
+              listPage +
+              "&pageSize=" +
+              PAGE_SIZE +
+              "&q=" +
+              encodeURIComponent(q),
+            {},
+            true,
+          );
+          renderList(data.items || [], data.total || 0);
+        } catch (e) {
+          $("pager").classList.add("hidden");
+          $("list").innerHTML = '<div class="empty">' + humanize(e.message) + "</div>";
+        }
+      }
+      function renderPager() {
+        var totalPages = Math.max(1, Math.ceil(listTotal / PAGE_SIZE));
+        if (listTotal <= PAGE_SIZE) {
+          $("pager").classList.add("hidden");
+          return;
+        }
+        $("pager").classList.remove("hidden");
+        $("pageInfo").textContent = listPage + " / " + totalPages;
+        $("prevBtn").disabled = listPage <= 1;
+        $("nextBtn").disabled = listPage >= totalPages;
+      }
+      function renderList(items, total) {
+        listTotal = total;
+        $("count").textContent = total + "개";
+        if (!items.length) {
+          $("list").innerHTML = '<div class="empty">시안이 없습니다.</div>';
+          renderPager();
+          return;
+        }
+        $("list").innerHTML = "";
+        items.forEach(function (it) {
+          var row = document.createElement("div");
+          row.className = "item clickable";
+          var info = document.createElement("div");
+          info.className = "info";
+          var t = document.createElement("div");
+          t.className = "title";
+          t.textContent = it.title || "(제목 없음)";
+          var m = document.createElement("div");
+          m.className = "meta";
+          var parts = [];
+          if (it.domain) parts.push(it.domain);
+          if (it.publicId) parts.push("/" + it.publicId);
+          m.textContent = parts.join(" · ");
+          info.appendChild(t);
+          info.appendChild(m);
+          var chev = document.createElement("div");
+          chev.className = "chev";
+          chev.textContent = "›";
+          row.appendChild(info);
+          row.appendChild(chev);
+          row.addEventListener("click", function () {
+            openDetail(it.id, it.title || "(제목 없음)");
+          });
+          $("list").appendChild(row);
+        });
+        renderPager();
+      }
+
+      // ---- 시안 상세: 안(variant) 목록 ----
+      function switchExistingView(which) {
+        $("listView").classList.toggle("hidden", which !== "list");
+        $("detailView").classList.toggle("hidden", which !== "detail");
+        $("pagesView").classList.toggle("hidden", which !== "pages");
+      }
+      async function openDetail(proposalId, title) {
+        currentDetail = { proposalId: proposalId, title: title };
+        $("detailTitle").textContent = title;
+        $("variants").innerHTML = '<div class="loading">불러오는 중…</div>';
+        switchExistingView("detail");
+        await loadDetail();
+      }
+      async function loadDetail() {
+        try {
+          var detail = await api("/api/plugin/proposals/" + currentDetail.proposalId, {}, true);
+          renderVariants(detail.variants || []);
+        } catch (e) {
+          $("variants").innerHTML = '<div class="empty">' + humanize(e.message) + "</div>";
+        }
+      }
+      async function refreshDetail() {
+        if (currentDetail) await loadDetail();
+      }
+      function renderVariants(variants) {
+        var c = $("variants");
+        c.innerHTML = "";
+        if (!variants.length) {
+          c.innerHTML = '<div class="empty">안이 없습니다.</div>';
+          return;
+        }
+        variants.forEach(function (v) {
+          var label = v.label || v.slug || "?";
+          var row = document.createElement("div");
+          row.className = "item clickable";
+          var info = document.createElement("div");
+          info.className = "info";
+          var t = document.createElement("div");
+          t.className = "title";
+          t.textContent = "안 " + label;
+          var m = document.createElement("div");
+          m.className = "meta";
+          var pageCount = v.pages ? v.pages.length : 0;
+          m.textContent = (v.versions ? v.versions.length : 0) + "개 버전 · 현재 " + pageCount + "장";
+          info.appendChild(t);
+          info.appendChild(m);
+          var btn = document.createElement("button");
+          btn.className = "sm needsSel";
+          btn.textContent = "새 버전";
+          btn.disabled = busy || selectionCount === 0;
+          btn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            addVersionToVariant(currentDetail.proposalId, v.id, label);
+          });
+          var chev = document.createElement("div");
+          chev.className = "chev";
+          chev.textContent = "›";
+          row.appendChild(info);
+          row.appendChild(btn);
+          row.appendChild(chev);
+          row.addEventListener("click", function () {
+            openPages(v.id);
+          });
+          c.appendChild(row);
+        });
+      }
+
+      // ---- 안 상세: 페이지(이미지) 목록 + 낱개 교체 ----
+      async function openPages(variantId) {
+        currentPages = {
+          proposalId: currentDetail.proposalId,
+          variantId: variantId,
+          versionId: null,
+          label: null,
+        };
+        $("pagesTitle").textContent = "페이지";
+        $("pages").innerHTML = '<div class="loading">불러오는 중…</div>';
+        switchExistingView("pages");
+        await loadPages();
+      }
+      async function loadPages() {
+        try {
+          var detail = await api("/api/plugin/proposals/" + currentPages.proposalId, {}, true);
+          var v = (detail.variants || []).filter(function (x) {
+            return x.id === currentPages.variantId;
+          })[0];
+          if (!v) {
+            $("pages").innerHTML = '<div class="empty">안을 찾을 수 없습니다.</div>';
+            return;
+          }
+          currentPages.versionId = v.currentVersionId;
+          currentPages.label = v.label || v.slug || "?";
+          $("pagesTitle").textContent = "안 " + currentPages.label + " · 현재 버전";
+          renderPages(v.pages || []);
+        } catch (e) {
+          $("pages").innerHTML = '<div class="empty">' + humanize(e.message) + "</div>";
+        }
+      }
+      async function refreshPages() {
+        if (currentPages) await loadPages();
+      }
+      function renderPages(pages) {
+        var c = $("pages");
+        c.innerHTML = "";
+        if (!pages.length) {
+          c.innerHTML = '<div class="empty">이미지가 없습니다.</div>';
+          return;
+        }
+        pages.forEach(function (p, idx) {
+          var row = document.createElement("div");
+          row.className = "page";
+          var img = document.createElement("img");
+          if (p.url) img.src = p.url;
+          img.onerror = function () {
+            img.style.visibility = "hidden";
+          };
+          var info = document.createElement("div");
+          info.className = "info";
+          var t = document.createElement("div");
+          t.className = "title";
+          t.textContent = idx + 1 + "페이지";
+          var m = document.createElement("div");
+          m.className = "meta";
+          m.textContent = (p.width || "?") + " × " + (p.height || "?");
+          info.appendChild(t);
+          info.appendChild(m);
+          var btn = document.createElement("button");
+          btn.className = "sm needsSel";
+          btn.textContent = "교체";
+          btn.disabled = busy || selectionCount === 0;
+          btn.addEventListener("click", function () {
+            replacePage(p.id, idx + 1);
+          });
+          row.appendChild(img);
+          row.appendChild(info);
+          row.appendChild(btn);
+          c.appendChild(row);
+        });
+      }
+
+      // 페이지 이미지 낱개 교체 — 선택한 첫 프레임을 사용한다.
+      async function replacePage(pageId, ordinal) {
+        await runUpload(ordinal + "페이지 교체", async function (images) {
+          var img = images[0];
+          if (!img) throw new Error("NO_SELECTION");
+          var base = pagesPath(currentPages.proposalId, currentPages.variantId, currentPages.versionId);
+          var issued = await api(
+            base + "/" + pageId + "/replace",
+            { method: "POST", body: JSON.stringify({ contentType: img.contentType, size: img.bytes.byteLength }) },
+            true,
+          );
+          await putToSignedUrl(issued.signedUrl, img);
+          await api(
+            base + "/" + pageId,
+            { method: "PUT", body: JSON.stringify({ path: issued.path, width: img.width, height: img.height }) },
+            true,
+          );
+          toMain({ type: "notify", message: ordinal + "페이지 교체됨" });
+          showOpen(currentPages.proposalId);
+          await refreshPages();
+        });
+      }
+
+      // ---- 화면/컨트롤 ----
+      function showLogin() {
+        $("login").classList.remove("hidden");
+        $("app").classList.add("hidden");
+      }
+      function showApp() {
+        $("login").classList.add("hidden");
+        $("app").classList.remove("hidden");
+        var u = config.user || {};
+        $("userName").textContent = u.name || "";
+        $("userEmail").textContent = u.email ? "(" + u.email + ")" : "";
+        var editor = u.role === "editor" || u.role === "admin";
+        $("roleWarn").classList.toggle("hidden", editor);
+        updateControls();
+      }
+      function updateControls() {
+        var has = selectionCount > 0;
+        $("selbar").textContent = has
+          ? "선택된 프레임: " + selectionCount + "개"
+          : "Figma에서 올릴 프레임을 선택하세요";
+        $("selbar").classList.toggle("has", has);
+        $("createBtn").disabled = busy || !has || !$("title").value.trim();
+        var btns = document.querySelectorAll(".needsSel");
+        for (var i = 0; i < btns.length; i++) btns[i].disabled = busy || !has;
+      }
+      function setStatus(text, isErr) {
+        var el = $("status");
+        el.textContent = text || "";
+        el.className = "status" + (isErr ? " err" : "");
+      }
+      function setStatusOk(text) {
+        var el = $("status");
+        el.textContent = text;
+        el.className = "status ok";
+      }
+      function showOpen(proposalId) {
+        lastProposalId = proposalId;
+        $("openBtn").classList.toggle("hidden", !proposalId);
+      }
+      function hideOpen() {
+        $("openBtn").classList.add("hidden");
+      }
+      function switchTab(which) {
+        $("tabNewBtn").classList.toggle("active", which === "new");
+        $("tabExistingBtn").classList.toggle("active", which === "existing");
+        $("viewNew").classList.toggle("hidden", which !== "new");
+        $("viewExisting").classList.toggle("hidden", which !== "existing");
+        if (which === "existing") {
+          switchExistingView("list");
+          if (!listLoaded) loadProposals();
+        }
+      }
+
+      // ---- 로그인/로그아웃 ----
+      async function doLogin() {
+        $("loginErr").textContent = "";
+        var email = $("email").value.trim();
+        var password = $("password").value;
+        if (!email || !password) {
+          $("loginErr").textContent = "이메일과 비밀번호를 입력하세요.";
+          return;
+        }
+        $("loginBtn").disabled = true;
+        $("loginBtn").textContent = "로그인 중…";
+        try {
+          var data = await api("/api/plugin/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ email: email, password: password }),
+          });
+          config.accessToken = data.accessToken;
+          config.refreshToken = data.refreshToken;
+          config.expiresAt = data.expiresAt;
+          config.user = data.user;
+          persist();
+          showApp();
+        } catch (e) {
+          $("loginErr").textContent = humanize(e.message);
+        } finally {
+          $("loginBtn").disabled = false;
+          $("loginBtn").textContent = "로그인";
+        }
+      }
+      function doLogout() {
+        config.accessToken = null;
+        config.refreshToken = null;
+        config.expiresAt = null;
+        config.user = null;
+        persist();
+        listLoaded = false;
+        listPage = 1;
+        currentDetail = null;
+        currentPages = null;
+        switchExistingView("list");
+        $("list").innerHTML = "";
+        $("count").textContent = "";
+        setStatus("");
+        hideOpen();
+        showLogin();
+      }
+
+      // ---- 이벤트 ----
+      $("loginBtn").addEventListener("click", doLogin);
+      $("signupLink").addEventListener("click", function (e) {
+        e.preventDefault();
+        toMain({ type: "open-url", url: joinUrl(API_BASE, "/signup") });
+      });
+      $("password").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") doLogin();
+      });
+      $("logoutBtn").addEventListener("click", doLogout);
+      $("tabNewBtn").addEventListener("click", function () {
+        switchTab("new");
+      });
+      $("tabExistingBtn").addEventListener("click", function () {
+        switchTab("existing");
+      });
+      $("createBtn").addEventListener("click", createNewProposal);
+      $("openBtn").addEventListener("click", function () {
+        if (lastProposalId)
+          toMain({ type: "open-url", url: joinUrl(API_BASE, "/studio/proposals/" + lastProposalId) });
+      });
+      $("title").addEventListener("input", updateControls);
+      $("refreshBtn").addEventListener("click", loadProposals);
+      $("prevBtn").addEventListener("click", function () {
+        if (listPage > 1) {
+          listPage--;
+          loadProposals();
+        }
+      });
+      $("nextBtn").addEventListener("click", function () {
+        listPage++;
+        loadProposals();
+      });
+      $("backBtn").addEventListener("click", function () {
+        currentDetail = null;
+        switchExistingView("list");
+      });
+      $("pagesBackBtn").addEventListener("click", function () {
+        currentPages = null;
+        switchExistingView("detail");
+      });
+      $("addVariantBtn").addEventListener("click", function () {
+        if (currentDetail) addVariantToProposal(currentDetail.proposalId);
+      });
+      $("search").addEventListener("input", function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function () {
+          listPage = 1;
+          loadProposals();
+        }, 300);
+      });
+
+      // ---- 메인에서 오는 메시지 ----
+      onmessage = function (event) {
+        var msg = event.data.pluginMessage;
+        if (!msg) return;
+        if (msg.type === "init") {
+          if (msg.session) config = Object.assign(config, msg.session);
+          if (config.accessToken && config.user) showApp();
+          else showLogin();
+        } else if (msg.type === "selection") {
+          selectionCount = msg.count || 0;
+          updateControls();
+        } else if (msg.type === "export-result") {
+          if (pendingExport) {
+            pendingExport.resolve(msg.images || []);
+            pendingExport = null;
+          }
+        } else if (msg.type === "export-error") {
+          if (pendingExport) {
+            pendingExport.reject(new Error("EXPORT_FAILED"));
+            pendingExport = null;
+          }
+        }
+      };
+
+      // 핸들러 등록이 끝났으니 메인에 저장된 세션을 요청한다(race 방지 pull).
+      toMain({ type: "ready" });
+    </script>
+  </body>
+</html>
