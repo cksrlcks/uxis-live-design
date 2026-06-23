@@ -72,7 +72,7 @@ export function SignupForm({ returnTo }: { returnTo?: string }) {
         <Input
           id="password"
           type="password"
-          placeholder="6자 이상"
+          placeholder="영문·숫자·특수문자 포함 8자 이상"
           className="h-12 rounded-lg px-4"
           {...register("password")}
         />

@@ -54,7 +54,7 @@ describe("resetPassword", () => {
   it("throws UNAUTHORIZED without a recovery session", async () => {
     getUser.mockResolvedValue({ data: { user: null } });
     await expect(
-      resetPassword({ newPassword: "12345678", confirmPassword: "12345678" }),
+      resetPassword({ newPassword: "Passw0rd!", confirmPassword: "Passw0rd!" }),
     ).rejects.toThrow("UNAUTHORIZED");
     expect(updateUser).not.toHaveBeenCalled();
   });
@@ -63,8 +63,8 @@ describe("resetPassword", () => {
     getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
     updateUser.mockResolvedValue({ error: null });
     signOut.mockResolvedValue({ error: null });
-    await resetPassword({ newPassword: "12345678", confirmPassword: "12345678" });
-    expect(updateUser).toHaveBeenCalledWith({ password: "12345678" });
+    await resetPassword({ newPassword: "Passw0rd!", confirmPassword: "Passw0rd!" });
+    expect(updateUser).toHaveBeenCalledWith({ password: "Passw0rd!" });
     expect(signOut).toHaveBeenCalled();
   });
 
@@ -72,7 +72,7 @@ describe("resetPassword", () => {
     getUser.mockResolvedValue({ data: { user: { id: "u1" } } });
     updateUser.mockResolvedValue({ error: { code: "weak_password" } });
     await expect(
-      resetPassword({ newPassword: "12345678", confirmPassword: "12345678" }),
+      resetPassword({ newPassword: "Passw0rd!", confirmPassword: "Passw0rd!" }),
     ).rejects.toThrow("WEAK_PASSWORD");
     expect(signOut).not.toHaveBeenCalled();
   });

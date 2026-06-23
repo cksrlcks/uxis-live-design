@@ -41,14 +41,18 @@ export function ForgotPasswordForm() {
 
   if (sentTo) {
     return (
-      <div className="space-y-4">
-        <p className="text-sm leading-relaxed">
-          <span className="font-medium">{sentTo}</span> 주소로 비밀번호 재설정 링크를 보냈습니다.
-          받은 편지함과 스팸함을 확인해주세요.
+      <div className="space-y-6">
+        <p className="text-center text-sm leading-relaxed">
+          <span className="font-medium">{sentTo}</span> 주소로 <br />
+          비밀번호 재설정 링크를 보냈습니다.
+          <br />
+          받은 편지함을 확인해주세요.
         </p>
         <Link
           href="/login"
-          className={buttonVariants({ className: "h-12 w-full rounded-lg text-base font-semibold" })}
+          className={buttonVariants({
+            className: "h-12 w-full rounded-lg text-base font-semibold",
+          })}
         >
           로그인으로 돌아가기
         </Link>

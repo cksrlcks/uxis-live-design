@@ -51,7 +51,7 @@ export function ResetPasswordForm() {
         <Input
           id="newPassword"
           type="password"
-          placeholder="8자 이상"
+          placeholder="영문·숫자·특수문자 포함 8자 이상"
           className="h-12 rounded-lg px-4"
           {...register("newPassword")}
         />
