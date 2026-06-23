@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+// auth.server가 이제 @/shared/db를 import한다(updateDisplayName). 이 파일은 db를 쓰지 않지만
+// @/shared/db는 import 시 DATABASE_URL 미설정이면 throw하므로, no-op 모킹으로 로드만 통과시킨다.
+vi.mock("@/shared/db", () => ({ db: {} }));
+
 const resetPasswordForEmail = vi.fn();
 const getUser = vi.fn();
 const updateUser = vi.fn();
