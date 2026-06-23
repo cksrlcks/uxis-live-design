@@ -1,8 +1,9 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQueryStates, parseAsString, parseAsStringEnum } from "nuqs";
 import type { ViewerVariant } from "@/entities/proposal";
 import type { PinContext } from "@/entities/pin";
+import { useViewerChrome } from "@/shared/viewer-chrome/viewer-chrome";
 import { ProposalPreview } from "./proposal-preview";
 import { CompareView } from "./compare-view";
 import { ViewerDock } from "./viewer-dock";
@@ -38,8 +39,9 @@ export function PublicViewer({
     { shallow: true, history: "push" },
   );
 
-  // 하단 컨트롤러 접기 상태 — dock과 캔버스의 일반/코멘트 컨트롤러를 함께 숨긴다.
-  const [dockCollapsed, setDockCollapsed] = useState(false);
+  // 하단 컨트롤러 접기 상태 — dock과 캔버스의 일반/코멘트 컨트롤러, 그리고 우측 협업 dock을
+  // 함께 숨긴다. 우측 dock은 다른 트리(layout shell)에 있어 context로 상태를 공유한다.
+  const { collapsed: dockCollapsed, setCollapsed: setDockCollapsed } = useViewerChrome();
 
   // 시안이 한 종류뿐이면 나란히보기는 의미가 없어 dock에서 숨긴다.
   const comparable = variants.length > 1;

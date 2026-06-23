@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { chatQueries } from "@/entities/chat-message";
 import type { Identity } from "@/shared/realtime/identity";
+import { useViewerChrome } from "@/shared/viewer-chrome/viewer-chrome";
 import { useChatBridge } from "../lib/use-chat-bridge";
 import { PresenceBar } from "./presence-bar";
 import { ChatPanel } from "./chat-panel";
@@ -23,9 +24,13 @@ export function CollaborationDock({
 }) {
   const [chatOpen, setChatOpen] = useState(false);
   const { data: chatMessages = [] } = useQuery(chatQueries.list(publicId));
+  const { collapsed } = useViewerChrome();
 
   // 채팅 닫혀 있어도(패널 언마운트) broadcast를 캐시에 반영 → 아이콘 갯수 실시간 갱신.
   useChatBridge(publicId);
+
+  // 프리뷰 컨트롤러를 접으면 우측 협업 dock(접속자 바 + 채팅)도 함께 숨긴다.
+  if (collapsed) return null;
 
   return (
     <div className="fixed top-3 right-3 z-50 flex flex-col items-end gap-2">
