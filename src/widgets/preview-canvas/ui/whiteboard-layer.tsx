@@ -16,6 +16,15 @@ import { useLayerFlush } from "@/features/whiteboard";
 import { useRealtimeOptional } from "@/shared/realtime/realtime-provider";
 import type { ProposalPage } from "@/entities/proposal";
 import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 
 type Tool = "pen" | "eraser";
 
@@ -123,6 +132,8 @@ export function WhiteboardLayer({
     }, FLUSH_DELAY);
   }
 
+  const isGuest = viewerId == null;
+  const [loginOpen, setLoginOpen] = useState(false);
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState(PALETTE[3]);
   const [width, setWidth] = useState(WIDTHS[1].w);
@@ -308,6 +319,10 @@ export function WhiteboardLayer({
 
   function onPenDown(e: React.PointerEvent) {
     if (spaceHeld || e.button !== 0) return; // 스페이스 패닝/우클릭은 그리기 아님
+    if (isGuest) {
+      setLoginOpen(true);
+      return;
+    }
     const p = toContentPoint(e.clientX, e.clientY);
     if (!p) return;
     const loc = locatePin(p.cx, p.cy, measureBoxes());
@@ -414,6 +429,10 @@ export function WhiteboardLayer({
 
   function onEraserDown(e: React.PointerEvent) {
     if (spaceHeld || e.button !== 0) return;
+    if (isGuest) {
+      setLoginOpen(true);
+      return;
+    }
     const p = toContentPoint(e.clientX, e.clientY);
     if (!p) return;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -704,6 +723,32 @@ export function WhiteboardLayer({
         </div>,
           document.body,
         )}
+      <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
+        <DialogContent className="pointer-events-auto gap-6 p-6">
+          <DialogHeader className="gap-3">
+            <DialogTitle>로그인이 필요합니다</DialogTitle>
+            <DialogDescription>
+              그림을 그리려면 로그인해 주세요.
+              <br />
+              로그인 후 현재 화면으로 돌아옵니다.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => {
+                const returnTo =
+                  typeof window !== "undefined"
+                    ? window.location.pathname + window.location.search
+                    : "/";
+                window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
+              }}
+            >
+              로그인
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
