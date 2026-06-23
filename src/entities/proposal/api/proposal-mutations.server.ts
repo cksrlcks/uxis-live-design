@@ -9,10 +9,14 @@ import { updateSettingsSchema } from "../model/edit-schemas";
 
 export async function updateProposalSettings(id: string, input: unknown): Promise<void> {
   await requireEditor();
-  const { title, visibility, password, domain, whiteboardEnabled } = updateSettingsSchema.parse(input);
+  const { title, visibility, password, domain, whiteboardEnabled, participants } =
+    updateSettingsSchema.parse(input);
 
   const updates: Partial<typeof proposals.$inferInsert> = {};
   if (title !== undefined) updates.title = title;
+  // 빈 문자열/공백은 미설정(null)로 정규화한다.
+  if (participants !== undefined)
+    updates.participants = participants && participants.trim() ? participants.trim() : null;
   if (visibility !== undefined) updates.visibility = visibility;
   if (password !== undefined)
     updates.accessPasswordHash = password === null ? null : hashPassword(password);

@@ -8,10 +8,12 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const page = Number(searchParams.get("page") ?? "1");
     const pageSize = Number(searchParams.get("pageSize") ?? "");
+    const search = searchParams.get("q") ?? "";
     return Response.json(
       await getProposals(
         Number.isFinite(page) ? page : 1,
         Number.isFinite(pageSize) && pageSize > 0 ? pageSize : undefined,
+        search,
       ),
     );
   } catch (error) {

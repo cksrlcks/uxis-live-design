@@ -10,6 +10,8 @@ export const updateSettingsSchema = z
     // 슬러그 to set/change, or null to clear. Absent = unchanged.
     domain: z.union([domainSchema, z.null()]).optional(),
     whiteboardEnabled: z.boolean().optional(),
+    // 참여자 명단(자유 문자열). 문자열로 설정/변경, null로 해제. Absent = unchanged.
+    participants: z.union([z.string().trim(), z.null()]).optional(),
   })
   .refine(
     (v) =>
@@ -17,7 +19,8 @@ export const updateSettingsSchema = z
       v.visibility !== undefined ||
       v.password !== undefined ||
       v.domain !== undefined ||
-      v.whiteboardEnabled !== undefined,
+      v.whiteboardEnabled !== undefined ||
+      v.participants !== undefined,
     { message: "변경할 항목이 없습니다" },
   );
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;

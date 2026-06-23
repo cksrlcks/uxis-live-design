@@ -30,6 +30,9 @@ type PasswordValues = z.infer<typeof passwordSchema>;
 const titleFormSchema = z.object({ title: titleSchema });
 type TitleValues = z.infer<typeof titleFormSchema>;
 
+const participantsFormSchema = z.object({ participants: z.string().trim() });
+type ParticipantsValues = z.infer<typeof participantsFormSchema>;
+
 const domainFormSchema = z.object({ domain: domainSchema });
 type DomainValues = z.infer<typeof domainFormSchema>;
 
@@ -38,6 +41,7 @@ type DomainCheck = { available: boolean; message: string };
 export function ProposalSettings({
   proposalId,
   title,
+  participants,
   domain,
   visibility,
   hasPassword,
@@ -45,6 +49,7 @@ export function ProposalSettings({
 }: {
   proposalId: string;
   title: string;
+  participants: string | null;
   domain: string | null;
   visibility: string;
   hasPassword: boolean;
@@ -69,6 +74,11 @@ export function ProposalSettings({
     defaultValues: { title },
   });
 
+  const participantsForm = useForm<ParticipantsValues>({
+    resolver: zodResolver(participantsFormSchema),
+    defaultValues: { participants: participants ?? "" },
+  });
+
   const domainForm = useForm<DomainValues>({
     resolver: zodResolver(domainFormSchema),
     defaultValues: { domain: domain ?? "" },
@@ -81,6 +91,18 @@ export function ProposalSettings({
     updateSettings.mutate(
       { title: next },
       { onError: () => setError("변경에 실패했습니다.") },
+    );
+  }
+
+  function onSetParticipants({ participants: next }: ParticipantsValues) {
+    setError(null);
+    // 빈 값은 null로 보내 해제한다(서버에서도 동일하게 정규화).
+    updateSettings.mutate(
+      { participants: next.trim() ? next.trim() : null },
+      {
+        onSuccess: () => participantsForm.reset({ participants: next.trim() }),
+        onError: () => setError("변경에 실패했습니다."),
+      },
     );
   }
 
@@ -164,6 +186,37 @@ export function ProposalSettings({
           </CardContent>
           <CardFooter>
             <p className="text-muted-foreground text-sm">변경하면 즉시 반영됩니다.</p>
+            <Button type="submit" size="lg" className="ml-auto" disabled={pending}>
+              저장
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+
+      {/* 참여자 */}
+      <form onSubmit={participantsForm.handleSubmit(onSetParticipants)}>
+        <Card>
+          <CardHeader>
+            <CardTitle>참여자</CardTitle>
+            <CardDescription>
+              시안에 참여한 사람을 입력합니다. 목록 표시와 검색에 사용됩니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Input
+              aria-label="참여자"
+              placeholder="예: 홍길동, 김철수"
+              className="h-9 max-w-md"
+              {...participantsForm.register("participants")}
+            />
+            {participantsForm.formState.errors.participants && (
+              <p className="text-destructive mt-2 text-sm">
+                {participantsForm.formState.errors.participants.message}
+              </p>
+            )}
+          </CardContent>
+          <CardFooter>
+            <p className="text-muted-foreground text-sm">쉼표로 구분해 여러 명을 입력할 수 있습니다.</p>
             <Button type="submit" size="lg" className="ml-auto" disabled={pending}>
               저장
             </Button>

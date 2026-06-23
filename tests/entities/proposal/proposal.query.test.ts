@@ -12,4 +12,9 @@ describe("proposalQueries", () => {
     expect(proposalQueries.list(3).queryKey).toEqual(["proposals", "list", 3]);
     expect(typeof proposalQueries.list().queryFn).toBe("function");
   });
+
+  it("appends the search term to the key only when non-empty", () => {
+    expect(proposalQueries.list(1, "").queryKey).toEqual(["proposals", "list", 1]);
+    expect(proposalQueries.list(2, "kim").queryKey).toEqual(["proposals", "list", 2, "kim"]);
+  });
 });
