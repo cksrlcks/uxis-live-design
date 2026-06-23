@@ -18,7 +18,7 @@ import { cn } from "@/shared/lib/utils";
 
 // 화이트보드(그리기) 기능은 DB 쓰기 부담으로 현재 비활성화. 진입 버튼·표시 토글·레이어를
 // 모두 이 플래그로 숨긴다. 코드는 남겨두므로 다시 켜려면 true로 바꾸면 된다.
-const WHITEBOARD_ENABLED: boolean = false;
+const WHITEBOARD_ENABLED: boolean = true;
 
 export function CanvasView({
   pages,
@@ -272,6 +272,7 @@ export function CanvasView({
                   publicId: pin.publicId,
                   variantId: pin.variantId,
                   versionId: pin.versionId,
+                  viewerId: pin.viewerId,
                 }}
                 mode={mode}
                 spaceHeld={spaceHeld}
