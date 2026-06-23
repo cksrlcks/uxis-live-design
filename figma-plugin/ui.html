@@ -18,7 +18,7 @@
       * { box-sizing: border-box; }
       html, body { margin: 0; height: 100%; }
       body {
-        font: 13px/1.55 Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+        font: 15px/1.55 Inter, -apple-system, BlinkMacSystemFont, sans-serif;
         color: var(--text); background: var(--bg);
         display: flex; flex-direction: column; height: 100vh;
         -webkit-font-smoothing: antialiased;
@@ -26,9 +26,9 @@
       .hidden { display: none !important; }
       .logo { display: block; color: currentColor; }
 
-      label { display: block; font-size: 12px; font-weight: 500; color: var(--dim); margin: 14px 0 6px; }
+      label { display: block; font-size: 13px; font-weight: 500; color: var(--dim); margin: 16px 0 7px; }
       input {
-        width: 100%; height: 38px; padding: 0 12px;
+        width: 100%; height: 44px; padding: 0 13px;
         border: 1px solid var(--border); border-radius: var(--radius);
         background: var(--bg); color: var(--text); font: inherit;
       }
@@ -36,82 +36,85 @@
       input:focus { outline: none; border-color: var(--cova-2); box-shadow: 0 0 0 3px rgba(59, 137, 255, 0.18); }
 
       button {
-        height: 38px; padding: 0 16px; border: 0; border-radius: var(--radius);
-        background: linear-gradient(135deg, var(--cova-2), var(--cova));
+        height: 44px; padding: 0 18px; border: 0; border-radius: var(--radius);
+        background: var(--cova);
         color: #fff; font: inherit; font-weight: 600; cursor: pointer;
         transition: filter 0.12s, opacity 0.12s;
       }
-      button:hover:not(:disabled) { filter: brightness(1.08); }
+      button:hover:not(:disabled) { filter: brightness(1.12); }
       button:disabled { opacity: 0.4; cursor: default; }
       button.ghost { background: none; color: var(--dim); font-weight: 500; }
       button.ghost:hover:not(:disabled) { color: var(--text); filter: none; }
-      button.sm { height: 30px; padding: 0 12px; font-size: 12px; }
-      .err { color: var(--danger); margin-top: 12px; min-height: 16px; font-size: 12px; }
+      button.sm { height: 34px; padding: 0 13px; font-size: 13px; }
+      .err { color: var(--danger); margin-top: 12px; min-height: 18px; font-size: 13px; }
 
       /* ---- login ---- */
       .hero {
-        padding: 34px 24px 30px;
+        padding: 36px 26px 32px;
         color: #fff;
         background-color: #0a3aa8;
         background-image: radial-gradient(at 22% 18%, #3b89ff 0, transparent 55%),
           radial-gradient(at 82% 88%, #082567 0, transparent 55%);
       }
-      .hero .logo { height: 30px; }
+      .hero .logo { height: 32px; }
       .hero .tag {
-        margin-top: 14px; font-size: 11px; font-weight: 600;
+        margin-top: 15px; font-size: 12px; font-weight: 600;
         letter-spacing: 0.13em; text-transform: uppercase; color: rgba(255, 255, 255, 0.65);
       }
-      .hero .desc { margin-top: 10px; font-size: 12.5px; line-height: 1.6; color: rgba(255, 255, 255, 0.9); }
-      .loginbody { padding: 4px 24px 24px; }
-      .loginbody button { width: 100%; margin-top: 22px; height: 42px; }
+      .hero .desc { margin-top: 11px; font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.9); }
+      .loginbody { padding: 6px 26px 26px; }
+      .loginbody button { width: 100%; margin-top: 24px; height: 48px; font-size: 15px; }
+      .signup { margin-top: 18px; text-align: center; font-size: 13px; color: var(--dim); }
+      .signup a { color: var(--cova-2); font-weight: 600; text-decoration: none; cursor: pointer; }
+      .signup a:hover { text-decoration: underline; }
 
       /* ---- app shell ---- */
       header {
-        display: flex; align-items: center; gap: 10px;
-        padding: 13px 16px; border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px; border-bottom: 1px solid var(--border);
       }
-      header .logo { height: 16px; flex: none; }
+      header .logo { height: 18px; flex: none; }
       header .who { flex: 1; min-width: 0; text-align: right; }
-      header .who .email { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      header .who .role { color: var(--dim); font-size: 11px; }
-      .warn { background: rgba(224, 62, 26, 0.1); color: var(--danger); padding: 9px 16px; font-size: 12px; }
+      header .who .name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .vbar { width: 1px; height: 20px; background: var(--border); flex: none; }
+      .warn { background: rgba(224, 62, 26, 0.1); color: var(--danger); padding: 10px 16px; font-size: 13px; }
 
       .selbar {
-        padding: 11px 16px; font-size: 12px; color: var(--dim);
+        padding: 13px 16px; font-size: 13.5px; color: var(--dim);
         background: var(--bg2); border-bottom: 1px solid var(--border);
       }
       .selbar.has { color: var(--text); font-weight: 500; }
 
       .tabs { display: flex; padding: 0 16px; border-bottom: 1px solid var(--border); }
       .tabs button {
-        flex: 1; background: none; color: var(--dim); font-weight: 500;
-        border-bottom: 2px solid transparent; border-radius: 0; height: 42px;
+        flex: 1; background: none; color: var(--dim); font-weight: 500; font-size: 14px;
+        border-bottom: 2px solid transparent; border-radius: 0; height: 48px;
       }
       .tabs button:hover:not(.active) { color: var(--text); filter: none; }
       .tabs button.active { color: var(--cova-2); border-bottom-color: var(--cova-2); }
 
-      .view { flex: 1; overflow: auto; padding: 16px; }
-      #viewNew button { width: 100%; margin-top: 18px; }
+      .view { flex: 1; overflow: auto; padding: 18px; }
+      #viewNew button { width: 100%; margin-top: 20px; }
 
-      .toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
+      .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
       .toolbar input { flex: 1; }
-      .count { color: var(--dim); margin-bottom: 8px; font-size: 12px; }
+      .count { color: var(--dim); margin-bottom: 10px; font-size: 13px; }
       .item {
-        display: flex; align-items: center; gap: 10px;
-        padding: 13px; border: 1px solid var(--border); border-radius: 11px; margin-bottom: 10px;
+        display: flex; align-items: center; gap: 12px;
+        padding: 15px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 11px;
         background: var(--bg);
       }
       .item .info { flex: 1; min-width: 0; }
       .item .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .item .meta { color: var(--dim); font-size: 11.5px; margin-top: 3px; }
+      .item .meta { color: var(--dim); font-size: 13px; margin-top: 3px; }
       .item.clickable { cursor: pointer; transition: border-color 0.12s, background 0.12s; }
       .item.clickable:hover { border-color: var(--cova-2); background: var(--bg2); }
-      .item .chev { color: var(--dim); font-size: 18px; flex: none; }
-      .empty, .loading { color: var(--dim); text-align: center; padding: 36px 0; }
+      .item .chev { color: var(--dim); font-size: 22px; flex: none; }
+      .empty, .loading { color: var(--dim); text-align: center; padding: 40px 0; font-size: 14px; }
 
-      .detailhead { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+      .detailhead { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
       .detailhead .detailtitle {
-        flex: 1; min-width: 0; font-weight: 600; font-size: 14px;
+        flex: 1; min-width: 0; font-weight: 600; font-size: 16px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       #addVariantBtn {
@@ -120,24 +123,24 @@
       }
       #addVariantBtn:hover:not(:disabled) { border-color: var(--cova-2); background: var(--bg2); filter: none; }
 
-      .hint { color: var(--dim); font-size: 11.5px; margin-bottom: 12px; }
+      .hint { color: var(--dim); font-size: 13px; margin-bottom: 14px; }
       .page {
-        display: flex; align-items: center; gap: 12px;
-        padding: 10px; border: 1px solid var(--border); border-radius: 11px; margin-bottom: 10px;
+        display: flex; align-items: center; gap: 13px;
+        padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 11px;
       }
       .page img {
-        width: 52px; height: 52px; object-fit: cover; border-radius: 7px;
+        width: 58px; height: 58px; object-fit: cover; border-radius: 8px;
         background: var(--bg2); border: 1px solid var(--border); flex: none;
       }
       .page .info { flex: 1; min-width: 0; }
       .page .info .title { font-weight: 600; }
-      .page .info .meta { color: var(--dim); font-size: 11.5px; }
+      .page .info .meta { color: var(--dim); font-size: 13px; }
 
       .statusbar {
         display: flex; align-items: center; gap: 8px;
-        padding: 11px 16px; border-top: 1px solid var(--border); min-height: 40px;
+        padding: 12px 16px; border-top: 1px solid var(--border); min-height: 42px;
       }
-      .status { flex: 1; font-size: 12px; color: var(--dim); }
+      .status { flex: 1; font-size: 13px; color: var(--dim); }
       .status.err { color: var(--danger); }
       .status.ok { color: var(--ok); }
     </style>
@@ -158,10 +161,6 @@
       <div class="hero">
         <svg class="logo" viewBox="0 0 103 25" width="124" height="30"><use href="#covaLogo" /></svg>
         <div class="tag">UXIS Co-view Area</div>
-        <div class="desc">
-          디자이너와 클라이언트가 시안을 한곳에서 함께 확인하는 프리뷰 협업 공간.
-          피그마에서 바로 올리고 관리하세요.
-        </div>
       </div>
       <div class="loginbody">
         <label for="email">이메일</label>
@@ -172,6 +171,8 @@
 
         <button id="loginBtn">로그인</button>
         <div class="err" id="loginErr"></div>
+
+        <div class="signup">계정이 없으신가요? <a id="signupLink" href="#">회원가입</a></div>
       </div>
     </section>
 
@@ -179,10 +180,8 @@
     <section id="app" class="hidden" style="display: contents">
       <header>
         <svg class="logo" viewBox="0 0 103 25" width="66" height="16"><use href="#covaLogo" /></svg>
-        <div class="who">
-          <div class="email" id="userEmail"></div>
-          <div class="role" id="userRole"></div>
-        </div>
+        <div class="who"><div class="name" id="userName"></div></div>
+        <span class="vbar"></span>
         <button class="ghost sm" id="logoutBtn">로그아웃</button>
       </header>
       <div class="warn hidden" id="roleWarn">편집 권한이 없는 계정입니다. 업로드가 막힙니다.</div>
@@ -707,8 +706,7 @@
         $("login").classList.add("hidden");
         $("app").classList.remove("hidden");
         var u = config.user || {};
-        $("userEmail").textContent = u.email || "";
-        $("userRole").textContent = u.role ? "역할: " + u.role : "";
+        $("userName").textContent = u.name || u.email || "";
         var editor = u.role === "editor" || u.role === "admin";
         $("roleWarn").classList.toggle("hidden", editor);
         updateControls();
@@ -799,6 +797,10 @@
 
       // ---- 이벤트 ----
       $("loginBtn").addEventListener("click", doLogin);
+      $("signupLink").addEventListener("click", function (e) {
+        e.preventDefault();
+        toMain({ type: "open-url", url: joinUrl(API_BASE, "/signup") });
+      });
       $("password").addEventListener("keydown", function (e) {
         if (e.key === "Enter") doLogin();
       });
