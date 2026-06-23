@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { toContent } from "@/shared/realtime/coords";
 import { locatePin, placePin, type PageBox } from "../lib/locate";
 import { formatPinTime, initialOf, pinElementId } from "../lib/format";
@@ -200,6 +201,8 @@ export function PinLayer({
           setDraft(null);
           setDraftBody("");
         },
+        onError: (e) =>
+          toast.error(e instanceof Error ? e.message : "코멘트 작성에 실패했습니다"),
       },
     );
   }
@@ -288,7 +291,11 @@ export function PinLayer({
                       onClick={() =>
                         resolveMut.mutate(
                           { pinId: p.id, resolved: !p.resolved },
-                          { onSuccess: (saved) => rt?.broadcastPinUpdated(saved) },
+                          {
+                            onSuccess: (saved) => rt?.broadcastPinUpdated(saved),
+                            onError: (e) =>
+                              toast.error(e instanceof Error ? e.message : "변경에 실패했습니다"),
+                          },
                         )
                       }
                     >
@@ -317,7 +324,12 @@ export function PinLayer({
                           variant="destructive"
                           onClick={() =>
                             deleteMut.mutate(p.id, {
-                              onSuccess: (id) => rt?.broadcastPinDeleted(id),
+                              onSuccess: (id) => {
+                                rt?.broadcastPinDeleted(id);
+                                toast.success("삭제했습니다");
+                              },
+                              onError: (e) =>
+                                toast.error(e instanceof Error ? e.message : "삭제에 실패했습니다"),
                             })
                           }
                         >
@@ -339,7 +351,10 @@ export function PinLayer({
                           onSuccess: (saved) => {
                             rt?.broadcastPinUpdated(saved);
                             setEditingId(null);
+                            toast.success("수정했습니다");
                           },
+                          onError: (e) =>
+                            toast.error(e instanceof Error ? e.message : "수정에 실패했습니다"),
                         },
                       );
                     }}

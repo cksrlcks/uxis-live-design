@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, LogIn, LogOut, MessageCircle, Pencil } from "lucide-react";
+import { Check, LogIn, LogOut, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
 import { useRealtime } from "@/shared/realtime/realtime-provider";
 import type { Identity } from "@/shared/realtime/identity";
 import { useLogout } from "@/features/auth";
@@ -34,6 +35,8 @@ export function PresenceBar({
     if (logout.isPending) return;
     try {
       await logout.mutateAsync();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "로그아웃에 실패했습니다");
     } finally {
       router.refresh();
     }

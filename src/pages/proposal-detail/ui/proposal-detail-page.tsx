@@ -129,6 +129,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
               <ProposalSettings
                 proposalId={proposal.id}
                 title={proposal.title}
+                participants={proposal.participants}
                 domain={proposal.domain}
                 visibility={proposal.visibility}
                 hasPassword={proposal.hasPassword}

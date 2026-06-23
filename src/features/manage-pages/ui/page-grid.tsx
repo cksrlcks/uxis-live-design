@@ -2,6 +2,7 @@
 
 import { GripVertical } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import type { ProposalPage } from "@/entities/proposal";
 import { cn } from "@/shared/lib/utils";
 import { ALLOWED_IMAGE_TYPES } from "@/shared/lib/proposals/constants";
@@ -30,7 +31,6 @@ export function PageGrid({
   const replace = useReplacePage(proposalId, variantId, versionId);
   const remove = useDeletePage(proposalId, variantId, versionId);
   const reorder = useReorderPages(proposalId, variantId, versionId);
-  const [error, setError] = useState<string | null>(null);
   // 드래그 정렬 — 잡은 카드(dragId)와 드롭 후보(dropTo: 어느 카드의 좌/우).
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTo, setDropTo] = useState<{ id: string; after: boolean } | null>(null);
@@ -43,8 +43,9 @@ export function PageGrid({
 
   function onAddFiles(files: File[]) {
     if (files.length === 0) return;
-    setError(null);
-    append.mutate(files, { onError: () => setError("이미지 추가에 실패했습니다.") });
+    append.mutate(files, {
+      onError: (e) => toast.error(e instanceof Error ? e.message : "이미지 추가에 실패했습니다."),
+    });
   }
 
   function triggerReplace(pageId: string) {
@@ -55,14 +56,20 @@ export function PageGrid({
     const pageId = replaceTargetRef.current;
     replaceTargetRef.current = null;
     if (!file || !pageId) return;
-    setError(null);
-    replace.mutate({ pageId, file }, { onError: () => setError("이미지 교체에 실패했습니다.") });
+    replace.mutate(
+      { pageId, file },
+      {
+        onError: (e) => toast.error(e instanceof Error ? e.message : "이미지 교체에 실패했습니다."),
+      },
+    );
   }
 
   function onDelete(pageId: string) {
     if (!confirm("이 이미지를 삭제할까요?")) return;
-    setError(null);
-    remove.mutate(pageId, { onError: () => setError("삭제에 실패했습니다.") });
+    remove.mutate(pageId, {
+      onSuccess: () => toast.success("삭제했습니다"),
+      onError: (e) => toast.error(e instanceof Error ? e.message : "삭제에 실패했습니다."),
+    });
   }
 
   // 화살표 키 정렬 — 그립 포커스 상태에서 인접 카드와 교환.
@@ -71,8 +78,9 @@ export function PageGrid({
     if (busy || target < 0 || target >= pages.length) return;
     const ids = pages.map((p) => p.id);
     [ids[index], ids[target]] = [ids[target], ids[index]];
-    setError(null);
-    reorder.mutate(ids, { onError: () => setError("순서 변경에 실패했습니다.") });
+    reorder.mutate(ids, {
+      onError: (e) => toast.error(e instanceof Error ? e.message : "순서 변경에 실패했습니다."),
+    });
   }
 
   // fromId를 refId의 앞/뒤로 끼워 넣은 새 순서로 재정렬.
@@ -81,8 +89,9 @@ export function PageGrid({
     const ids = pages.map((p) => p.id).filter((id) => id !== fromId);
     const at = ids.indexOf(refId) + (after ? 1 : 0);
     ids.splice(at, 0, fromId);
-    setError(null);
-    reorder.mutate(ids, { onError: () => setError("순서 변경에 실패했습니다.") });
+    reorder.mutate(ids, {
+      onError: (e) => toast.error(e instanceof Error ? e.message : "순서 변경에 실패했습니다."),
+    });
   }
 
   function resetDrag() {
@@ -220,7 +229,6 @@ export function PageGrid({
       </div>
 
       {busy && <p className="text-muted-foreground text-sm">처리 중…</p>}
-      {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
   );
 }

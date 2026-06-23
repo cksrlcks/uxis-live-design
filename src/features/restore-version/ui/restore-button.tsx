@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
 import { useRestoreVersion } from "../api/use-restore-version";
 
@@ -22,7 +23,12 @@ export function RestoreButton({
       size="sm"
       variant="outline"
       disabled={restore.isPending}
-      onClick={() => restore.mutate(versionId)}
+      onClick={() =>
+        restore.mutate(versionId, {
+          onSuccess: () => toast.success("복원했습니다"),
+          onError: (e) => toast.error(e instanceof Error ? e.message : "복원에 실패했습니다"),
+        })
+      }
     >
       복원
     </Button>

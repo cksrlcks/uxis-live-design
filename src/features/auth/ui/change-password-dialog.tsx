@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { HttpError } from "@/shared/api/http";
 import { Button } from "@/shared/ui/button";
@@ -76,6 +77,7 @@ export function ChangePasswordDialog() {
       });
       reset();
       setDone(true);
+      toast.success("비밀번호를 변경했습니다");
     } catch (err) {
       setFormError(changePasswordErrorMessage(err));
     }

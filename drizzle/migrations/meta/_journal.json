@@ -92,6 +92,13 @@
       "when": 1782600000000,
       "tag": "0012_signup_name_fallback",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1782700000000,
+      "tag": "0013_proposal_participants",
+      "breakpoints": true
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { parseAsInteger, useQueryState } from "nuqs";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { ArrowUpRight, Copy } from "lucide-react";
 import { proposalQueries } from "@/entities/proposal";
@@ -20,6 +20,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/shared/ui/pagination";
+import { SearchInput } from "@/shared/ui/search-input";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { PageHeader } from "@/widgets/studio-shell";
@@ -61,7 +62,14 @@ function pageItems(current: number, count: number): (number | "ellipsis")[] {
 
 export function ProposalsListPage() {
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
-  const { data, isPending, isError, isPlaceholderData } = useQuery(proposalQueries.list(page));
+  const [q, setQ] = useQueryState("q", parseAsString.withDefault(""));
+  const { data, isPending, isError, isPlaceholderData } = useQuery(proposalQueries.list(page, q));
+
+  // 검색어 변경 시 1페이지로 — 빈 값은 URL에서 q 파라미터를 제거(null)한다.
+  function onSearch(next: string) {
+    setQ(next || null);
+    setPage(1);
+  }
 
   const rows = data?.items;
   const total = data?.total ?? 0;
@@ -71,13 +79,24 @@ export function ProposalsListPage() {
     <div>
       <PageHeader title="시안" actions={<NewProposalDialog />} />
 
-      {total > 0 && <p className="text-muted-foreground mb-3 text-sm">전체 {total}개</p>}
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <SearchInput
+          value={q}
+          onChange={onSearch}
+          placeholder="제목·참여자·도메인 검색"
+          className="w-full max-w-xs"
+        />
+        {total > 0 && (
+          <p className="text-muted-foreground shrink-0 text-sm">전체 {total}개</p>
+        )}
+      </div>
 
       <div className="bg-card overflow-hidden rounded-xl border">
         <Table>
           <TableHeader>
             <TableRow className="border-border/60 border-b hover:bg-transparent">
               <TableHead className={headCell}>제목</TableHead>
+              <TableHead className={headCell}>참여자</TableHead>
               <TableHead className={headCell}>공개 ID</TableHead>
               <TableHead className={headCell}>공개 도메인</TableHead>
               <TableHead className={headCell}>상태</TableHead>
@@ -96,6 +115,9 @@ export function ProposalsListPage() {
                 >
                   <TableCell className={bodyCell}>
                     <Skeleton className="h-4 w-32" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-3.5 w-24" />
                   </TableCell>
                   <TableCell className={bodyCell}>
                     <Skeleton className="h-3.5 w-16" />
@@ -123,7 +145,7 @@ export function ProposalsListPage() {
 
             {isError && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={8} className="text-destructive px-5 py-16 text-center">
+                <TableCell colSpan={9} className="text-destructive px-5 py-16 text-center">
                   목록을 불러오지 못했습니다.
                 </TableCell>
               </TableRow>
@@ -131,9 +153,15 @@ export function ProposalsListPage() {
 
             {rows?.length === 0 && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={8} className="px-5 py-16 text-center">
-                  <p className="text-muted-foreground mb-4 text-sm">아직 시안이 없습니다.</p>
-                  <NewProposalDialog />
+                <TableCell colSpan={9} className="px-5 py-16 text-center">
+                  {q ? (
+                    <p className="text-muted-foreground text-sm">검색 결과가 없습니다.</p>
+                  ) : (
+                    <>
+                      <p className="text-muted-foreground mb-4 text-sm">아직 시안이 없습니다.</p>
+                      <NewProposalDialog />
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -157,6 +185,13 @@ export function ProposalsListPage() {
                     >
                       {p.title}
                     </Link>
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    {p.participants ? (
+                      <span className="text-foreground">{p.participants}</span>
+                    ) : (
+                      <span className="text-muted-foreground/50">—</span>
+                    )}
                   </TableCell>
                   <TableCell className={cn(bodyCell, "text-muted-foreground font-mono")}>
                     {p.publicId}

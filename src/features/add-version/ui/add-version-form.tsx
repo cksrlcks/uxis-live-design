@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -39,6 +40,7 @@ export function AddVersionForm({
         onSuccess: () => {
           setFiles([]);
           reset();
+          toast.success("새 버전을 만들었습니다");
         },
         onError: () => setError("버전 생성에 실패했습니다."),
       },

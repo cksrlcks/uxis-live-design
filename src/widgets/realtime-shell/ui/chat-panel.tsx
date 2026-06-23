@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ExternalLink, Pencil, SendHorizontal, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 import { useRealtime } from "@/shared/realtime/realtime-provider";
 import type { Identity } from "@/shared/realtime/identity";
 import { chatQueries, MAX_CHAT_BODY } from "@/entities/chat-message";
@@ -46,7 +47,6 @@ export function ChatPanel({
   const deleteMessage = useDeleteChatMessage(publicId);
 
   const [text, setText] = useState("");
-  const [failed, setFailed] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
@@ -61,15 +61,14 @@ export function ChatPanel({
     e.preventDefault();
     const body = text.trim();
     if (!body) return;
-    setFailed(false);
     setText(""); // 낙관적: 입력창을 즉시 비운다(메시지는 mutation onMutate가 바로 띄움)
     send.mutate(
       { body, authorName: identity.name, authorColor: identity.color },
       {
         onSuccess: (message) => broadcastChat(message),
-        onError: () => {
-          setFailed(true);
+        onError: (e) => {
           setText(body); // 실패 시 입력 복구
+          toast.error(e instanceof Error ? e.message : "메시지 전송에 실패했습니다");
         },
       },
     );
@@ -106,14 +105,22 @@ export function ChatPanel({
         onSuccess: (message) => {
           broadcastChat(message);
           cancelEdit();
+          toast.success("수정했습니다");
         },
+        onError: (e) => toast.error(e instanceof Error ? e.message : "수정에 실패했습니다"),
       },
     );
   }
 
   function removeMessage(m: ChatMessageDTO) {
     if (deleteMessage.isPending) return;
-    deleteMessage.mutate(m.id, { onSuccess: (message) => broadcastChat(message) });
+    deleteMessage.mutate(m.id, {
+      onSuccess: (message) => {
+        broadcastChat(message);
+        toast.success("삭제했습니다");
+      },
+      onError: (e) => toast.error(e instanceof Error ? e.message : "삭제에 실패했습니다"),
+    });
   }
 
   return (
@@ -289,12 +296,6 @@ export function ChatPanel({
           );
         })}
       </div>
-
-      {(failed || send.isError) && (
-        <p className="text-destructive shrink-0 px-3.5 pb-1 text-xs">
-          전송 실패 — 다시 시도해 주세요.
-        </p>
-      )}
 
       <form
         onSubmit={submit}

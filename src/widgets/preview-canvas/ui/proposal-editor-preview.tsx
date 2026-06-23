@@ -1,6 +1,7 @@
 "use client";
 import { Plus, Trash2 } from "lucide-react";
 import { useQueryState, parseAsString } from "nuqs";
+import { toast } from "sonner";
 import type { EditorVariant } from "@/entities/proposal";
 import { PageGrid } from "@/features/manage-pages";
 import { useAddVersion, useDeleteVersion } from "@/features/manage-versions";
@@ -49,8 +50,9 @@ export function ProposalEditorPreview({
     try {
       const { versionId: newId } = await addVersion.mutateAsync();
       setVersionId(newId);
-    } catch {
-      /* 토스트는 상위에서 다루지 않으므로 조용히 무시 — 실패 시 목록은 그대로 */
+      toast.success("새 버전을 만들었습니다");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "버전 추가에 실패했습니다");
     }
   }
 
@@ -61,8 +63,9 @@ export function ProposalEditorPreview({
     try {
       await deleteVersion.mutateAsync(selected.id);
       setVersionId(null); // 서버가 옮긴 최신 current로 복귀
-    } catch {
-      /* no-op */
+      toast.success("삭제했습니다");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "삭제에 실패했습니다");
     }
   }
 

@@ -48,6 +48,7 @@ export type EditorVariant = ViewerVariant;
 export type ProposalDetailHeader = {
   id: string;
   title: string;
+  participants: string | null;
   publicId: string;
   domain: string | null;
   visibility: string;

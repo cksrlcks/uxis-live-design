@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, MessagesSquare, X } from "lucide-react";
+import { toast } from "sonner";
 import { pinQueries, type PinContext, type PinDTO } from "@/entities/pin";
 import { useToggleResolved } from "@/features/pin-comment";
 import { useRealtimeOptional } from "@/shared/realtime/realtime-provider";
@@ -41,7 +42,10 @@ export function CommentsPanel({
   const toggleResolve = (p: PinDTO) =>
     resolveMut.mutate(
       { pinId: p.id, resolved: !p.resolved },
-      { onSuccess: (saved) => rt?.broadcastPinUpdated(saved) },
+      {
+        onSuccess: (saved) => rt?.broadcastPinUpdated(saved),
+        onError: (e) => toast.error(e instanceof Error ? e.message : "변경에 실패했습니다"),
+      },
     );
 
   return (

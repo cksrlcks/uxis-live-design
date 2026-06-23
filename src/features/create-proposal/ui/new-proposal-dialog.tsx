@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -50,6 +51,7 @@ export function NewProposalDialog() {
     setFormError(null);
     try {
       const { proposalId } = await createProposal.mutateAsync({ title, files: [] });
+      toast.success("시안을 만들었습니다");
       onOpenChange(false);
       router.push(`/studio/proposals/${proposalId}`);
     } catch (err) {

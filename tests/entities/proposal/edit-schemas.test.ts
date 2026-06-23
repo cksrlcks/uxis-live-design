@@ -12,6 +12,12 @@ describe("updateSettingsSchema", () => {
   it("accepts password: null (clear)", () => {
     expect(updateSettingsSchema.safeParse({ password: null }).success).toBe(true);
   });
+  it("accepts a participants string", () => {
+    expect(updateSettingsSchema.safeParse({ participants: "홍길동, 김철수" }).success).toBe(true);
+  });
+  it("accepts participants: null (clear)", () => {
+    expect(updateSettingsSchema.safeParse({ participants: null }).success).toBe(true);
+  });
   it("rejects a password under 4 chars", () => {
     expect(updateSettingsSchema.safeParse({ password: "abc" }).success).toBe(false);
   });

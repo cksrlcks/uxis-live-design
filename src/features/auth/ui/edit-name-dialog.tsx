@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Settings } from "lucide-react";
+import { toast } from "sonner";
 import { HttpError } from "@/shared/api/http";
 import { Button } from "@/shared/ui/button";
 import {
@@ -61,6 +62,7 @@ export function EditNameDialog({ displayName }: { displayName: string | null }) 
     try {
       await updateNameMutation.mutateAsync(values);
       setOpen(false);
+      toast.success("이름을 변경했습니다");
       router.refresh();
     } catch (err) {
       setFormError(editNameErrorMessage(err));

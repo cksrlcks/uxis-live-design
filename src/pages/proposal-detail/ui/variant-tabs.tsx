@@ -1,5 +1,6 @@
 "use client";
 import { Check, GripVertical, Pencil, Plus, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
 import { useAddVariant } from "@/features/add-variant";
@@ -27,7 +28,6 @@ export function VariantTabs({
     parseAsString.withOptions({ shallow: true, history: "push" }),
   );
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   // 드래그 정렬 상태 — 잡은 행(dragId)과 현재 드롭 후보(dropTo).
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTo, setDropTo] = useState<DropTarget | null>(null);
@@ -45,10 +45,10 @@ export function VariantTabs({
     if (addVariant.isPending) return;
     try {
       const { variantId: newId } = await addVariant.mutateAsync();
-      setError(null);
       setVariantId(newId);
-    } catch {
-      setError("안 추가에 실패했습니다.");
+      toast.success("안을 추가했습니다");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "안 추가에 실패했습니다.");
     }
   }
 
@@ -60,10 +60,10 @@ export function VariantTabs({
       { variantId: id, input: { label } },
       {
         onSuccess: () => {
-          setError(null);
           setEditingId(null);
+          toast.success("이름을 변경했습니다");
         },
-        onError: () => setError("이름 변경에 실패했습니다."),
+        onError: (e) => toast.error(e instanceof Error ? e.message : "이름 변경에 실패했습니다."),
       },
     );
   }
@@ -73,13 +73,13 @@ export function VariantTabs({
     if (!confirm(`"${target.label}" 안을 삭제할까요? 이 안의 모든 버전이 삭제됩니다.`)) return;
     deleteVariant.mutate(target.id, {
       onSuccess: () => {
-        setError(null);
         if (target.id === active.id) {
           const rest = variants.find((v) => v.id !== target.id);
           if (rest) setVariantId(rest.id);
         }
+        toast.success("삭제했습니다");
       },
-      onError: () => setError("삭제에 실패했습니다."),
+      onError: (e) => toast.error(e instanceof Error ? e.message : "삭제에 실패했습니다."),
     });
   }
 
@@ -95,8 +95,7 @@ export function VariantTabs({
       .filter((p, idx) => variants[idx].id !== p.variantId);
     if (!pairs.length) return;
     reorderVariants.mutate(pairs, {
-      onSuccess: () => setError(null),
-      onError: () => setError("순서 변경에 실패했습니다."),
+      onError: (e) => toast.error(e instanceof Error ? e.message : "순서 변경에 실패했습니다."),
     });
   }
 
@@ -230,10 +229,7 @@ export function VariantTabs({
                     <Button
                       size="icon-sm"
                       variant="ghost"
-                      onClick={() => {
-                        setError(null);
-                        setEditingId(v.id);
-                      }}
+                      onClick={() => setEditingId(v.id)}
                       aria-label={`${v.label} 이름 변경`}
                       className={cn(
                         isActive &&
@@ -274,8 +270,6 @@ export function VariantTabs({
         <Plus />
         {addVariant.isPending ? "추가 중…" : "안 추가"}
       </Button>
-
-      {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
   );
 }

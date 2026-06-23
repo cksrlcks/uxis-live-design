@@ -1,10 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { parseAsString, useQueryState } from "nuqs";
 import { userQueries } from "@/entities/user";
 import { UserRowActions } from "@/features/manage-users";
 import { PageHeader } from "@/widgets/studio-shell";
 import { cn } from "@/shared/lib/utils";
+import { SearchInput } from "@/shared/ui/search-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Skeleton } from "@/shared/ui/skeleton";
 
@@ -22,14 +24,31 @@ function formatDate(value: string) {
 
 export function AdminUsersPage() {
   const { data: rows, isPending, isError } = useQuery(userQueries.list());
+  const [q, setQ] = useQueryState("q", parseAsString.withDefault(""));
+
+  // 사용자 목록은 전량 조회 — 이름·이메일로 클라이언트에서 필터한다.
+  const term = q.trim().toLowerCase();
+  const filtered = term
+    ? rows?.filter(
+        (u) => u.name?.toLowerCase().includes(term) || u.email.toLowerCase().includes(term),
+      )
+    : rows;
 
   return (
     <div>
       <PageHeader title="사용자 관리" />
 
-      {rows && rows.length > 0 && (
-        <p className="text-muted-foreground mb-3 text-sm">전체 {rows.length}개</p>
-      )}
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <SearchInput
+          value={q}
+          onChange={(next) => setQ(next || null)}
+          placeholder="이름·이메일 검색"
+          className="w-full max-w-xs"
+        />
+        {filtered && filtered.length > 0 && (
+          <p className="text-muted-foreground shrink-0 text-sm">전체 {filtered.length}개</p>
+        )}
+      </div>
 
       <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
         <Table>
@@ -71,18 +90,18 @@ export function AdminUsersPage() {
               </TableRow>
             )}
 
-            {rows?.length === 0 && (
+            {filtered?.length === 0 && (
               <TableRow className="hover:bg-transparent">
                 <TableCell
                   colSpan={4}
                   className="text-muted-foreground px-5 py-16 text-center text-sm"
                 >
-                  아직 사용자가 없습니다.
+                  {q ? "검색 결과가 없습니다." : "아직 사용자가 없습니다."}
                 </TableCell>
               </TableRow>
             )}
 
-            {rows?.map((u) => (
+            {filtered?.map((u) => (
               <TableRow key={u.id} className="border-border/60 border-b last:border-0">
                 <TableCell className={cn(bodyCell, "font-medium")}>
                   {u.name ?? <span className="text-muted-foreground">—</span>}
