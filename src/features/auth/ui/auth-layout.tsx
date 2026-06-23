@@ -42,6 +42,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
             height={30}
             className="brightness-0 invert"
           />
+          <p className="mt-3 text-xs font-medium tracking-wide text-white/60">UXIS Co-view Area</p>
           <p className="mt-6 text-base leading-relaxed text-white/85">
             COVA는 디자이너와 클라이언트가 시안을 한곳에서 함께 확인하고 의견을 주고받는 프리뷰 협업
             공간입니다.
