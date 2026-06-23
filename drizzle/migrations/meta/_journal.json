@@ -114,5 +114,12 @@
       "tag": "0015_proposal_tags",
       "breakpoints": true
     }
+    ,{
+      "idx": 16,
+      "version": "7",
+      "when": 1783000000000,
+      "tag": "0016_seed_tags",
+      "breakpoints": true
+    }
   ]
 }
