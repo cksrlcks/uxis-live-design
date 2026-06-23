@@ -88,6 +88,7 @@ export function WhiteboardLayer({
   const flushPageRef = useRef<(pageOrder: number) => void>(() => {});
   // eslint-disable-next-line react-hooks/refs -- intentional: keep latest closure for timers/unload handlers
   flushPageRef.current = (pageOrder: number) => {
+    if (viewerId == null) return;
     const key = strokeQueries.list(publicId, variantId, versionId).queryKey;
     const all = qc.getQueryData<StrokeDTO[]>(key) ?? [];
     const mine = all.filter((s) => s.authorId === viewerId && s.pageOrder === pageOrder);
