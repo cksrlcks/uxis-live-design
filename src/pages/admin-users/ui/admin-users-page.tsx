@@ -7,6 +7,7 @@ import { PageHeader } from "@/widgets/studio-shell";
 import { cn } from "@/shared/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { Badge } from "@/shared/ui/badge";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-wide";
 const bodyCell = "px-5 py-3.5 align-middle";
@@ -36,7 +37,7 @@ export function AdminUsersPage() {
       {rows && rows.length > 0 && (
         <p className="text-muted-foreground mb-3 text-sm">전체 {rows.length}개</p>
       )}
-      
+
       <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
         <Table>
           <TableHeader>
@@ -49,13 +50,29 @@ export function AdminUsersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isPending && (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={5} className="text-muted-foreground px-5 py-16 text-center">
-                  불러오는 중…
-                </TableCell>
-              </TableRow>
-            )}
+            {isPending &&
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow
+                  key={`skeleton-${i}`}
+                  className="border-border/60 border-b last:border-0 hover:bg-transparent"
+                >
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-4 w-44" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-5 w-14 rounded-full" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className={cn(bodyCell, "text-right")}>
+                    <Skeleton className="ml-auto size-7 rounded-md" />
+                  </TableCell>
+                </TableRow>
+              ))}
 
             {isError && (
               <TableRow className="hover:bg-transparent">

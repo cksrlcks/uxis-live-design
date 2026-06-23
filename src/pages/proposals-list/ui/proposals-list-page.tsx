@@ -18,6 +18,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/shared/ui/pagination";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { PageHeader } from "@/widgets/studio-shell";
 
@@ -74,13 +75,35 @@ export function ProposalsListPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isPending && (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={7} className="text-muted-foreground px-5 py-16 text-center">
-                  불러오는 중…
-                </TableCell>
-              </TableRow>
-            )}
+            {isPending &&
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow
+                  key={`skeleton-${i}`}
+                  className="border-border/60 border-b last:border-0 hover:bg-transparent"
+                >
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-4 w-32" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-3.5 w-16" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-3.5 w-24" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-5 w-12 rounded-full" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className={cn(bodyCell, "text-right")}>
+                    <Skeleton className="ml-auto h-4 w-16" />
+                  </TableCell>
+                </TableRow>
+              ))}
 
             {isError && (
               <TableRow className="hover:bg-transparent">
@@ -107,7 +130,7 @@ export function ProposalsListPage() {
                   <TableCell className={bodyCell}>
                     <Link
                       href={`/studio/proposals/${p.id}`}
-                      className="hover:text-primary font-medium transition-colors"
+                      className="hover:text-primary font-medium underline underline-offset-4 transition-colors"
                     >
                       {p.title}
                     </Link>
@@ -135,12 +158,18 @@ export function ProposalsListPage() {
                     </div>
                   </TableCell>
                   <TableCell
-                    className={cn(bodyCell, "text-muted-foreground text-sm whitespace-nowrap tabular-nums")}
+                    className={cn(
+                      bodyCell,
+                      "text-muted-foreground text-sm whitespace-nowrap tabular-nums",
+                    )}
                   >
                     {formatDate(p.createdAt)}
                   </TableCell>
                   <TableCell
-                    className={cn(bodyCell, "text-muted-foreground text-sm whitespace-nowrap tabular-nums")}
+                    className={cn(
+                      bodyCell,
+                      "text-muted-foreground text-sm whitespace-nowrap tabular-nums",
+                    )}
                   >
                     {formatDate(p.updatedAt)}
                   </TableCell>
@@ -203,4 +232,3 @@ export function ProposalsListPage() {
     </div>
   );
 }
-

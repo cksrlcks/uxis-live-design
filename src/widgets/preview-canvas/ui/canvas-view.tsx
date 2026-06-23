@@ -13,6 +13,7 @@ import { PinLayer } from "./pin-layer";
 import { WhiteboardLayer } from "./whiteboard-layer";
 import { CommentsPanel } from "./comments-panel";
 import { pinElementId } from "../lib/format";
+import { computeFitScale } from "../lib/fit-zoom";
 import { cn } from "@/shared/lib/utils";
 
 export function CanvasView({
@@ -74,6 +75,26 @@ export function CanvasView({
     const el = contentRef.current;
     if (el && scale > 0) el.style.setProperty("--inv-scale", String(1 / scale));
   }, []);
+
+  // 캔버스 첫 진입(마운트) 시: 모든 페이지가 한눈에 들어오도록 콘텐츠 strip 전체를
+  // 뷰포트에 맞춰 줌·중앙 정렬한다. 세로까지 fit 하므로 상단이 잘리지 않는다.
+  const fitToView = useCallback(
+    (api: ReactZoomPanPinchRef) => {
+      const viewport = rootRef.current;
+      const content = contentRef.current;
+      if (!viewport || !content) return;
+      const scale = computeFitScale({
+        // offsetWidth/Height는 CSS transform 영향을 받지 않으므로 scale=1 기준 원본 크기.
+        contentWidth: content.offsetWidth,
+        contentHeight: content.offsetHeight,
+        viewportWidth: viewport.clientWidth,
+        viewportHeight: viewport.clientHeight,
+      });
+      api.centerView(scale, 0);
+      applyInvScale(scale);
+    },
+    [applyInvScale],
+  );
 
   if (pages.length === 0) {
     return <div className="text-muted-foreground p-8 text-sm">페이지가 없습니다.</div>;
@@ -193,7 +214,7 @@ export function CanvasView({
           // 휠(미들) 클릭 드래그는 어느 모드에서나 화면 이동.
           allowMiddleClickPan: true,
         }}
-        onInit={(ref) => applyInvScale(ref.state.scale)}
+        onInit={(ref) => fitToView(ref)}
         onTransform={(_ref, state) => applyInvScale(state.scale)}
       >
         <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>

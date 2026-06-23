@@ -161,6 +161,13 @@
   background-size: 22px 22px;
 }
 
+/* Studio-only: always reserve the window scrollbar so page-to-page height
+   changes never shift the layout horizontally. Scoped via :has to the studio
+   shell so home/login/viewer pages are unaffected. */
+html:has(.studio-shell) {
+  overflow-y: scroll;
+}
+
 /* Hide scrollbar but keep scrollability — so a vertical scrollbar never eats
    horizontal space and shrinks the native-1920 slide image. */
 .no-scrollbar {

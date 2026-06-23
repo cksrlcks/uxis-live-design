@@ -46,7 +46,7 @@ export function PresenceBar({
   return (
     <div className="bg-foreground/95 text-background flex items-center gap-2.5 rounded-full py-1.5 pr-2 pl-3 shadow-lg backdrop-blur-md">
       {/* 접속자 */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 pl-1">
         <span className="relative flex h-2 w-2" aria-hidden="true">
           <span className="bg-accent-green/60 absolute inline-flex h-full w-full animate-ping rounded-full" />
           <span className="bg-accent-green relative inline-flex h-2 w-2 rounded-full" />
@@ -69,7 +69,7 @@ export function PresenceBar({
               </span>
             )}
           </div>
-          <span className="ml-2 text-xs text-white/60 tabular-nums">
+          <span className="ml-1 text-xs text-white/60 tabular-nums">
             {others.length === 0 ? "혼자 보는 중" : `${onlineCount}명 접속`}
           </span>
         </div>
@@ -84,7 +84,7 @@ export function PresenceBar({
           title="로그인 계정 이름"
         >
           <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full"
+            className="h-2 w-2 shrink-0 rounded-full"
             style={{ backgroundColor: identity.color }}
           />
           <span className="max-w-24 truncate font-medium">{identity.name}</span>
@@ -122,12 +122,16 @@ export function PresenceBar({
           className="group flex cursor-pointer items-center gap-1.5 rounded-md py-1 pr-2 pl-1 text-xs text-white transition-colors hover:bg-white/10"
         >
           <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full"
+            className="h-2 w-2 shrink-0 rounded-full"
             style={{ backgroundColor: identity.color }}
           />
           <span className="max-w-24 truncate font-medium">{identity.name}</span>
         </button>
       )}
+
+      <span className="h-5 w-px bg-white/15" />
+
+      <div className="flex">
 
       {/* 로그인/로그아웃 */}
       {isAuthed ? (
@@ -152,7 +156,6 @@ export function PresenceBar({
         </a>
       )}
 
-      <span className="h-5 w-px bg-white/15" />
 
       {/* 채팅 토글 */}
       <button
@@ -173,6 +176,8 @@ export function PresenceBar({
           </span>
         )}
       </button>
+      </div>
+
     </div>
   );
 }

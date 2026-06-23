@@ -35,7 +35,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
       await loginMutation.mutateAsync(values);
       // Full-document load so the client router cache (which may hold a previous user's
       // server-rendered /studio segment) is fully discarded before the new session renders.
-      window.location.replace(isSafeInternalPath(returnTo) ? returnTo : "/studio");
+      window.location.replace(isSafeInternalPath(returnTo) ? returnTo : "/");
     } catch (err) {
       setFormError(loginErrorMessage(err));
     }

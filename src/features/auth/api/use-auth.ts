@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { login, signup, logout } from "./auth";
+import { login, signup, logout, changePassword } from "./auth";
 
 export function useLogin() {
   return useMutation({ mutationFn: login });
@@ -15,4 +15,8 @@ export function useLogout() {
     mutationFn: logout,
     onSettled: () => queryClient.clear(),
   });
+}
+
+export function useChangePassword() {
+  return useMutation({ mutationFn: changePassword });
 }

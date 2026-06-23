@@ -1,6 +1,6 @@
 import "server-only";
 import { createSupabaseServer } from "@/shared/supabase/server";
-import { loginSchema, signupSchema } from "../model/schema";
+import { changePasswordSchema, loginSchema, signupSchema } from "../model/schema";
 import { signupErrorCode } from "./signup-error";
 
 export async function signIn(input: unknown): Promise<void> {
@@ -30,4 +30,33 @@ export async function signUp(input: unknown): Promise<void> {
 export async function signOut(): Promise<void> {
   const supabase = await createSupabaseServer();
   await supabase.auth.signOut();
+}
+
+export async function changePassword(input: unknown): Promise<void> {
+  const { currentPassword, newPassword } = changePasswordSchema.parse(input);
+  const supabase = await createSupabaseServer();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user?.email) throw new Error("UNAUTHORIZED");
+
+  // Supabase updateUser doesn't verify the old password — re-authenticate first so a
+  // hijacked session can't silently change the password.
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword,
+  });
+  if (signInError) {
+    if (signInError.status === 429) throw new Error("RATE_LIMITED");
+    throw new Error("INVALID_CREDENTIALS");
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) {
+    if (error.status === 429) throw new Error("RATE_LIMITED");
+    if (error.code === "same_password") throw new Error("SAME_PASSWORD");
+    if (error.code === "weak_password") throw new Error("WEAK_PASSWORD");
+    throw new Error("PASSWORD_UPDATE_FAILED");
+  }
 }

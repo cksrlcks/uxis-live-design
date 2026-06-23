@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { parseAsStringEnum, useQueryState } from "nuqs";
 import { proposalQueries } from "@/entities/proposal";
 import { ProposalSettings } from "@/features/edit-proposal-settings";
+import { Card, CardContent, CardFooter, CardHeader } from "@/shared/ui/card";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { PageHeader } from "@/widgets/studio-shell";
 import { VariantTabs } from "./variant-tabs";
 import { SectionNav } from "./section-nav";
@@ -21,13 +23,48 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
 
   if (isPending)
     return (
-      <div className="bg-card mx-auto max-w-3xl rounded-2xl border px-6 py-12 text-center text-sm text-muted-foreground">
-        불러오는 중…
+      <div className="mx-auto max-w-6xl">
+        {/* PageHeader 자리 — 제목 + 설명 */}
+        <div className="mb-6">
+          <Skeleton className="h-8 w-52" />
+          <Skeleton className="mt-2 h-4 w-36" />
+        </div>
+
+        <div className="flex flex-col gap-8 lg:flex-row">
+          {/* 좌측 탭 메뉴(SectionNav) 자리 — 버튼 2개 */}
+          <aside className="w-full shrink-0 lg:w-48">
+            <div className="flex flex-col gap-1 lg:sticky lg:top-7">
+              <Skeleton className="h-11 w-full rounded-lg" />
+              <Skeleton className="h-11 w-full rounded-lg" />
+            </div>
+          </aside>
+
+          {/* 본문(사이트설정 탭) 자리 — 설정 카드 스택 */}
+          <div className="min-w-0 flex-1">
+            <div className="space-y-5">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-4 w-56" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-9 w-full max-w-md" />
+                  </CardContent>
+                  <CardFooter>
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="ml-auto h-10 w-16" />
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   if (isError || !data)
     return (
-      <div className="bg-card mx-auto max-w-3xl rounded-2xl border px-6 py-12 text-center text-sm text-destructive">
+      <div className="bg-card text-destructive mx-auto max-w-3xl rounded-2xl border px-6 py-12 text-center text-sm">
         시안을 불러오지 못했습니다.
       </div>
     );
@@ -105,7 +142,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
               <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
                 <aside className="self-start lg:sticky lg:top-7">
                   {/* 사이트설정 카드와 동일한 표면 — 회색 셸 배경 위에서 또렷하게 보이도록 */}
-                  <div className="bg-card overflow-hidden rounded-xl p-3 ring-1 ring-foreground/10">
+                  <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl p-3 ring-1">
                     <VariantTabs
                       proposalId={proposal.id}
                       variants={variants.map((v) => ({ id: v.id, label: v.label, slug: v.slug }))}
@@ -114,7 +151,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
                 </aside>
 
                 <div className="min-w-0">
-                  <div className="bg-card rounded-xl p-4 ring-1 ring-foreground/10 sm:p-5">
+                  <div className="bg-card ring-foreground/10 rounded-xl p-4 ring-1 sm:p-5">
                     <ProposalEditorPreview proposalId={proposal.id} variants={variants} />
                   </div>
                 </div>

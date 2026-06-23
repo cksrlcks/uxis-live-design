@@ -17,6 +17,9 @@ const STATUS_BY_CODE: Record<string, number> = {
   NOT_AUTHOR: 403,
   BAD_PAGE: 400,
   ALREADY_DELETED: 409,
+  WEAK_PASSWORD: 400,
+  SAME_PASSWORD: 400,
+  PASSWORD_UPDATE_FAILED: 400,
 };
 
 export function toErrorResponse(error: unknown): Response {

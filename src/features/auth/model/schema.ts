@@ -12,3 +12,9 @@ export const signupSchema = z.object({
   password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다"),
 });
 export type SignupInput = z.infer<typeof signupSchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "현재 비밀번호를 입력하세요"),
+  newPassword: z.string().min(8, "비밀번호는 8자 이상이어야 합니다"),
+});
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

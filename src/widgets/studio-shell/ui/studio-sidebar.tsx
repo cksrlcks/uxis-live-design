@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { Home, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -57,11 +57,20 @@ export function StudioSidebar({ displayName, email, role }: StudioSidebarProps) 
 
       <div className="flex-1" />
 
+      {/* 홈으로 — 스튜디오 밖 랜딩(/)으로 이동. 스튜디오 섹션 네비와 분리. */}
+      <Link
+        href="/"
+        className="text-foreground/80 hover:bg-muted flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors"
+      >
+        <Home className="size-4" />
+        홈으로
+      </Link>
+
       {/* 유저 푸터 — 정보 카드 + 아이콘 로그아웃. 계정 드롭다운은 후속. */}
       <div className="mt-3 border-t pt-3">
         <div className="flex items-center gap-2.5 rounded-xl p-2">
           <Link
-            href="/studio/me"
+            href="/me"
             className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg transition-opacity hover:opacity-70"
           >
             <span

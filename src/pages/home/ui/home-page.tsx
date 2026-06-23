@@ -22,7 +22,7 @@ export async function HomePage() {
               "h-12 w-full rounded-lg text-base font-semibold",
             )}
           >
-            COVA 스튜디오 가기
+          COVA 스튜디오 가기
           </Link>
           <div className="mt-2 flex items-center justify-center gap-3 pt-2 text-sm">
             <Link
