@@ -16,19 +16,18 @@ import { pinElementId } from "../lib/format";
 import { computeFitScale } from "../lib/fit-zoom";
 import { cn } from "@/shared/lib/utils";
 
-// 화이트보드(그리기) 기능은 DB 쓰기 부담으로 현재 비활성화. 진입 버튼·표시 토글·레이어를
-// 모두 이 플래그로 숨긴다. 코드는 남겨두므로 다시 켜려면 true로 바꾸면 된다.
-const WHITEBOARD_ENABLED: boolean = false;
-
 export function CanvasView({
   pages,
   pin,
   controlsHidden = false,
+  whiteboardEnabled = false,
 }: {
   pages: ProposalPage[];
   pin?: PinContext;
   // 하단 dock이 접히면 일반/코멘트 컨트롤러도 함께 숨긴다.
   controlsHidden?: boolean;
+  // 시안별 화이트보드(그리기) on/off 설정. 기본 꺼짐(opt-in).
+  whiteboardEnabled?: boolean;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -139,7 +138,7 @@ export function CanvasView({
               <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
               코멘트
             </button>
-            {WHITEBOARD_ENABLED && (
+            {whiteboardEnabled && (
               <>
                 <button
                   type="button"
@@ -264,7 +263,7 @@ export function CanvasView({
                 onSelectId={setSelectedPinId}
               />
             )}
-            {WHITEBOARD_ENABLED && pin && (
+            {whiteboardEnabled && pin && (
               <WhiteboardLayer
                 contentRef={contentRef}
                 pages={pages}
@@ -272,6 +271,7 @@ export function CanvasView({
                   publicId: pin.publicId,
                   variantId: pin.variantId,
                   versionId: pin.versionId,
+                  viewerId: pin.viewerId,
                 }}
                 mode={mode}
                 spaceHeld={spaceHeld}

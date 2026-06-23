@@ -52,6 +52,7 @@ export type ProposalDetailHeader = {
   domain: string | null;
   visibility: string;
   hasPassword: boolean;
+  whiteboardEnabled: boolean;
 };
 
 // Full editor detail payload returned by GET /api/proposals/[id].

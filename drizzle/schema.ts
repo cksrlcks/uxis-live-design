@@ -23,6 +23,7 @@ export const proposals = pgTable("proposals", {
   ownerId: uuid("owner_id").notNull(),
   visibility: text("visibility").notNull().default("private"), // 'private' | 'public'
   accessPasswordHash: text("access_password_hash"), // 'salt:hash' (scrypt), public+password only
+  whiteboardEnabled: boolean("whiteboard_enabled").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
@@ -105,24 +106,23 @@ export const pinComments = pgTable("pin_comments", {
 
 export type PinComment = typeof pinComments.$inferSelect;
 
-// 버전 종속 화이트보드 스트로크(프리핸드 경로). pin_comments와 동일한 스코프 체계지만
-// 점+본문 대신 정규화 경로(points)를 저장한다. 게스트도 그릴 수 있어 author_id는 nullable.
+// 버전 종속 화이트보드 — 한 사용자가 한 페이지에 그린 획들을 한 row(strokes 배열)로 묶는다.
+// pin_comments와 동일 스코프 체계. 로그인 사용자만 그릴 수 있어 author_id는 NOT NULL.
+// strokes: { drawId, points:[{x,y}], color, width }[] (정규화 경로). 쓰기는 (author_id, variant,
+// version, page_order) 유니크로 upsert → 사용자별 페이지 레이어가 정확히 한 row.
 export const whiteboardStrokes = pgTable("whiteboard_strokes", {
   id: uuid("id").primaryKey().defaultRandom(),
   proposalId: uuid("proposal_id").notNull(),     // FK via SQL
   variantId: uuid("variant_id").notNull(),       // FK via SQL
-  versionId: uuid("version_id").notNull(),        // FK via SQL
-  // 경로의 시작점이 속한 페이지. 모든 점은 이 페이지 박스 기준으로 정규화된다(핀과 동일, 시안 밖 허용).
+  versionId: uuid("version_id").notNull(),       // FK via SQL
   pageOrder: integer("page_order").notNull(),
-  // [{x,y}, ...] 페이지 박스 기준 정규화 좌표(±10). 한 stroke = 한 프리핸드 선.
-  points: jsonb("points").$type<{ x: number; y: number }[]>().notNull(),
-  color: text("color").notNull(),
-  width: real("width").notNull(),                 // 페이지 폭 기준 정규화 선 굵기
-  authorId: uuid("author_id"),                    // FK via SQL (set null), 게스트는 null
+  authorId: uuid("author_id").notNull(),         // FK via SQL — 소유권·레이어 키(로그인 강제)
   authorName: text("author_name").notNull(),
   authorColor: text("author_color").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  strokes: jsonb("strokes").notNull(),           // StoredStroke[]
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
+  unique("whiteboard_strokes_author_page_uq").on(t.authorId, t.variantId, t.versionId, t.pageOrder),
   index("whiteboard_strokes_variant_version_page_idx").on(t.variantId, t.versionId, t.pageOrder),
 ]);
 

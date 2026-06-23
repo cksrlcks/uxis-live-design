@@ -5,18 +5,28 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eraser, Pen } from "lucide-react";
 import { toast } from "sonner";
 import { toContent } from "@/shared/realtime/coords";
+import { HttpError } from "@/shared/api/http";
 import { locatePin, type PageBox } from "../lib/locate";
 import { eraseStrokePoints, eraserBBox, strokeIntersectsBBox } from "../lib/erase";
 import {
   strokeQueries,
+  MAX_LAYER_STROKES,
   type StrokeDTO,
-  type CreateStrokeInput,
   type WhiteboardContext,
 } from "@/entities/whiteboard";
-import { useCreateStroke, useDeleteStroke } from "@/features/whiteboard";
+import { useLayerFlush } from "@/features/whiteboard";
 import { useRealtimeOptional } from "@/shared/realtime/realtime-provider";
 import type { ProposalPage } from "@/entities/proposal";
 import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 
 type Tool = "pen" | "eraser";
 
@@ -74,13 +84,71 @@ export function WhiteboardLayer({
   // 그림 표시/숨김(로컬). 숨기면 stroke 렌더와 그리기·지우기 입력을 모두 끈다.
   visible?: boolean;
 }) {
-  const { publicId, variantId, versionId } = ctx;
+  const { publicId, variantId, versionId, viewerId } = ctx;
   const rt = useRealtimeOptional();
   const qc = useQueryClient();
   const { data: strokes = [] } = useQuery(strokeQueries.list(publicId, variantId, versionId));
-  const createMut = useCreateStroke(publicId, variantId, versionId);
-  const deleteMut = useDeleteStroke(publicId, variantId, versionId);
+  const flush = useLayerFlush(publicId);
 
+  // 그리기/지우기로 더러워진 페이지를 모아 debounce 후 내 레이어만 PUT(쓰기 빈도↓).
+  const FLUSH_DELAY = 1500;
+  const dirtyRef = useRef<Set<number>>(new Set());
+  const flushTimerRef = useRef<number | null>(null);
+
+  // 타이머/언로드 핸들러의 stale 클로저 방지 — 항상 최신 클로저로 한 페이지를 flush.
+  const flushPageRef = useRef<(pageOrder: number) => void>(() => {});
+  // eslint-disable-next-line react-hooks/refs -- intentional: keep latest closure for timers/unload handlers
+  flushPageRef.current = (pageOrder: number) => {
+    if (viewerId == null) return;
+    const key = strokeQueries.list(publicId, variantId, versionId).queryKey;
+    const all = qc.getQueryData<StrokeDTO[]>(key) ?? [];
+    const mine = all.filter((s) => s.authorId === viewerId && s.pageOrder === pageOrder);
+    flush.mutate(
+      {
+        variantId,
+        versionId,
+        pageOrder,
+        strokes: mine.map((s) => ({ drawId: s.id, points: s.points, color: s.color, width: s.width })),
+        authorColor: rt?.myColor ?? "#3b82f6",
+      },
+      {
+        onError: (e) => {
+          toast.error(e instanceof Error ? e.message : "그림 저장에 실패했습니다");
+          if (e instanceof HttpError && e.status >= 400 && e.status < 500) {
+            // 영구 오류(검증/권한): 캐시를 서버 상태로 재동기화 → 거부된 획 제거(발산 해소).
+            void qc.invalidateQueries({
+              queryKey: strokeQueries.list(publicId, variantId, versionId).queryKey,
+            });
+          } else {
+            // 일시 오류(네트워크/5xx): 페이지를 다시 dirty로 표시 → 다음 flush(추가 그리기/탭 숨김)에서 재시도.
+            dirtyRef.current.add(pageOrder);
+          }
+        },
+      },
+    );
+  };
+
+  function flushAllDirty() {
+    const pages = [...dirtyRef.current];
+    dirtyRef.current.clear();
+    if (flushTimerRef.current != null) {
+      clearTimeout(flushTimerRef.current);
+      flushTimerRef.current = null;
+    }
+    for (const p of pages) flushPageRef.current(p);
+  }
+
+  function markDirty(pageOrder: number) {
+    dirtyRef.current.add(pageOrder);
+    if (flushTimerRef.current != null) clearTimeout(flushTimerRef.current);
+    flushTimerRef.current = window.setTimeout(() => {
+      flushTimerRef.current = null;
+      flushAllDirty();
+    }, FLUSH_DELAY);
+  }
+
+  const isGuest = viewerId == null;
+  const [loginOpen, setLoginOpen] = useState(false);
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState(PALETTE[3]);
   const [width, setWidth] = useState(WIDTHS[1].w);
@@ -115,6 +183,23 @@ export function WhiteboardLayer({
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
+  }, []);
+
+  // 탭 숨김(visibilitychange/pagehide)·언마운트 시 더러운 페이지를 즉시 flush(닫기 직전 유실 방지).
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "hidden") flushAllDirty();
+    };
+    const onPageHide = () => flushAllDirty();
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("pagehide", onPageHide);
+      flushAllDirty();
+    };
+    // flushAllDirty는 안정 ref(dirty/timer/flushPage)만 읽으므로 빈 deps로 안전.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 숨김 상태면 그리기·지우기 입력을 막는다(숨긴 레이어에 그리는 혼란 방지).
@@ -249,6 +334,10 @@ export function WhiteboardLayer({
 
   function onPenDown(e: React.PointerEvent) {
     if (spaceHeld || e.button !== 0) return; // 스페이스 패닝/우클릭은 그리기 아님
+    if (isGuest) {
+      setLoginOpen(true);
+      return;
+    }
     const p = toContentPoint(e.clientX, e.clientY);
     if (!p) return;
     const loc = locatePin(p.cx, p.cy, measureBoxes());
@@ -295,10 +384,26 @@ export function WhiteboardLayer({
       rt?.broadcastDrawEnd(s.drawId);
       return;
     }
+    // 로그인 강제 — 게스트는 onPenDown 게이트에서 막히지만, 방어적으로 한 번 더 확인.
+    if (viewerId == null) {
+      setDrawing(null);
+      rt?.broadcastDrawEnd(s.drawId);
+      return;
+    }
     const points = pts.map((p) => normPoint(p.x, p.y, box));
     const key = strokeQueries.list(publicId, variantId, versionId).queryKey;
-    // 낙관적 삽입 — 임시 stroke를 즉시 캐시에 넣고 로컬 선을 제거한다(같은 핸들러 → 한 커밋, 공백/깜빡임 없음).
-    const temp: StrokeDTO = {
+    // 서버 레이어 상한(MAX_LAYER_STROKES)을 클라에서도 막는다 — 초과 시 PUT이 거부돼 캐시·피어가 발산하므로.
+    const myCountOnPage = (qc.getQueryData<StrokeDTO[]>(key) ?? []).filter(
+      (st) => st.authorId === viewerId && st.pageOrder === s.pageOrder,
+    ).length;
+    if (myCountOnPage >= MAX_LAYER_STROKES) {
+      toast.error("이 페이지에 그릴 수 있는 최대 획 수를 초과했습니다");
+      setDrawing(null);
+      rt?.broadcastDrawEnd(s.drawId);
+      return;
+    }
+    // 확정 획을 즉시 캐시에 넣고(로컬 선 제거), 피어에 broadcast. 영속화는 페이지 debounce flush.
+    const stroke: StrokeDTO = {
       id: s.drawId,
       variantId,
       versionId,
@@ -306,38 +411,18 @@ export function WhiteboardLayer({
       points,
       color: s.color,
       width: s.width,
-      authorId: null,
-      authorName: rt?.myName ?? "Guest",
+      authorId: viewerId,
+      authorName: rt?.myName ?? "사용자",
       authorColor: rt?.myColor ?? "#3b82f6",
       createdAt: "",
     };
-    qc.setQueryData<StrokeDTO[]>(key, (prev) => [...(prev ?? []), temp]);
-    setDrawing(null);
-    createMut.mutate(
-      {
-        variantId,
-        versionId,
-        pageOrder: s.pageOrder,
-        points,
-        color: s.color,
-        width: s.width,
-        authorName: rt?.myName ?? "Guest",
-        authorColor: rt?.myColor ?? "#3b82f6",
-      },
-      {
-        // 저장 성공 시 임시본 제거(실 stroke는 mutation 내부 onSuccess가 이미 append). 위치 동일 → 무플리커.
-        onSuccess: (saved) => {
-          qc.setQueryData<StrokeDTO[]>(key, (prev) => prev?.filter((x) => x.id !== s.drawId));
-          rt?.broadcastStroke(saved);
-          rt?.broadcastDrawEnd(s.drawId);
-        },
-        // 저장 실패 시 임시본 롤백 + peer 라이브 정리.
-        onError: () => {
-          qc.setQueryData<StrokeDTO[]>(key, (prev) => prev?.filter((x) => x.id !== s.drawId));
-          rt?.broadcastDrawEnd(s.drawId);
-        },
-      },
+    qc.setQueryData<StrokeDTO[]>(key, (prev) =>
+      prev && prev.some((x) => x.id === stroke.id) ? prev : [...(prev ?? []), stroke],
     );
+    setDrawing(null);
+    rt?.broadcastStroke(stroke);
+    rt?.broadcastDrawEnd(s.drawId);
+    markDirty(s.pageOrder);
   }
 
   // 현재 줌 배율(콘텐츠↔화면). 지우개 반경을 화면 px로 일정하게 유지하는 데 쓴다.
@@ -369,6 +454,10 @@ export function WhiteboardLayer({
 
   function onEraserDown(e: React.PointerEvent) {
     if (spaceHeld || e.button !== 0) return;
+    if (isGuest) {
+      setLoginOpen(true);
+      return;
+    }
     const p = toContentPoint(e.clientX, e.clientY);
     if (!p) return;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -406,13 +495,13 @@ export function WhiteboardLayer({
     const path = eraserPathRef.current;
     eraserPathRef.current = [];
     setEraserPath([]);
-    void commitErase(path);
+    commitErase(path);
   }
 
-  // 지우개 경로로 잘린 결과를 영구화한다. 변경된 stroke는 [살아남은 세그먼트 생성] 후 [원본 삭제].
-  // 조각 저장이 모두 성공한 뒤에만 원본을 지운다 → 실패 시 원본 보존(데이터 손실 방지).
-  async function commitErase(eraser: { x: number; y: number }[]) {
-    if (eraser.length === 0) return;
+  // 지우개 경로로 내 획만 잘라 캐시·피어에 즉시 반영하고, 영향 페이지를 debounce flush로 영속화.
+  // 남의 획은 건드리지 않는다(본인만 지우기) → cross-user split·다건 쓰기 폭주 제거.
+  function commitErase(eraser: { x: number; y: number }[]) {
+    if (eraser.length === 0 || viewerId == null) return;
     const radius = eraserRadiusContent();
     const boxes = measureBoxes();
     const eBox = eraserBBox(eraser, radius);
@@ -420,11 +509,17 @@ export function WhiteboardLayer({
     const current = qc.getQueryData<StrokeDTO[]>(key) ?? [];
 
     const next: StrokeDTO[] = [];
-    const ops: { original: StrokeDTO; creates: { tempId: string; input: CreateStrokeInput }[] }[] =
-      [];
+    const removedIds: string[] = [];
+    const addedStrokes: StrokeDTO[] = [];
+    const dirtyPages = new Set<number>();
+
     for (const stroke of current) {
+      // 남의 획·다른 페이지·안 겹치는 획은 그대로 둔다.
+      if (stroke.authorId !== viewerId) {
+        next.push(stroke);
+        continue;
+      }
       const box = boxes.find((b) => b.pageOrder === stroke.pageOrder);
-      // 멀리 있는 stroke는 AABB로 빠르게 스킵.
       if (!box || !strokeIntersectsBBox(stroke.points, box, eBox)) {
         next.push(stroke);
         continue;
@@ -434,52 +529,21 @@ export function WhiteboardLayer({
         next.push(stroke); // 미변경(참조 동일)
         continue;
       }
-      const creates: { tempId: string; input: CreateStrokeInput }[] = [];
+      // 변경됨: 원본 제거 + 살아남은 세그먼트(새 drawId) 추가.
+      removedIds.push(stroke.id);
+      dirtyPages.add(stroke.pageOrder);
       for (const seg of segs) {
-        const tempId = newDrawId();
-        next.push({ ...stroke, id: tempId, points: seg, createdAt: "" });
-        creates.push({
-          tempId,
-          input: {
-            variantId,
-            versionId,
-            pageOrder: stroke.pageOrder,
-            points: seg,
-            color: stroke.color,
-            width: stroke.width,
-            // 남의 그림을 부분 지워도 남은 조각은 원작자 표기를 유지한다.
-            authorName: stroke.authorName,
-            authorColor: stroke.authorColor,
-          },
-        });
-      }
-      ops.push({ original: stroke, creates });
-    }
-    if (ops.length === 0) return; // 아무것도 안 지워짐
-
-    qc.setQueryData<StrokeDTO[]>(key, next); // 낙관적: 즉시 잘린 결과 표시(공백 없음)
-
-    for (const op of ops) {
-      try {
-        // 1) 살아남은 세그먼트를 모두 저장(성공해야 다음으로). 내부 onSuccess가 saved를 append.
-        const saved = await Promise.all(op.creates.map((c) => createMut.mutateAsync(c.input)));
-        // 임시본 제거(saved는 이미 추가됨) 후, 조각부터 broadcast.
-        qc.setQueryData<StrokeDTO[]>(key, (prev) =>
-          prev?.filter((x) => !op.creates.some((c) => c.tempId === x.id)),
-        );
-        saved.forEach((s) => rt?.broadcastStroke(s));
-        // 2) 조각 저장이 끝난 뒤에만 원본 삭제(+broadcast) → 데이터 손실/peer 갭 방지.
-        await deleteMut.mutateAsync(op.original.id);
-        rt?.broadcastStrokeDeleted(op.original.id);
-      } catch (err) {
-        // 롤백: 임시 세그먼트 제거 + 원본 복원(원본은 삭제하지 않았다).
-        qc.setQueryData<StrokeDTO[]>(key, (prev) => {
-          const cleaned = (prev ?? []).filter((x) => !op.creates.some((c) => c.tempId === x.id));
-          return cleaned.some((x) => x.id === op.original.id) ? cleaned : [...cleaned, op.original];
-        });
-        toast.error(err instanceof Error ? err.message : "지우기 저장에 실패했습니다");
+        const seg2: StrokeDTO = { ...stroke, id: newDrawId(), points: seg, createdAt: "" };
+        next.push(seg2);
+        addedStrokes.push(seg2);
       }
     }
+    if (removedIds.length === 0) return; // 아무것도 안 지워짐
+
+    qc.setQueryData<StrokeDTO[]>(key, next); // 낙관적: 즉시 잘린 결과 반영
+    removedIds.forEach((id) => rt?.broadcastStrokeDeleted(id)); // 실시간: 원본 제거
+    addedStrokes.forEach((s) => rt?.broadcastStroke(s)); // 실시간: 세그먼트 추가
+    dirtyPages.forEach((p) => markDirty(p)); // 영속화: 영향 페이지 debounce flush
   }
 
   // 렌더 시점 실측(매 렌더 재계산, pin-layer와 동일 패턴).
@@ -684,6 +748,32 @@ export function WhiteboardLayer({
         </div>,
           document.body,
         )}
+      <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
+        <DialogContent className="pointer-events-auto gap-6 p-6">
+          <DialogHeader className="gap-3">
+            <DialogTitle>로그인이 필요합니다</DialogTitle>
+            <DialogDescription>
+              그림을 그리려면 로그인해 주세요.
+              <br />
+              로그인 후 현재 화면으로 돌아옵니다.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => {
+                const returnTo =
+                  typeof window !== "undefined"
+                    ? window.location.pathname + window.location.search
+                    : "/";
+                window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
+              }}
+            >
+              로그인
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

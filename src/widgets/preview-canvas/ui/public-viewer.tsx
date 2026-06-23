@@ -21,11 +21,14 @@ export function PublicViewer({
   publicId,
   viewer,
   proposalTitle,
+  whiteboardEnabled = false,
 }: {
   variants: ViewerVariant[];
   publicId: string;
   viewer: { id: string } | null;
   proposalTitle: string;
+  // 시안별 화이트보드 on/off 설정. 기본 꺼짐.
+  whiteboardEnabled?: boolean;
 }) {
   const [{ v, compare, ver, view }, setQuery] = useQueryStates(
     {
@@ -114,6 +117,7 @@ export function PublicViewer({
             pin={pin}
             view={view}
             controlsHidden={dockCollapsed}
+            whiteboardEnabled={whiteboardEnabled}
           />
         </div>
         <ViewerDock

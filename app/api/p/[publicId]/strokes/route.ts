@@ -1,6 +1,6 @@
 import { getStrokes } from "@/entities/whiteboard/api/get-strokes.server";
 import { toErrorResponse } from "@/shared/api/to-error-response";
-import { createStroke } from "@/features/whiteboard/api/create-stroke.server";
+import { upsertLayer } from "@/features/whiteboard/api/upsert-layer.server";
 
 export async function GET(req: Request, { params }: { params: Promise<{ publicId: string }> }) {
   try {
@@ -14,12 +14,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ publicId
   }
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ publicId: string }> }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ publicId: string }> }) {
   try {
     const { publicId } = await params;
     const raw = await req.json().catch(() => null);
-    const stroke = await createStroke(publicId, raw);
-    return Response.json({ stroke });
+    return Response.json(await upsertLayer(publicId, raw));
   } catch (error) {
     return toErrorResponse(error);
   }

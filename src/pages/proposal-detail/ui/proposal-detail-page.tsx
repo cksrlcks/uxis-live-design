@@ -132,6 +132,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
                 domain={proposal.domain}
                 visibility={proposal.visibility}
                 hasPassword={proposal.hasPassword}
+                whiteboardEnabled={proposal.whiteboardEnabled}
               />
             </section>
           )}

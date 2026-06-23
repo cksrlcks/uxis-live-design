@@ -3,7 +3,8 @@ import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { whiteboardStrokes, proposalVariants, proposalVersions } from "@drizzle/schema";
 import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
-import type { StrokeDTO } from "../model/types";
+import type { StrokeDTO, StoredStroke } from "../model/types";
+import { flattenLayers, type LayerRow } from "./flatten";
 
 export async function getStrokes(
   publicId: string,
@@ -14,7 +15,7 @@ export async function getStrokes(
   const { proposal, decision } = await resolveViewerGate(publicId);
   if (!proposal) throw new Error("NOT_FOUND");
   if (decision !== "allow") throw new Error("FORBIDDEN");
-  if (!variantId || !versionId) throw new Error("BAD_QUERY"); // 400 (mapped in to-error-response)
+  if (!variantId || !versionId) throw new Error("BAD_QUERY");
 
   // membership: variant ∈ proposal, version ∈ variant
   const v = await db
@@ -34,18 +35,17 @@ export async function getStrokes(
     .select()
     .from(whiteboardStrokes)
     .where(and(eq(whiteboardStrokes.variantId, variantId), eq(whiteboardStrokes.versionId, versionId)))
-    .orderBy(asc(whiteboardStrokes.createdAt), asc(whiteboardStrokes.id));
-  return rows.map((r) => ({
-    id: r.id,
+    .orderBy(asc(whiteboardStrokes.updatedAt), asc(whiteboardStrokes.id));
+
+  const layers: LayerRow[] = rows.map((r) => ({
     variantId: r.variantId,
     versionId: r.versionId,
     pageOrder: r.pageOrder,
-    points: r.points,
-    color: r.color,
-    width: r.width,
     authorId: r.authorId,
     authorName: r.authorName,
     authorColor: r.authorColor,
-    createdAt: r.createdAt.toISOString(),
+    strokes: r.strokes as StoredStroke[],
+    updatedAt: r.updatedAt,
   }));
+  return flattenLayers(layers);
 }

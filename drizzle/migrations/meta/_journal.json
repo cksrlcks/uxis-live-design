@@ -71,6 +71,20 @@
       "when": 1782300000000,
       "tag": "0009_whiteboard_strokes",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1782400000000,
+      "tag": "0010_whiteboard_layers",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1782500000000,
+      "tag": "0011_proposal_whiteboard_enabled",
+      "breakpoints": true
     }
   ]
 }
