@@ -49,20 +49,10 @@
       .err { color: var(--danger); margin-top: 12px; min-height: 18px; font-size: 13px; }
 
       /* ---- login ---- */
-      .hero {
-        padding: 36px 26px 32px;
-        color: #fff;
-        background-color: #0a3aa8;
-        background-image: radial-gradient(at 22% 18%, #3b89ff 0, transparent 55%),
-          radial-gradient(at 82% 88%, #082567 0, transparent 55%);
-      }
-      .hero .logo { height: 32px; }
-      .hero .tag {
-        margin-top: 15px; font-size: 12px; font-weight: 600;
-        letter-spacing: 0.13em; text-transform: uppercase; color: rgba(255, 255, 255, 0.65);
-      }
-      .hero .desc { margin-top: 11px; font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.9); }
-      .loginbody { padding: 6px 26px 26px; }
+      .loginbody { padding: 40px 26px 28px; }
+      .login-logo { height: 26px; color: var(--text); }
+      .login-title { margin: 24px 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+      .login-sub { margin: 6px 0 6px; font-size: 14px; color: var(--dim); }
       .loginbody button { width: 100%; margin-top: 24px; height: 48px; font-size: 15px; }
       .signup { margin-top: 18px; text-align: center; font-size: 13px; color: var(--dim); }
       .signup a { color: var(--cova-2); font-weight: 600; text-decoration: none; cursor: pointer; }
@@ -158,16 +148,16 @@
 
     <!-- 로그인 -->
     <section id="login">
-      <div class="hero">
-        <svg class="logo" viewBox="0 0 103 25" width="124" height="30"><use href="#covaLogo" /></svg>
-        <div class="tag">UXIS Co-view Area</div>
-      </div>
       <div class="loginbody">
+        <svg class="logo login-logo" viewBox="0 0 103 25" width="106" height="26"><use href="#covaLogo" /></svg>
+        <h1 class="login-title">로그인</h1>
+        <p class="login-sub">가입하신 이메일로 로그인해주세요</p>
+
         <label for="email">이메일</label>
         <input id="email" type="email" autocomplete="username" placeholder="you@example.com" />
 
         <label for="password">비밀번호</label>
-        <input id="password" type="password" autocomplete="current-password" />
+        <input id="password" type="password" autocomplete="current-password" placeholder="6자 이상" />
 
         <button id="loginBtn">로그인</button>
         <div class="err" id="loginErr"></div>
