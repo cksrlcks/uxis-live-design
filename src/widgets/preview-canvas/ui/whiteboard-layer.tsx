@@ -5,10 +5,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eraser, Pen } from "lucide-react";
 import { toast } from "sonner";
 import { toContent } from "@/shared/realtime/coords";
+import { HttpError } from "@/shared/api/http";
 import { locatePin, type PageBox } from "../lib/locate";
 import { eraseStrokePoints, eraserBBox, strokeIntersectsBBox } from "../lib/erase";
 import {
   strokeQueries,
+  MAX_LAYER_STROKES,
   type StrokeDTO,
   type WhiteboardContext,
 } from "@/entities/whiteboard";
@@ -109,7 +111,20 @@ export function WhiteboardLayer({
         strokes: mine.map((s) => ({ drawId: s.id, points: s.points, color: s.color, width: s.width })),
         authorColor: rt?.myColor ?? "#3b82f6",
       },
-      { onError: (e) => toast.error(e instanceof Error ? e.message : "그림 저장에 실패했습니다") },
+      {
+        onError: (e) => {
+          toast.error(e instanceof Error ? e.message : "그림 저장에 실패했습니다");
+          if (e instanceof HttpError && e.status >= 400 && e.status < 500) {
+            // 영구 오류(검증/권한): 캐시를 서버 상태로 재동기화 → 거부된 획 제거(발산 해소).
+            void qc.invalidateQueries({
+              queryKey: strokeQueries.list(publicId, variantId, versionId).queryKey,
+            });
+          } else {
+            // 일시 오류(네트워크/5xx): 페이지를 다시 dirty로 표시 → 다음 flush(추가 그리기/탭 숨김)에서 재시도.
+            dirtyRef.current.add(pageOrder);
+          }
+        },
+      },
     );
   };
 
@@ -377,6 +392,16 @@ export function WhiteboardLayer({
     }
     const points = pts.map((p) => normPoint(p.x, p.y, box));
     const key = strokeQueries.list(publicId, variantId, versionId).queryKey;
+    // 서버 레이어 상한(MAX_LAYER_STROKES)을 클라에서도 막는다 — 초과 시 PUT이 거부돼 캐시·피어가 발산하므로.
+    const myCountOnPage = (qc.getQueryData<StrokeDTO[]>(key) ?? []).filter(
+      (st) => st.authorId === viewerId && st.pageOrder === s.pageOrder,
+    ).length;
+    if (myCountOnPage >= MAX_LAYER_STROKES) {
+      toast.error("이 페이지에 그릴 수 있는 최대 획 수를 초과했습니다");
+      setDrawing(null);
+      rt?.broadcastDrawEnd(s.drawId);
+      return;
+    }
     // 확정 획을 즉시 캐시에 넣고(로컬 선 제거), 피어에 broadcast. 영속화는 페이지 debounce flush.
     const stroke: StrokeDTO = {
       id: s.drawId,
