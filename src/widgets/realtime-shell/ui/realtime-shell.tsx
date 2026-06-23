@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { RealtimeProvider } from "@/shared/realtime/realtime-provider";
+import { ViewerChromeProvider } from "@/shared/viewer-chrome/viewer-chrome";
 import { CollaborationDock } from "./collaboration-dock";
 import { type Identity, loadOrCreateIdentity, saveIdentity } from "@/shared/realtime/identity";
 
@@ -35,14 +36,17 @@ export function RealtimeShell({
 
   return (
     <RealtimeProvider publicId={publicId} identity={identity}>
-      {children}
-      <CollaborationDock
-        publicId={publicId}
-        identity={identity}
-        onRename={rename}
-        isAuthed={viewerName != null}
-        viewerId={viewerId}
-      />
+      {/* 접기 상태를 children(프리뷰)과 협업 dock이 공유 → 접으면 dock도 함께 숨긴다. */}
+      <ViewerChromeProvider>
+        {children}
+        <CollaborationDock
+          publicId={publicId}
+          identity={identity}
+          onRename={rename}
+          isAuthed={viewerName != null}
+          viewerId={viewerId}
+        />
+      </ViewerChromeProvider>
     </RealtimeProvider>
   );
 }
