@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { HttpError } from "@/shared/api/http";
 import { Button, buttonVariants } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -34,6 +35,7 @@ export function ForgotPasswordForm() {
     try {
       await requestMutation.mutateAsync(values);
       setSentTo(values.email);
+      toast.success("재설정 링크를 보냈습니다");
     } catch (err) {
       setFormError(requestErrorMessage(err));
     }

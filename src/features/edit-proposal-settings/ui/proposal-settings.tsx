@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { HttpError } from "@/shared/api/http";
 import { titleSchema, domainSchema } from "@/entities/proposal/model/create-schema";
 import { Button } from "@/shared/ui/button";
@@ -90,7 +91,10 @@ export function ProposalSettings({
     setError(null);
     updateSettings.mutate(
       { title: next },
-      { onError: () => setError("변경에 실패했습니다.") },
+      {
+        onSuccess: () => toast.success("저장했습니다"),
+        onError: () => setError("변경에 실패했습니다."),
+      },
     );
   }
 
@@ -100,7 +104,10 @@ export function ProposalSettings({
     updateSettings.mutate(
       { participants: next.trim() ? next.trim() : null },
       {
-        onSuccess: () => participantsForm.reset({ participants: next.trim() }),
+        onSuccess: () => {
+          participantsForm.reset({ participants: next.trim() });
+          toast.success("저장했습니다");
+        },
         onError: () => setError("변경에 실패했습니다."),
       },
     );
@@ -129,7 +136,10 @@ export function ProposalSettings({
     updateSettings.mutate(
       { domain: next },
       {
-        onSuccess: () => setDomainCheck(null),
+        onSuccess: () => {
+          setDomainCheck(null);
+          toast.success("저장했습니다");
+        },
         onError: (err) =>
           setError(
             err instanceof HttpError && err.code === "DOMAIN_TAKEN"
@@ -141,24 +151,34 @@ export function ProposalSettings({
   }
 
   function change(input: Parameters<typeof updateSettings.mutate>[0]) {
-    setError(null);
-    updateSettings.mutate(input, { onError: () => setError("변경에 실패했습니다.") });
+    updateSettings.mutate(input, {
+      onSuccess: () => toast.success("저장했습니다"),
+      onError: () => toast.error("변경에 실패했습니다"),
+    });
   }
 
   function onSetPassword({ password }: PasswordValues) {
     setError(null);
     updateSettings.mutate(
       { password },
-      { onSuccess: () => reset(), onError: () => setError("변경에 실패했습니다.") },
+      {
+        onSuccess: () => {
+          reset();
+          toast.success("비밀번호를 변경했습니다");
+        },
+        onError: () => setError("변경에 실패했습니다."),
+      },
     );
   }
 
   function onDelete() {
     if (!confirm("이 시안을 삭제할까요? 모든 버전과 이미지가 사라집니다.")) return;
-    setError(null);
     deleteProposal.mutate(undefined, {
-      onSuccess: () => router.push("/studio/proposals"),
-      onError: () => setError("삭제에 실패했습니다."),
+      onSuccess: () => {
+        toast.success("삭제했습니다");
+        router.push("/studio/proposals");
+      },
+      onError: () => toast.error("삭제에 실패했습니다"),
     });
   }
 

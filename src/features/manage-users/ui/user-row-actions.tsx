@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { toast } from "sonner";
 import { ROLES, type Role } from "@/shared/auth/roles";
 import {
   Select,
@@ -19,12 +19,16 @@ const ROLE_OPTIONS: { value: Role; label: string }[] = [
 
 export function UserRowActions({ id, role }: { id: string; role: Role }) {
   const updateRole = useUpdateUserRole();
-  const [error, setError] = useState<string | null>(null);
 
   function handleChange(next: Role) {
     if (next === role) return;
-    setError(null);
-    updateRole.mutate({ id, role: next }, { onError: () => setError("작업에 실패했습니다.") });
+    updateRole.mutate(
+      { id, role: next },
+      {
+        onSuccess: () => toast.success("역할을 변경했습니다"),
+        onError: () => toast.error("역할 변경에 실패했습니다"),
+      },
+    );
   }
 
   return (
@@ -46,7 +50,6 @@ export function UserRowActions({ id, role }: { id: string; role: Role }) {
           ))}
         </SelectContent>
       </Select>
-      {error && <span className="text-destructive text-xs">{error}</span>}
     </div>
   );
 }

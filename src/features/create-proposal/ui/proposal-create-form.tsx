@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -50,6 +51,7 @@ export function ProposalCreateForm() {
 
     try {
       const { proposalId } = await createProposal.mutateAsync({ title, files });
+      toast.success("시안을 만들었습니다");
       router.push(`/studio/proposals/${proposalId}`);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "오류가 발생했습니다.");
