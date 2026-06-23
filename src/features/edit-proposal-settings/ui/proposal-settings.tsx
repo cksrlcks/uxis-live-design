@@ -41,12 +41,14 @@ export function ProposalSettings({
   domain,
   visibility,
   hasPassword,
+  whiteboardEnabled,
 }: {
   proposalId: string;
   title: string;
   domain: string | null;
   visibility: string;
   hasPassword: boolean;
+  whiteboardEnabled: boolean;
 }) {
   const router = useRouter();
   const updateSettings = useUpdateSettings(proposalId);
@@ -189,6 +191,26 @@ export function ProposalSettings({
             <span className="text-sm font-medium">
               {visibility === "public" ? "공개" : "비공개"}
             </span>
+          </label>
+        </CardContent>
+      </Card>
+
+      {/* 화이트보드 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>화이트보드</CardTitle>
+          <CardDescription>
+            뷰어 캔버스에서 로그인 사용자가 시안 위에 자유롭게 그릴 수 있게 합니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <label className="flex w-fit cursor-pointer items-center gap-3">
+            <Switch
+              checked={whiteboardEnabled}
+              disabled={pending}
+              onCheckedChange={(checked) => change({ whiteboardEnabled: checked })}
+            />
+            <span className="text-sm font-medium">{whiteboardEnabled ? "사용" : "사용 안 함"}</span>
           </label>
         </CardContent>
       </Card>

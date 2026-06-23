@@ -11,10 +11,13 @@ export function PublicViewerPage({
   publicId,
   viewer,
   proposalTitle,
+  whiteboardEnabled = false,
 }: {
   publicId: string;
   viewer: { id: string } | null;
   proposalTitle: string;
+  // 시안별 화이트보드 on/off 설정. 기본 꺼짐.
+  whiteboardEnabled?: boolean;
 }) {
   useEffect(() => {
     addRecent({ publicId, title: proposalTitle, viewedAt: Date.now() });
@@ -38,6 +41,7 @@ export function PublicViewerPage({
       publicId={publicId}
       viewer={viewer}
       proposalTitle={proposalTitle}
+      whiteboardEnabled={whiteboardEnabled}
     />
   );
 }
