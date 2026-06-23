@@ -99,6 +99,13 @@
       "when": 1782700000000,
       "tag": "0013_proposal_participants",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1782800000000,
+      "tag": "0014_proposal_figma_url",
+      "breakpoints": true
     }
   ]
 }

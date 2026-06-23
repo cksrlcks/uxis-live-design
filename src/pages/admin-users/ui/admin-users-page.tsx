@@ -53,7 +53,7 @@ export function AdminUsersPage() {
       <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
         <Table>
           <TableHeader>
-            <TableRow className="border-border/60 border-b hover:bg-transparent">
+            <TableRow className="bg-muted/50 border-border/60 border-b">
               <TableHead className={headCell}>이름</TableHead>
               <TableHead className={headCell}>이메일</TableHead>
               <TableHead className={headCell}>가입일</TableHead>

@@ -9,7 +9,7 @@ import { updateSettingsSchema } from "../model/edit-schemas";
 
 export async function updateProposalSettings(id: string, input: unknown): Promise<void> {
   await requireEditor();
-  const { title, visibility, password, domain, whiteboardEnabled, participants } =
+  const { title, visibility, password, domain, whiteboardEnabled, participants, figmaUrl } =
     updateSettingsSchema.parse(input);
 
   const updates: Partial<typeof proposals.$inferInsert> = {};
@@ -17,6 +17,7 @@ export async function updateProposalSettings(id: string, input: unknown): Promis
   // 빈 문자열/공백은 미설정(null)로 정규화한다.
   if (participants !== undefined)
     updates.participants = participants && participants.trim() ? participants.trim() : null;
+  if (figmaUrl !== undefined) updates.figmaUrl = figmaUrl;
   if (visibility !== undefined) updates.visibility = visibility;
   if (password !== undefined)
     updates.accessPasswordHash = password === null ? null : hashPassword(password);

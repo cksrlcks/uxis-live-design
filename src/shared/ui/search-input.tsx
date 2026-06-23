@@ -51,9 +51,9 @@ export function SearchInput({
   }
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("group relative", className)}>
       <Search
-        className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
+        className="text-muted-foreground/70 group-focus-within:text-foreground pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 transition-colors"
         aria-hidden
       />
       <Input
@@ -62,16 +62,16 @@ export function SearchInput({
         onChange={(e) => handleChange(e.target.value)}
         placeholder={placeholder}
         aria-label={ariaLabel ?? placeholder}
-        className="h-9 pr-8 pl-8 [&::-webkit-search-cancel-button]:hidden"
+        className="bg-background h-10 rounded-lg pr-10 pl-10 text-sm transition-colors [&::-webkit-search-cancel-button]:hidden"
       />
       {inputValue && (
         <button
           type="button"
           onClick={handleClear}
           aria-label="검색어 지우기"
-          className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 transition-colors"
+          className="text-muted-foreground hover:bg-foreground/10 hover:text-foreground absolute top-1/2 right-2 grid size-6 -translate-y-1/2 place-items-center rounded-full transition-colors"
         >
-          <X className="size-4" />
+          <X className="size-3.5" />
         </button>
       )}
     </div>

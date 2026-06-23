@@ -4,13 +4,19 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
-import { ArrowUpRight, Copy } from "lucide-react";
+import { ArrowUpRight, Copy, MoreVertical, Pencil } from "lucide-react";
 import { proposalQueries } from "@/entities/proposal";
 import { PROPOSALS_PAGE_SIZE } from "@/entities/proposal/model/types";
 import { NewProposalDialog } from "@/features/create-proposal";
 import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 import {
   Pagination,
   PaginationContent,
@@ -27,6 +33,8 @@ import { PageHeader } from "@/widgets/studio-shell";
 
 const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-wide";
 const bodyCell = "px-5 py-3.5 align-middle";
+// 행 작업 드롭다운 — 기본 항목보다 여유 있게(패딩·간격) 보이도록 한다.
+const menuItem = "gap-2.5 px-2.5 py-2";
 
 // BFF JSON으로 넘어온 날짜는 문자열 — Date로 감싸 안전하게 포맷한다.
 function formatDate(value: string | Date) {
@@ -94,7 +102,7 @@ export function ProposalsListPage() {
       <div className="bg-card overflow-hidden rounded-xl border">
         <Table>
           <TableHeader>
-            <TableRow className="border-border/60 border-b hover:bg-transparent">
+            <TableRow className="bg-muted/50 border-border/60 border-b">
               <TableHead className={headCell}>제목</TableHead>
               <TableHead className={headCell}>참여자</TableHead>
               <TableHead className={headCell}>공개 ID</TableHead>
@@ -102,8 +110,9 @@ export function ProposalsListPage() {
               <TableHead className={headCell}>상태</TableHead>
               <TableHead className={cn(headCell, "whitespace-nowrap")}>작성일</TableHead>
               <TableHead className={cn(headCell, "whitespace-nowrap")}>최근수정일</TableHead>
-              <TableHead className={headCell}>복사</TableHead>
-              <TableHead className={headCell}>링크</TableHead>
+              <TableHead className={cn(headCell, "w-0")}>
+                <span className="sr-only">작업</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -135,17 +144,14 @@ export function ProposalsListPage() {
                     <Skeleton className="h-4 w-20" />
                   </TableCell>
                   <TableCell className={bodyCell}>
-                    <Skeleton className="ml-auto size-7 rounded-md" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="ml-auto h-4 w-16" />
+                    <Skeleton className="ml-auto size-7 rounded-full" />
                   </TableCell>
                 </TableRow>
               ))}
 
             {isError && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={9} className="text-destructive px-5 py-16 text-center">
+                <TableCell colSpan={8} className="text-destructive px-5 py-16 text-center">
                   목록을 불러오지 못했습니다.
                 </TableCell>
               </TableRow>
@@ -153,7 +159,7 @@ export function ProposalsListPage() {
 
             {rows?.length === 0 && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={9} className="px-5 py-16 text-center">
+                <TableCell colSpan={8} className="px-5 py-16 text-center">
                   {q ? (
                     <p className="text-muted-foreground text-sm">검색 결과가 없습니다.</p>
                   ) : (
@@ -232,38 +238,46 @@ export function ProposalsListPage() {
                     {formatDate(p.updatedAt)}
                   </TableCell>
                   <TableCell className={bodyCell}>
-                    <div className="flex items-center gap-x-4 gap-y-1">
-                      {links.map((l) => (
-                        <span key={l.key} className="inline-flex items-center gap-1">
-                          <span className="text-muted-foreground text-xs">{l.label}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={`${l.name} 복사`}
-                            title={`${l.name} 복사`}
-                            className="text-muted-foreground hover:text-foreground"
-                            onClick={() => copyViewerLink(l.path)}
-                          >
-                            <Copy />
-                          </Button>
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <div className="flex items-center gap-x-4 gap-y-1">
-                      {links.map((l) => (
-                        <Link
-                          key={l.key}
-                          href={l.path}
-                          target="_blank"
-                          title={`${l.name} 뷰어 열기`}
-                          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm transition-colors"
+                    <div className="flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          aria-label="작업 메뉴"
+                          className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-7 items-center justify-center rounded-full transition-colors"
                         >
-                          {l.label}
-                          <ArrowUpRight className="size-3.5" />
-                        </Link>
-                      ))}
+                          <MoreVertical className="size-4" aria-hidden />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52 p-1.5">
+                          <DropdownMenuItem
+                            className={menuItem}
+                            render={<Link href={`/studio/proposals/${p.id}`} />}
+                          >
+                            <Pencil />
+                            수정하기
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {links.map((l) => (
+                            <DropdownMenuItem
+                              key={`copy-${l.key}`}
+                              className={menuItem}
+                              onClick={() => copyViewerLink(l.path)}
+                            >
+                              <Copy />
+                              {l.name} 복사
+                            </DropdownMenuItem>
+                          ))}
+                          <DropdownMenuSeparator />
+                          {links.map((l) => (
+                            <DropdownMenuItem
+                              key={`open-${l.key}`}
+                              className={menuItem}
+                              render={<a href={l.path} target="_blank" rel="noreferrer" />}
+                            >
+                              <ArrowUpRight />
+                              {l.name} 열기
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </TableCell>
                 </TableRow>

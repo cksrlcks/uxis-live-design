@@ -21,6 +21,7 @@ export const proposals = pgTable("proposals", {
   domain: text("domain").unique(), // 사람이 읽는 공개 URL 식별자(슬러그). nullable: 기존 행 호환
   title: text("title").notNull(),
   participants: text("participants"), // 참여자 명단(쉼표 구분, nullable). 시안 검색 대상.
+  figmaUrl: text("figma_url"), // 원본 Figma 파일 링크(nullable).
   ownerId: uuid("owner_id").notNull(),
   visibility: text("visibility").notNull().default("private"), // 'private' | 'public'
   accessPasswordHash: text("access_password_hash"), // 'salt:hash' (scrypt), public+password only

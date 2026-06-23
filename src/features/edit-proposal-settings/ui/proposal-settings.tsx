@@ -1,13 +1,14 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Copy } from "lucide-react";
 import { toast } from "sonner";
 import { HttpError } from "@/shared/api/http";
-import { titleSchema, domainSchema } from "@/entities/proposal/model/create-schema";
+import { titleSchema, domainSchema, figmaUrlSchema } from "@/entities/proposal/model/create-schema";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
@@ -37,6 +38,9 @@ type ParticipantsValues = z.infer<typeof participantsFormSchema>;
 const domainFormSchema = z.object({ domain: domainSchema });
 type DomainValues = z.infer<typeof domainFormSchema>;
 
+const figmaFormSchema = z.object({ figmaUrl: figmaUrlSchema });
+type FigmaValues = z.infer<typeof figmaFormSchema>;
+
 type DomainCheck = { available: boolean; message: string };
 
 export function ProposalSettings({
@@ -44,6 +48,7 @@ export function ProposalSettings({
   title,
   participants,
   domain,
+  figmaUrl,
   visibility,
   hasPassword,
   whiteboardEnabled,
@@ -52,6 +57,7 @@ export function ProposalSettings({
   title: string;
   participants: string | null;
   domain: string | null;
+  figmaUrl: string | null;
   visibility: string;
   hasPassword: boolean;
   whiteboardEnabled: boolean;
@@ -84,6 +90,13 @@ export function ProposalSettings({
     resolver: zodResolver(domainFormSchema),
     defaultValues: { domain: domain ?? "" },
   });
+
+  const figmaForm = useForm<FigmaValues>({
+    resolver: zodResolver(figmaFormSchema),
+    defaultValues: { figmaUrl: figmaUrl ?? "" },
+  });
+  // 복사 버튼 활성/비활성을 입력값에 따라 갱신(React Compiler 안전한 구독).
+  const figmaValue = useWatch({ control: figmaForm.control, name: "figmaUrl" });
 
   const pending = updateSettings.isPending || deleteProposal.isPending;
 
@@ -148,6 +161,31 @@ export function ProposalSettings({
           ),
       },
     );
+  }
+
+  function onSetFigma({ figmaUrl: next }: FigmaValues) {
+    setError(null);
+    updateSettings.mutate(
+      { figmaUrl: next },
+      {
+        onSuccess: () => {
+          figmaForm.reset({ figmaUrl: next });
+          toast.success("저장했습니다");
+        },
+        onError: () => setError("변경에 실패했습니다."),
+      },
+    );
+  }
+
+  async function onCopyFigma() {
+    const url = figmaForm.getValues("figmaUrl").trim();
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("피그마 링크를 복사했습니다");
+    } catch {
+      toast.error("복사에 실패했습니다");
+    }
   }
 
   function change(input: Parameters<typeof updateSettings.mutate>[0]) {
@@ -349,6 +387,73 @@ export function ProposalSettings({
                     domainForm.reset({ domain: "" });
                     setDomainCheck(null);
                     change({ domain: null });
+                  }}
+                >
+                  해제
+                </Button>
+              )}
+              <Button type="submit" size="lg" disabled={pending}>
+                설정/변경
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+      </form>
+
+      {/* 피그마 링크 */}
+      <form onSubmit={figmaForm.handleSubmit(onSetFigma)}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              피그마 링크
+              {figmaUrl && (
+                <Badge variant="neutral" size="sm">
+                  설정됨
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription>원본 Figma 파일 링크를 연결합니다.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex max-w-md gap-2">
+              <Input
+                type="url"
+                inputMode="url"
+                aria-label="피그마 링크"
+                placeholder="https://www.figma.com/design/..."
+                className="h-9"
+                {...figmaForm.register("figmaUrl")}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-lg"
+                aria-label="피그마 링크 복사"
+                className="shrink-0"
+                disabled={!figmaValue?.trim()}
+                onClick={onCopyFigma}
+              >
+                <Copy />
+              </Button>
+            </div>
+            {figmaForm.formState.errors.figmaUrl && (
+              <p className="text-destructive text-sm">
+                {figmaForm.formState.errors.figmaUrl.message}
+              </p>
+            )}
+          </CardContent>
+          <CardFooter>
+            <p className="text-muted-foreground text-sm">figma.com 주소만 입력할 수 있습니다.</p>
+            <div className="ml-auto flex gap-1">
+              {figmaUrl && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  disabled={pending}
+                  onClick={() => {
+                    figmaForm.reset({ figmaUrl: "" });
+                    change({ figmaUrl: null });
                   }}
                 >
                   해제

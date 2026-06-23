@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { domainSchema } from "./create-schema";
+import { domainSchema, figmaUrlSchema } from "./create-schema";
 
 export const updateSettingsSchema = z
   .object({
@@ -12,6 +12,8 @@ export const updateSettingsSchema = z
     whiteboardEnabled: z.boolean().optional(),
     // 참여자 명단(자유 문자열). 문자열로 설정/변경, null로 해제. Absent = unchanged.
     participants: z.union([z.string().trim(), z.null()]).optional(),
+    // Figma 링크. URL로 설정/변경, null로 해제. Absent = unchanged.
+    figmaUrl: z.union([figmaUrlSchema, z.null()]).optional(),
   })
   .refine(
     (v) =>
@@ -20,7 +22,8 @@ export const updateSettingsSchema = z
       v.password !== undefined ||
       v.domain !== undefined ||
       v.whiteboardEnabled !== undefined ||
-      v.participants !== undefined,
+      v.participants !== undefined ||
+      v.figmaUrl !== undefined,
     { message: "변경할 항목이 없습니다" },
   );
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;

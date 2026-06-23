@@ -17,6 +17,19 @@ export const domainSchema = z
     "소문자·숫자·하이픈만 사용할 수 있으며 하이픈으로 시작하거나 끝날 수 없습니다",
   );
 
+// Figma 링크: 유효한 URL이며 figma.com 도메인이어야 한다.
+export const figmaUrlSchema = z
+  .string()
+  .trim()
+  .url("올바른 URL을 입력하세요")
+  .refine((u) => {
+    try {
+      return new URL(u).hostname.endsWith("figma.com");
+    } catch {
+      return false;
+    }
+  }, "figma.com 링크를 입력하세요");
+
 export const fileMetaSchema = z.object({
   contentType: z
     .string()

@@ -139,6 +139,30 @@
   html {
     @apply font-sans;
   }
+  /* Tailwind v4 Preflight는 버튼의 cursor:pointer 기본값을 제거한다.
+     클릭 요소마다 cursor-pointer를 붙이지 않도록 전역 복원(비활성 제외). */
+  button:not(:disabled):not([aria-disabled="true"]),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
+/* Sonner는 런타임에 __insertCSS로 "레이어 없는" <style>을 head에 주입하며
+   [data-sonner-toaster]에 자체 font-family를 지정한다. CSS 캐스케이드 규칙상
+   unlayered 스타일이 @layer보다 우선하므로, 이 override도 반드시 레이어 밖에
+   두어야 한다(@layer base 안에 두면 specificity와 무관하게 sonner에 진다).
+   .toaster 결합으로 specificity(0,2,0)를 sonner의 [data-sonner-toaster](0,1,0)보다 높인다.
+   @theme inline 탓에 --font-sans는 :root에 등록되지 않으므로 next/font가
+   <html>에 실제로 주입하는 --font-pretendard를 직접 참조한다. */
+[data-sonner-toaster].toaster {
+  font-family: var(--font-pretendard), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+/* sonner 기본 토스트 폰트는 13px. 제목/본문이 토스트의 font-size를 상속하므로
+   여기서 키운다. sonner의 [data-sonner-toast][data-styled=true](0,2,0)보다
+   높은 specificity가 필요해 .cn-toast(toastOptions로 주입한 클래스)를 결합. */
+[data-sonner-toast][data-styled="true"].cn-toast {
+  font-size: 14px;
 }
 
 /* Layered drop shadow — design-system §5 elevation level 2 (brand signature).
