@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import Link from "next/link";
 import { HttpError } from "@/shared/api/http";
 import { isSafeInternalPath } from "@/shared/lib/safe-redirect";
 import { Button } from "@/shared/ui/button";
@@ -68,6 +69,14 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
           {...register("password")}
         />
         {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
+      </div>
+      <div className="flex justify-end">
+        <Link
+          href="/forgot-password"
+          className="text-muted-foreground text-sm underline-offset-4 hover:underline"
+        >
+          비밀번호를 잊으셨나요?
+        </Link>
       </div>
       {formError && <p className="text-destructive text-sm">{formError}</p>}
       <Button

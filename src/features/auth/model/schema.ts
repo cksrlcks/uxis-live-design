@@ -18,3 +18,19 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8, "비밀번호는 8자 이상이어야 합니다"),
 });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.email("올바른 이메일을 입력하세요"),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z.string().min(8, "비밀번호는 8자 이상이어야 합니다"),
+    confirmPassword: z.string().min(1, "비밀번호 확인을 입력하세요"),
+  })
+  .refine((v) => v.newPassword === v.confirmPassword, {
+    message: "비밀번호가 일치하지 않습니다",
+    path: ["confirmPassword"],
+  });
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
