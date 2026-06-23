@@ -16,6 +16,10 @@ import { pinElementId } from "../lib/format";
 import { computeFitScale } from "../lib/fit-zoom";
 import { cn } from "@/shared/lib/utils";
 
+// 화이트보드(그리기) 기능은 DB 쓰기 부담으로 현재 비활성화. 진입 버튼·표시 토글·레이어를
+// 모두 이 플래그로 숨긴다. 코드는 남겨두므로 다시 켜려면 true로 바꾸면 된다.
+const WHITEBOARD_ENABLED: boolean = false;
+
 export function CanvasView({
   pages,
   pin,
@@ -115,7 +119,7 @@ export function CanvasView({
               className={cn(
                 "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
                 mode === "pan"
-                  ? "bg-white text-foreground shadow-sm"
+                  ? "text-foreground bg-white shadow-sm"
                   : "text-white/60 hover:bg-white/10 hover:text-white",
               )}
             >
@@ -128,49 +132,53 @@ export function CanvasView({
               className={cn(
                 "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
                 mode === "comment"
-                  ? "bg-white text-foreground shadow-sm"
+                  ? "text-foreground bg-white shadow-sm"
                   : "text-white/60 hover:bg-white/10 hover:text-white",
               )}
             >
               <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
               코멘트
             </button>
-            <button
-              type="button"
-              // 그리기에 진입하면 숨김 상태였더라도 그림을 다시 보이게 한다(숨긴 채 그리는 혼란 방지).
-              onClick={() => {
-                setMode("draw");
-                setStrokesVisible(true);
-              }}
-              className={cn(
-                "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
-                mode === "draw"
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-white/60 hover:bg-white/10 hover:text-white",
-              )}
-            >
-              <Pen className="h-3.5 w-3.5" aria-hidden="true" />
-              그리기
-            </button>
-            <button
-              type="button"
-              onClick={() => setStrokesVisible((v) => !v)}
-              aria-pressed={!strokesVisible}
-              title={strokesVisible ? "화이트보드 숨기기" : "화이트보드 보이기"}
-              className={cn(
-                "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
-                !strokesVisible
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-white/60 hover:bg-white/10 hover:text-white",
-              )}
-            >
-              {strokesVisible ? (
-                <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-              ) : (
-                <EyeOff className="h-3.5 w-3.5" aria-hidden="true" />
-              )}
-              화이트보드
-            </button>
+            {WHITEBOARD_ENABLED && (
+              <>
+                <button
+                  type="button"
+                  // 그리기에 진입하면 숨김 상태였더라도 그림을 다시 보이게 한다(숨긴 채 그리는 혼란 방지).
+                  onClick={() => {
+                    setMode("draw");
+                    setStrokesVisible(true);
+                  }}
+                  className={cn(
+                    "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
+                    mode === "draw"
+                      ? "text-foreground bg-white shadow-sm"
+                      : "text-white/60 hover:bg-white/10 hover:text-white",
+                  )}
+                >
+                  <Pen className="h-3.5 w-3.5" aria-hidden="true" />
+                  그리기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStrokesVisible((v) => !v)}
+                  aria-pressed={!strokesVisible}
+                  title={strokesVisible ? "화이트보드 숨기기" : "화이트보드 보이기"}
+                  className={cn(
+                    "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
+                    !strokesVisible
+                      ? "text-foreground bg-white shadow-sm"
+                      : "text-white/60 hover:bg-white/10 hover:text-white",
+                  )}
+                >
+                  {strokesVisible ? (
+                    <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                  ) : (
+                    <EyeOff className="h-3.5 w-3.5" aria-hidden="true" />
+                  )}
+                  화이트보드
+                </button>
+              </>
+            )}
 
             <span className="mx-0.5 h-5 w-px bg-white/15" aria-hidden="true" />
 
@@ -181,7 +189,7 @@ export function CanvasView({
               className={cn(
                 "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
                 listOpen
-                  ? "bg-white text-foreground shadow-sm"
+                  ? "text-foreground bg-white shadow-sm"
                   : "text-white/60 hover:bg-white/10 hover:text-white",
               )}
             >
@@ -256,7 +264,7 @@ export function CanvasView({
                 onSelectId={setSelectedPinId}
               />
             )}
-            {pin && (
+            {WHITEBOARD_ENABLED && pin && (
               <WhiteboardLayer
                 contentRef={contentRef}
                 pages={pages}
