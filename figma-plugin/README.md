@@ -44,7 +44,8 @@ npm run watch      # 개발 중 자동 컴파일
 
 - `manifest.json` 의 `networkAccess.allowedDomains` 가 개발 편의상 `"*"` 다.
   **배포 전 실제 운영 도메인으로 좁힐 것.** localhost는 `devAllowedDomains` 로 따로 허용돼 있다.
-- 퍼블리시(스토어 등록) 시 Figma가 `manifest.json` 에 `id` 를 부여한다(현재는 개발용이라 생략).
+- `manifest.json` 의 `id` 는 **개발용 임시값**이다. 이 값이 없으면 `figma.clientStorage` 가
+  로컬에 저장되지 않아 닫으면 로그인이 풀린다. 퍼블리시 시 Figma가 정식 `id` 를 부여한다.
 
 ## 다음 단계
 
