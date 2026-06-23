@@ -5,7 +5,7 @@
 // 메인은 figma API(선택 export, clientStorage)만 담당하고 UI와는 postMessage 로만 통신한다.
 
 const SESSION_KEY = "cova.session";
-const EXPORT_SCALE = 2; // 2x PNG(레티나). 아주 큰 프레임은 백엔드 25MB 제한에 걸릴 수 있다.
+const EXPORT_SCALE = 1; // 1x PNG. 아주 큰 프레임은 백엔드 25MB 제한에 걸릴 수 있다.
 
 // UI 가 메인에 보내는 메시지 형태.
 type UiMessage =
@@ -13,6 +13,7 @@ type UiMessage =
   | { type: "save-session"; session: unknown }
   | { type: "clear-session" }
   | { type: "export-selection" }
+  | { type: "open-url"; url: string }
   | { type: "notify"; message: string; error?: boolean }
   | { type: "close" };
 
@@ -75,6 +76,9 @@ figma.ui.onmessage = async (msg: UiMessage) => {
       }
       break;
     }
+    case "open-url":
+      figma.openExternal(msg.url);
+      break;
     case "notify":
       figma.notify(msg.message, { error: msg.error });
       break;

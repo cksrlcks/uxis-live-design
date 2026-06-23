@@ -84,10 +84,11 @@
       .item .meta { color: var(--text-dim); font-size: 11px; margin-top: 2px; }
       .empty, .loading { color: var(--text-dim); text-align: center; padding: 24px 0; }
 
-      .status {
-        padding: 8px 12px; border-top: 1px solid var(--border);
-        font-size: 11px; color: var(--text-dim); min-height: 30px;
+      .statusbar {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-top: 1px solid var(--border); min-height: 30px;
       }
+      .status { flex: 1; font-size: 11px; color: var(--text-dim); }
       .status.err { color: var(--danger); }
       .status.ok { color: var(--ok); }
     </style>
@@ -143,7 +144,10 @@
         <div id="list"></div>
       </div>
 
-      <div class="status" id="status"></div>
+      <div class="statusbar">
+        <div class="status" id="status"></div>
+        <button class="sm hidden" id="openBtn">관리화면 열기 ↗</button>
+      </div>
     </section>
 
     <script>
@@ -168,6 +172,7 @@
       var busy = false;
       var listLoaded = false;
       var pendingExport = null;
+      var lastProposalId = null; // 업로드 성공 후 "관리화면 열기" 대상
 
       // ---- 메시지/코드 ----
       var MSG = {
@@ -294,6 +299,7 @@
       async function runUpload(label, fn) {
         if (busy) return;
         busy = true;
+        hideOpen();
         updateControls();
         setStatus(label + " — 프레임 내보내는 중…");
         try {
@@ -332,6 +338,7 @@
           toMain({ type: "notify", message: "새 시안 “" + title + "” 생성됨" });
           $("title").value = "";
           listLoaded = false; // 다음에 기존 탭 열면 새로고침
+          showOpen(created.proposalId);
         });
       }
 
@@ -358,6 +365,7 @@
             true,
           );
           toMain({ type: "notify", message: "“" + title + "” v" + ver.versionNo + " 업로드됨" });
+          showOpen(proposalId);
         });
       }
 
@@ -450,6 +458,13 @@
         el.textContent = text;
         el.className = "status ok";
       }
+      function showOpen(proposalId) {
+        lastProposalId = proposalId;
+        $("openBtn").classList.toggle("hidden", !proposalId);
+      }
+      function hideOpen() {
+        $("openBtn").classList.add("hidden");
+      }
       function switchTab(which) {
         $("tabNewBtn").classList.toggle("active", which === "new");
         $("tabExistingBtn").classList.toggle("active", which === "existing");
@@ -497,6 +512,7 @@
         $("list").innerHTML = "";
         $("count").textContent = "";
         setStatus("");
+        hideOpen();
         showLogin();
       }
 
@@ -513,6 +529,10 @@
         switchTab("existing");
       });
       $("createBtn").addEventListener("click", createNewProposal);
+      $("openBtn").addEventListener("click", function () {
+        if (lastProposalId)
+          toMain({ type: "open-url", url: joinUrl(API_BASE, "/studio/proposals/" + lastProposalId) });
+      });
       $("title").addEventListener("input", updateControls);
       $("refreshBtn").addEventListener("click", loadProposals);
       $("search").addEventListener("input", function () {
