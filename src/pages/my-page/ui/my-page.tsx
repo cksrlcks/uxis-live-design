@@ -1,3 +1,5 @@
+import { EditNameDialog } from "@/features/auth";
+
 type MyPageProps = {
   displayName: string | null;
   email: string;
@@ -6,7 +8,6 @@ type MyPageProps = {
 
 // 카드 내부 콘텐츠 — 페이지 셸(배경·카드)은 AccountPage가 담당한다.
 export function MyPage({ displayName, email, createdAt }: MyPageProps) {
-  const name = displayName ?? "사용자";
   const initial = (displayName ?? email).charAt(0).toUpperCase();
   const joined = createdAt
     ? new Date(createdAt).toLocaleDateString("ko-KR", {
@@ -24,7 +25,7 @@ export function MyPage({ displayName, email, createdAt }: MyPageProps) {
       >
         {initial}
       </span>
-      <p className="mt-4 text-lg font-semibold tracking-tight">{name}</p>
+      <EditNameDialog displayName={displayName} />
       <p className="text-muted-foreground mt-0.5 truncate text-sm">{email}</p>
       <p className="text-muted-foreground mt-1 text-xs">가입일 {joined}</p>
     </div>
