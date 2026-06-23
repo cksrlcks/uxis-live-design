@@ -95,6 +95,19 @@
       #addVariantBtn { width: 100%; margin-top: 4px; background: transparent; color: var(--brand); border: 1px dashed var(--border); }
       #addVariantBtn:hover:not(:disabled) { border-color: var(--brand); }
 
+      .hint { color: var(--text-dim); font-size: 11px; margin-bottom: 8px; }
+      .page {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;
+      }
+      .page img {
+        width: 44px; height: 44px; object-fit: cover; border-radius: 4px;
+        background: var(--bg2); flex: none;
+      }
+      .page .info { flex: 1; min-width: 0; }
+      .page .info .title { font-weight: 600; }
+      .page .info .meta { color: var(--text-dim); font-size: 11px; }
+
       .statusbar {
         display: flex; align-items: center; gap: 8px;
         padding: 8px 12px; border-top: 1px solid var(--border); min-height: 30px;
@@ -165,6 +178,15 @@
           <div id="variants"></div>
           <button class="sm needsSel" id="addVariantBtn" disabled>＋ 새 안 추가 (선택 프레임)</button>
         </div>
+        <!-- 안 상세: 페이지(이미지) 목록 -->
+        <div id="pagesView" class="hidden">
+          <div class="detailhead">
+            <button class="ghost sm" id="pagesBackBtn">← 안 목록</button>
+            <div class="detailtitle" id="pagesTitle"></div>
+          </div>
+          <div class="hint">교체는 캔버스에서 선택한 첫 프레임을 사용합니다.</div>
+          <div id="pages"></div>
+        </div>
       </div>
 
       <div class="statusbar">
@@ -197,6 +219,7 @@
       var pendingExport = null;
       var lastProposalId = null; // 업로드 성공 후 "관리화면 열기" 대상
       var currentDetail = null; // { proposalId, title } — 상세(안 목록) 화면 대상
+      var currentPages = null; // { proposalId, variantId, versionId, label } — 페이지 화면 대상
 
       // ---- 메시지/코드 ----
       var MSG = {
@@ -299,26 +322,28 @@
           };
         });
       }
-      // 각 이미지를 서명 URL(절대 URL, 토큰 포함)로 Supabase 에 직접 PUT.
+      // 이미지를 서명 URL(절대 URL, 토큰 포함)로 Supabase 에 직접 PUT.
+      async function putToSignedUrl(signedUrl, img) {
+        var res;
+        try {
+          res = await fetch(signedUrl, {
+            method: "PUT",
+            headers: {
+              "content-type": img.contentType,
+              "cache-control": "max-age=3600",
+              "x-upsert": "false",
+            },
+            body: img.bytes,
+          });
+        } catch (e) {
+          throw new Error("UPLOAD_NETWORK");
+        }
+        if (!res.ok) throw new Error("UPLOAD_FAILED");
+      }
       async function uploadAll(uploads, images) {
         for (var i = 0; i < uploads.length; i++) {
           setStatus("업로드 중 " + (i + 1) + "/" + uploads.length + "…");
-          var img = images[i];
-          var res;
-          try {
-            res = await fetch(uploads[i].signedUrl, {
-              method: "PUT",
-              headers: {
-                "content-type": img.contentType,
-                "cache-control": "max-age=3600",
-                "x-upsert": "false",
-              },
-              body: img.bytes,
-            });
-          } catch (e) {
-            throw new Error("UPLOAD_NETWORK");
-          }
-          if (!res.ok) throw new Error("UPLOAD_FAILED");
+          await putToSignedUrl(uploads[i].signedUrl, images[i]);
         }
       }
 
@@ -471,6 +496,7 @@
       function switchExistingView(which) {
         $("listView").classList.toggle("hidden", which !== "list");
         $("detailView").classList.toggle("hidden", which !== "detail");
+        $("pagesView").classList.toggle("hidden", which !== "pages");
       }
       async function openDetail(proposalId, title) {
         currentDetail = { proposalId: proposalId, title: title };
@@ -500,7 +526,7 @@
         variants.forEach(function (v) {
           var label = v.label || v.slug || "?";
           var row = document.createElement("div");
-          row.className = "item";
+          row.className = "item clickable";
           var info = document.createElement("div");
           info.className = "info";
           var t = document.createElement("div");
@@ -508,19 +534,124 @@
           t.textContent = "안 " + label;
           var m = document.createElement("div");
           m.className = "meta";
-          m.textContent = (v.versions ? v.versions.length : 0) + "개 버전";
+          var pageCount = v.pages ? v.pages.length : 0;
+          m.textContent = (v.versions ? v.versions.length : 0) + "개 버전 · 현재 " + pageCount + "장";
           info.appendChild(t);
           info.appendChild(m);
           var btn = document.createElement("button");
           btn.className = "sm needsSel";
           btn.textContent = "새 버전";
           btn.disabled = busy || selectionCount === 0;
-          btn.addEventListener("click", function () {
+          btn.addEventListener("click", function (e) {
+            e.stopPropagation();
             addVersionToVariant(currentDetail.proposalId, v.id, label);
           });
+          var chev = document.createElement("div");
+          chev.className = "chev";
+          chev.textContent = "›";
+          row.appendChild(info);
+          row.appendChild(btn);
+          row.appendChild(chev);
+          row.addEventListener("click", function () {
+            openPages(v.id);
+          });
+          c.appendChild(row);
+        });
+      }
+
+      // ---- 안 상세: 페이지(이미지) 목록 + 낱개 교체 ----
+      async function openPages(variantId) {
+        currentPages = {
+          proposalId: currentDetail.proposalId,
+          variantId: variantId,
+          versionId: null,
+          label: null,
+        };
+        $("pagesTitle").textContent = "페이지";
+        $("pages").innerHTML = '<div class="loading">불러오는 중…</div>';
+        switchExistingView("pages");
+        await loadPages();
+      }
+      async function loadPages() {
+        try {
+          var detail = await api("/api/plugin/proposals/" + currentPages.proposalId, {}, true);
+          var v = (detail.variants || []).filter(function (x) {
+            return x.id === currentPages.variantId;
+          })[0];
+          if (!v) {
+            $("pages").innerHTML = '<div class="empty">안을 찾을 수 없습니다.</div>';
+            return;
+          }
+          currentPages.versionId = v.currentVersionId;
+          currentPages.label = v.label || v.slug || "?";
+          $("pagesTitle").textContent = "안 " + currentPages.label + " · 현재 버전";
+          renderPages(v.pages || []);
+        } catch (e) {
+          $("pages").innerHTML = '<div class="empty">' + humanize(e.message) + "</div>";
+        }
+      }
+      async function refreshPages() {
+        if (currentPages) await loadPages();
+      }
+      function renderPages(pages) {
+        var c = $("pages");
+        c.innerHTML = "";
+        if (!pages.length) {
+          c.innerHTML = '<div class="empty">이미지가 없습니다.</div>';
+          return;
+        }
+        pages.forEach(function (p, idx) {
+          var row = document.createElement("div");
+          row.className = "page";
+          var img = document.createElement("img");
+          if (p.url) img.src = p.url;
+          img.onerror = function () {
+            img.style.visibility = "hidden";
+          };
+          var info = document.createElement("div");
+          info.className = "info";
+          var t = document.createElement("div");
+          t.className = "title";
+          t.textContent = idx + 1 + "페이지";
+          var m = document.createElement("div");
+          m.className = "meta";
+          m.textContent = (p.width || "?") + " × " + (p.height || "?");
+          info.appendChild(t);
+          info.appendChild(m);
+          var btn = document.createElement("button");
+          btn.className = "sm needsSel";
+          btn.textContent = "교체";
+          btn.disabled = busy || selectionCount === 0;
+          btn.addEventListener("click", function () {
+            replacePage(p.id, idx + 1);
+          });
+          row.appendChild(img);
           row.appendChild(info);
           row.appendChild(btn);
           c.appendChild(row);
+        });
+      }
+
+      // 페이지 이미지 낱개 교체 — 선택한 첫 프레임을 사용한다.
+      async function replacePage(pageId, ordinal) {
+        await runUpload(ordinal + "페이지 교체", async function (images) {
+          var img = images[0];
+          if (!img) throw new Error("NO_SELECTION");
+          var base = pagesPath(currentPages.proposalId, currentPages.variantId, currentPages.versionId);
+          var issued = await api(
+            base + "/" + pageId + "/replace",
+            { method: "POST", body: JSON.stringify({ contentType: img.contentType, size: img.bytes.byteLength }) },
+            true,
+          );
+          await putToSignedUrl(issued.signedUrl, img);
+          await api(
+            base + "/" + pageId,
+            { method: "PUT", body: JSON.stringify({ path: issued.path, width: img.width, height: img.height }) },
+            true,
+          );
+          toMain({ type: "notify", message: ordinal + "페이지 교체됨" });
+          showOpen(currentPages.proposalId);
+          await refreshPages();
         });
       }
 
@@ -614,6 +745,7 @@
         persist();
         listLoaded = false;
         currentDetail = null;
+        currentPages = null;
         switchExistingView("list");
         $("list").innerHTML = "";
         $("count").textContent = "";
@@ -644,6 +776,10 @@
       $("backBtn").addEventListener("click", function () {
         currentDetail = null;
         switchExistingView("list");
+      });
+      $("pagesBackBtn").addEventListener("click", function () {
+        currentPages = null;
+        switchExistingView("detail");
       });
       $("addVariantBtn").addEventListener("click", function () {
         if (currentDetail) addVariantToProposal(currentDetail.proposalId);
