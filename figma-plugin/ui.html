@@ -114,8 +114,9 @@
         flex: 1; background: none; color: var(--muted-foreground); font-weight: 500; font-size: 14px;
         border: 0; border-bottom: 2px solid transparent; border-radius: 0; height: 48px;
       }
-      .tabs button:hover:not(.active) { color: var(--foreground); background: none; }
-      .tabs button:active { background: var(--muted); transform: none; }
+      .tabs button:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
+      .tabs button:active:not(:disabled) { background: var(--muted); transform: none; }
+      .tabs button:focus-visible { box-shadow: none; }
       .tabs button.active { color: var(--foreground); border-bottom-color: var(--foreground); }
 
       .view { flex: 1; overflow: auto; padding: 18px; }
