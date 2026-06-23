@@ -7,22 +7,17 @@ vi.mock("@/shared/supabase/server", () => ({
   createSupabaseServer: vi.fn(async () => ({ auth: { getUser } })),
 }));
 
-vi.mock("@/shared/db", () => {
+// db.update(...).set(...).where(...) 체인 mock. vi.mock은 import 위로 호이스팅되고
+// factory가 update를 즉시 참조하므로, 호이스트 시점에 먼저 초기화되는 vi.hoisted로 만든다.
+const { update, set, where } = vi.hoisted(() => {
   const where = vi.fn(async () => undefined);
   const set = vi.fn(() => ({ where }));
   const update = vi.fn(() => ({ set }));
-  return {
-    db: { update },
-    __where: where,
-    __set: set,
-    __update: update,
-  };
+  return { update, set, where };
 });
+vi.mock("@/shared/db", () => ({ db: { update } }));
 
 import { updateDisplayName } from "@/features/auth/api/auth.server";
-import * as dbModule from "@/shared/db";
-
-const { __update: update, __set: set, __where: where } = dbModule as any;
 
 beforeEach(() => {
   vi.clearAllMocks();
