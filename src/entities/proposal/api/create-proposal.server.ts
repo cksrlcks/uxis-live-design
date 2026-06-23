@@ -40,9 +40,15 @@ export async function createProposal(input: unknown) {
     sortOrder: 0,
     createdBy: editor.id,
   });
+  // 순환 FK(version.variantId ↔ variant.currentVersionId) 때문에 안→버전 순으로
+  // 삽입한 뒤 currentVersionId를 채운다. 비우면 뷰어 목록이 빈 안으로 보인다.
   await db
     .insert(proposalVersions)
     .values({ id: versionId, variantId, versionNo: 1, createdBy: editor.id });
+  await db
+    .update(proposalVariants)
+    .set({ currentVersionId: versionId })
+    .where(eq(proposalVariants.id, variantId));
 
   const uploads = [];
   for (let i = 0; i < files.length; i++) {
