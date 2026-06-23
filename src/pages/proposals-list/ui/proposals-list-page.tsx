@@ -175,7 +175,7 @@ export function ProposalsListPage() {
                   </TableCell>
                   <TableCell className={cn(bodyCell, "text-right")}>
                     <Link
-                      href={`/p/${p.publicId}`}
+                      href={`/p/${p.domain ?? p.publicId}`}
                       target="_blank"
                       className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm transition-colors"
                     >
