@@ -43,8 +43,8 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2.5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="space-y-3">
         <Label htmlFor="newPassword" className="text-muted-foreground font-normal">
           새 비밀번호
         </Label>
@@ -59,7 +59,7 @@ export function ResetPasswordForm() {
           <p className="text-destructive text-sm">{errors.newPassword.message}</p>
         )}
       </div>
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         <Label htmlFor="confirmPassword" className="text-muted-foreground font-normal">
           새 비밀번호 확인
         </Label>

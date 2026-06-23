@@ -21,7 +21,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
 
           <div className="mt-8">{children}</div>
 
-          <div className="text-muted-foreground mt-6 text-sm">{footer}</div>
+          <div className="text-muted-foreground mt-6 text-sm text-center">{footer}</div>
         </div>
       </div>
 

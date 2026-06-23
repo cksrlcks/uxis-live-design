@@ -44,15 +44,15 @@ export function SignupForm({ returnTo }: { returnTo?: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2.5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div className="space-y-3">
         <Label htmlFor="name" className="text-muted-foreground font-normal">
           이름
         </Label>
         <Input id="name" type="text" className="h-12 rounded-lg px-4" {...register("name")} />
         {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
       </div>
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         <Label htmlFor="email" className="text-muted-foreground font-normal">
           이메일
         </Label>
@@ -65,7 +65,7 @@ export function SignupForm({ returnTo }: { returnTo?: string }) {
         />
         {errors.email && <p className="text-destructive text-sm">{errors.email.message}</p>}
       </div>
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         <Label htmlFor="password" className="text-muted-foreground font-normal">
           비밀번호
         </Label>
