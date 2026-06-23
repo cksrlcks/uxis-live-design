@@ -39,6 +39,20 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
+// 구글 OAuth 동의 화면 URL을 만든다. PKCE code-verifier 쿠키는 서버 클라이언트의
+// 쿠키 어댑터가 응답에 심고(skipBrowserRedirect로 즉시 리다이렉트는 막음), 호출한
+// 라우트가 반환된 url로 직접 redirect한다. 착지점은 /auth/callback?next=...이다.
+export async function getGoogleOAuthUrl(next: string): Promise<string> {
+  const supabase = await createSupabaseServer();
+  const redirectTo = `${await resolveOrigin()}/auth/callback?next=${encodeURIComponent(next)}`;
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo, skipBrowserRedirect: true },
+  });
+  if (error || !data.url) throw new Error("OAUTH_INIT_FAILED");
+  return data.url;
+}
+
 // 이메일 재설정 링크의 베이스 URL. 요청 Origin을 우선 쓰고(로컬·운영 무관), 없으면
 // Host 헤더, 마지막으로 NEXT_PUBLIC_SITE_URL로 폴백한다.
 async function resolveOrigin(): Promise<string> {
