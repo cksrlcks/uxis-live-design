@@ -8,6 +8,6 @@
   "networkAccess": {
     "allowedDomains": ["*"],
     "reasoning": "cova API 연결 (개발 중). 배포 전 실제 운영 도메인으로 좁힐 것.",
-    "devAllowedDomains": ["http://localhost:3000", "http://127.0.0.1:3000"]
+    "devAllowedDomains": ["http://localhost:3000"]
   }
 }
