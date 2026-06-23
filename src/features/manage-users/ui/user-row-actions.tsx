@@ -28,7 +28,7 @@ export function UserRowActions({ id, role }: { id: string; role: Role }) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col gap-1">
       <Select
         items={ROLE_OPTIONS}
         value={role}

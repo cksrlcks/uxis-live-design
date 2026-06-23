@@ -10,7 +10,7 @@ const badgeVariants = cva(
     variants: {
       size: {
         sm: "h-5 px-2 py-0.5 text-xs",
-        md: "px-3 py-1 text-[13px] font-semibold",
+        md: "px-3 py-1 text-xs font-semibold",
       },
       variant: {
         default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
@@ -20,15 +20,14 @@ const badgeVariants = cva(
         outline: "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost: "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
-        // Semantic soft pills (GitGuardian-style status/severity) — light tint
-        // background + readable same-hue text. Light hues are darkened for contrast.
-        info: "border-transparent bg-info/10 text-info",
-        success:
-          "border-transparent bg-success/15 text-[color-mix(in_oklab,var(--color-success),#000_30%)]",
-        warning:
-          "border-transparent bg-warning/15 text-[color-mix(in_oklab,var(--color-warning),#000_32%)]",
-        error: "border-transparent bg-destructive/10 text-destructive",
-        neutral: "border-border bg-muted text-muted-foreground",
+        // Semantic status/severity pills — solid fill + white text for high
+        // visibility. Refined Tailwind 600~700 tones (white stays legible on all).
+        info: "border-transparent bg-[#2563eb] text-white",
+        success: "border-transparent bg-[#16a34a] text-white",
+        warning: "border-transparent bg-[#c2410c] text-white",
+        error: "border-transparent bg-[#dc2626] text-white",
+        purple: "border-transparent bg-[#7c3aed] text-white",
+        neutral: "border-transparent bg-[#334155] text-white",
       },
     },
     defaultVariants: {

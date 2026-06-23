@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, useQueryState } from "nuqs";
-import { ArrowUpRight } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowUpRight, Copy } from "lucide-react";
 import { proposalQueries } from "@/entities/proposal";
 import { PROPOSALS_PAGE_SIZE } from "@/entities/proposal/model/types";
 import { NewProposalDialog } from "@/features/create-proposal";
 import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -32,6 +34,16 @@ function formatDate(value: string | Date) {
     month: "2-digit",
     day: "2-digit",
   });
+}
+
+// 공개 뷰어 경로(path)를 현재 origin과 합쳐 절대 URL로 클립보드에 복사한다.
+async function copyViewerLink(path: string) {
+  try {
+    await navigator.clipboard.writeText(`${window.location.origin}${path}`);
+    toast.success("시안 링크를 복사했습니다");
+  } catch {
+    toast.error("복사에 실패했습니다");
+  }
 }
 
 // 번호 페이지네이션 항목 — 1, 2, …, current-1, current, current+1, …, last.
@@ -71,7 +83,8 @@ export function ProposalsListPage() {
               <TableHead className={headCell}>상태</TableHead>
               <TableHead className={cn(headCell, "whitespace-nowrap")}>작성일</TableHead>
               <TableHead className={cn(headCell, "whitespace-nowrap")}>최근수정일</TableHead>
-              <TableHead className={cn(headCell, "text-right")}>링크</TableHead>
+              <TableHead className={headCell}>복사</TableHead>
+              <TableHead className={headCell}>링크</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -99,7 +112,10 @@ export function ProposalsListPage() {
                   <TableCell className={bodyCell}>
                     <Skeleton className="h-4 w-20" />
                   </TableCell>
-                  <TableCell className={cn(bodyCell, "text-right")}>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="ml-auto size-7 rounded-md" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
                     <Skeleton className="ml-auto h-4 w-16" />
                   </TableCell>
                 </TableRow>
@@ -107,7 +123,7 @@ export function ProposalsListPage() {
 
             {isError && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={7} className="text-destructive px-5 py-16 text-center">
+                <TableCell colSpan={8} className="text-destructive px-5 py-16 text-center">
                   목록을 불러오지 못했습니다.
                 </TableCell>
               </TableRow>
@@ -115,7 +131,7 @@ export function ProposalsListPage() {
 
             {rows?.length === 0 && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={7} className="px-5 py-16 text-center">
+                <TableCell colSpan={8} className="px-5 py-16 text-center">
                   <p className="text-muted-foreground mb-4 text-sm">아직 시안이 없습니다.</p>
                   <NewProposalDialog />
                 </TableCell>
@@ -125,6 +141,13 @@ export function ProposalsListPage() {
             {rows?.map((p) => {
               const isPublic = p.visibility === "public";
               const hasPassword = isPublic && !!p.accessPasswordHash;
+              // 시안 공개 링크 — 공개ID는 항상, 커스텀 도메인은 지정된 경우에만(최대 2개).
+              const links = [
+                { key: "id", label: "ID", name: "공개ID 링크", path: `/p/${p.publicId}` },
+                ...(p.domain
+                  ? [{ key: "domain", label: "도메인", name: "도메인 링크", path: `/p/${p.domain}` }]
+                  : []),
+              ];
               return (
                 <TableRow key={p.id} className="border-border/60 border-b last:border-0">
                   <TableCell className={bodyCell}>
@@ -135,10 +158,10 @@ export function ProposalsListPage() {
                       {p.title}
                     </Link>
                   </TableCell>
-                  <TableCell className={cn(bodyCell, "text-muted-foreground font-mono text-xs")}>
+                  <TableCell className={cn(bodyCell, "text-muted-foreground font-mono")}>
                     {p.publicId}
                   </TableCell>
-                  <TableCell className={cn(bodyCell, "font-mono text-xs")}>
+                  <TableCell className={cn(bodyCell, "font-mono")}>
                     {p.domain ? (
                       <span className="text-foreground">{p.domain}</span>
                     ) : (
@@ -151,7 +174,7 @@ export function ProposalsListPage() {
                         {isPublic ? "공개" : "비공개"}
                       </Badge>
                       {hasPassword && (
-                        <Badge variant="warning" size="md">
+                        <Badge variant="purple" size="md">
                           비번
                         </Badge>
                       )}
@@ -173,15 +196,40 @@ export function ProposalsListPage() {
                   >
                     {formatDate(p.updatedAt)}
                   </TableCell>
-                  <TableCell className={cn(bodyCell, "text-right")}>
-                    <Link
-                      href={`/p/${p.domain ?? p.publicId}`}
-                      target="_blank"
-                      className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm transition-colors"
-                    >
-                      뷰어 열기
-                      <ArrowUpRight className="size-3.5" />
-                    </Link>
+                  <TableCell className={bodyCell}>
+                    <div className="flex items-center gap-x-4 gap-y-1">
+                      {links.map((l) => (
+                        <span key={l.key} className="inline-flex items-center gap-1">
+                          <span className="text-muted-foreground text-xs">{l.label}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`${l.name} 복사`}
+                            title={`${l.name} 복사`}
+                            className="text-muted-foreground hover:text-foreground"
+                            onClick={() => copyViewerLink(l.path)}
+                          >
+                            <Copy />
+                          </Button>
+                        </span>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <div className="flex items-center gap-x-4 gap-y-1">
+                      {links.map((l) => (
+                        <Link
+                          key={l.key}
+                          href={l.path}
+                          target="_blank"
+                          title={`${l.name} 뷰어 열기`}
+                          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm transition-colors"
+                        >
+                          {l.label}
+                          <ArrowUpRight className="size-3.5" />
+                        </Link>
+                      ))}
+                    </div>
                   </TableCell>
                 </TableRow>
               );

@@ -6,17 +6,10 @@ import { UserRowActions } from "@/features/manage-users";
 import { PageHeader } from "@/widgets/studio-shell";
 import { cn } from "@/shared/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
-import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-wide";
 const bodyCell = "px-5 py-3.5 align-middle";
-
-const roleBadge: Record<string, { variant: "info" | "success" | "warning"; label: string }> = {
-  admin: { variant: "info", label: "관리자" },
-  editor: { variant: "success", label: "편집자" },
-  pending: { variant: "warning", label: "대기" },
-};
 
 // BFF JSON으로 넘어온 날짜는 문자열 — Date로 감싸 안전하게 포맷한다.
 function formatDate(value: string) {
@@ -44,9 +37,8 @@ export function AdminUsersPage() {
             <TableRow className="border-border/60 border-b hover:bg-transparent">
               <TableHead className={headCell}>이름</TableHead>
               <TableHead className={headCell}>이메일</TableHead>
-              <TableHead className={headCell}>역할</TableHead>
               <TableHead className={headCell}>가입일</TableHead>
-              <TableHead className={cn(headCell, "text-right")}>작업</TableHead>
+              <TableHead className={headCell}>작업</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -63,12 +55,9 @@ export function AdminUsersPage() {
                     <Skeleton className="h-4 w-44" />
                   </TableCell>
                   <TableCell className={bodyCell}>
-                    <Skeleton className="h-5 w-14 rounded-full" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
                     <Skeleton className="h-4 w-20" />
                   </TableCell>
-                  <TableCell className={cn(bodyCell, "text-right")}>
+                  <TableCell className={bodyCell}>
                     <Skeleton className="ml-auto size-7 rounded-md" />
                   </TableCell>
                 </TableRow>
@@ -76,7 +65,7 @@ export function AdminUsersPage() {
 
             {isError && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={5} className="text-destructive px-5 py-16 text-center">
+                <TableCell colSpan={4} className="text-destructive px-5 py-16 text-center">
                   사용자 목록을 불러오지 못했습니다.
                 </TableCell>
               </TableRow>
@@ -85,7 +74,7 @@ export function AdminUsersPage() {
             {rows?.length === 0 && (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={5}
+                  colSpan={4}
                   className="text-muted-foreground px-5 py-16 text-center text-sm"
                 >
                   아직 사용자가 없습니다.
@@ -99,15 +88,10 @@ export function AdminUsersPage() {
                   {u.name ?? <span className="text-muted-foreground">—</span>}
                 </TableCell>
                 <TableCell className={bodyCell}>{u.email}</TableCell>
-                <TableCell className={bodyCell}>
-                  <Badge variant={roleBadge[u.role]?.variant ?? "neutral"} size="md">
-                    {roleBadge[u.role]?.label ?? u.role}
-                  </Badge>
-                </TableCell>
                 <TableCell className={cn(bodyCell, "text-muted-foreground tabular-nums")}>
                   {formatDate(u.createdAt)}
                 </TableCell>
-                <TableCell className={cn(bodyCell, "text-right")}>
+                <TableCell className={bodyCell}>
                   <UserRowActions id={u.id} role={u.role} />
                 </TableCell>
               </TableRow>
