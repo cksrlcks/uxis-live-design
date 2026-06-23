@@ -85,6 +85,13 @@
       "when": 1782500000000,
       "tag": "0011_proposal_whiteboard_enabled",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1782600000000,
+      "tag": "0012_signup_name_fallback",
+      "breakpoints": true
     }
   ]
 }
