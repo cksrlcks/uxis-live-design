@@ -76,6 +76,8 @@
       button:disabled { opacity: 0.5; cursor: default; }
       button.ghost { background: none; color: var(--muted-foreground); font-weight: 500; }
       button.ghost:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
+      button.soft { background: var(--muted); color: var(--foreground); font-weight: 500; }
+      button.soft:hover:not(:disabled) { background: color-mix(in srgb, var(--muted), var(--foreground) 8%); }
       button.sm { height: 34px; padding: 0 12px; font-size: 13px; }
       .err { color: var(--destructive); margin-top: 12px; min-height: 18px; font-size: 13px; }
 
@@ -123,13 +125,7 @@
       #viewNew button { width: 100%; margin-top: 20px; }
 
       .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
-      .toolbar input { flex: 1; }
-      .toolbar button {
-        height: 44px; flex: none;
-        border: 1px solid var(--border); background: var(--background);
-        color: var(--muted-foreground); font-weight: 500;
-      }
-      .toolbar button:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
+      .toolbar input { flex: 1; height: 34px; }
       .count { color: var(--muted-foreground); margin-bottom: 10px; font-size: 13px; }
       .item {
         display: flex; align-items: center; gap: 12px;
@@ -216,7 +212,7 @@
           <div class="name" id="userName"></div>
           <div class="email" id="userEmail"></div>
         </div>
-        <button class="ghost sm" id="logoutBtn">로그아웃</button>
+        <button class="soft sm" id="logoutBtn">로그아웃</button>
       </header>
       <div class="warn hidden" id="roleWarn">편집 권한이 없는 계정입니다. 업로드가 막힙니다.</div>
 
@@ -224,7 +220,7 @@
 
       <div class="tabs">
         <button id="tabNewBtn" class="active">새 시안</button>
-        <button id="tabExistingBtn">기존 시안에 새 버전</button>
+        <button id="tabExistingBtn">기존 시안</button>
       </div>
 
       <!-- 새 시안 -->
@@ -240,7 +236,7 @@
         <div id="listView">
           <div class="toolbar">
             <input id="search" placeholder="시안 검색…" />
-            <button class="ghost sm" id="refreshBtn">새로고침</button>
+            <button class="soft sm" id="refreshBtn">새로고침</button>
           </div>
           <div class="count" id="count"></div>
           <div id="list"></div>
