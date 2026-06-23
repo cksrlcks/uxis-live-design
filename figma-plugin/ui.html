@@ -74,9 +74,6 @@
       <div class="brandmark">cova</div>
       <div class="sub">피그마에서 시안을 올리고 관리합니다.</div>
 
-      <label for="apiBase">서버 주소</label>
-      <input id="apiBase" placeholder="http://localhost:3000" />
-
       <label for="email">이메일</label>
       <input id="email" type="email" autocomplete="username" placeholder="you@example.com" />
 
@@ -111,9 +108,11 @@
         parent.postMessage({ pluginMessage: msg }, "*");
       }
 
+      // cova 서버 주소. 개발: http://localhost:3000 / 배포 시 운영 도메인으로 변경.
+      var API_BASE = "http://localhost:3000";
+
       // ---- 세션 상태 (메인의 clientStorage 에 영속) ----
       var config = {
-        apiBase: "http://localhost:3000",
         accessToken: null,
         refreshToken: null,
         expiresAt: null,
@@ -147,7 +146,7 @@
 
         var res;
         try {
-          res = await fetch(joinUrl(config.apiBase, path), {
+          res = await fetch(joinUrl(API_BASE, path), {
             method: opts.method || "GET",
             headers: headers,
             body: opts.body,
@@ -184,7 +183,6 @@
       // ---- 로그인 ----
       async function doLogin() {
         $("loginErr").textContent = "";
-        config.apiBase = $("apiBase").value.trim() || "http://localhost:3000";
         var email = $("email").value.trim();
         var password = $("password").value;
         if (!email || !password) {
@@ -297,7 +295,6 @@
           if (msg.session) {
             config = Object.assign(config, msg.session);
           }
-          $("apiBase").value = config.apiBase || "http://localhost:3000";
           if (config.accessToken && config.user) {
             showApp();
             loadProposals();
@@ -306,6 +303,9 @@
           }
         }
       };
+
+      // 핸들러 등록이 끝났으니 메인에 저장된 세션을 요청한다(race 방지 pull).
+      toMain({ type: "ready" });
     </script>
   </body>
 </html>

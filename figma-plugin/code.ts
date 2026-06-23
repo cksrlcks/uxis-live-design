@@ -9,6 +9,7 @@ const SESSION_KEY = "cova.session";
 
 // UI 가 메인에 보내는 메시지 형태.
 type UiMessage =
+  | { type: "ready" }
   | { type: "save-session"; session: unknown }
   | { type: "clear-session" }
   | { type: "resize"; width: number; height: number }
@@ -17,14 +18,15 @@ type UiMessage =
 
 figma.showUI(__html__, { width: 380, height: 580, themeColors: true });
 
-// 플러그인이 열리면 저장된 세션을 UI 로 전달한다(없으면 null → 로그인 화면).
-(async () => {
-  const session = await figma.clientStorage.getAsync(SESSION_KEY);
-  figma.ui.postMessage({ type: "init", session: session ?? null });
-})();
-
+// 저장된 세션은 UI 가 준비됐다고 알려올 때("ready") 전달한다. 시작 직후 push 하면
+// iframe 이 onmessage 핸들러를 등록하기 전이라 메시지가 유실될 수 있어(race), pull 방식을 쓴다.
 figma.ui.onmessage = async (msg: UiMessage) => {
   switch (msg.type) {
+    case "ready": {
+      const session = await figma.clientStorage.getAsync(SESSION_KEY);
+      figma.ui.postMessage({ type: "init", session: session ?? null });
+      break;
+    }
     case "save-session":
       await figma.clientStorage.setAsync(SESSION_KEY, msg.session);
       break;
