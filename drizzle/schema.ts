@@ -23,6 +23,7 @@ export const proposals = pgTable("proposals", {
   ownerId: uuid("owner_id").notNull(),
   visibility: text("visibility").notNull().default("private"), // 'private' | 'public'
   accessPasswordHash: text("access_password_hash"), // 'salt:hash' (scrypt), public+password only
+  whiteboardEnabled: boolean("whiteboard_enabled").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [

@@ -86,6 +86,7 @@ export async function getProposalDetail(id: string): Promise<ProposalDetail> {
       domain: proposal.domain,
       visibility: proposal.visibility,
       hasPassword: !!proposal.accessPasswordHash,
+      whiteboardEnabled: proposal.whiteboardEnabled,
     },
     variants: editorVariants,
   };

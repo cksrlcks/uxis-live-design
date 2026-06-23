@@ -9,13 +9,15 @@ export const updateSettingsSchema = z
     password: z.union([z.string().min(4, "비밀번호는 4자 이상이어야 합니다"), z.null()]).optional(),
     // 슬러그 to set/change, or null to clear. Absent = unchanged.
     domain: z.union([domainSchema, z.null()]).optional(),
+    whiteboardEnabled: z.boolean().optional(),
   })
   .refine(
     (v) =>
       v.title !== undefined ||
       v.visibility !== undefined ||
       v.password !== undefined ||
-      v.domain !== undefined,
+      v.domain !== undefined ||
+      v.whiteboardEnabled !== undefined,
     { message: "변경할 항목이 없습니다" },
   );
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
