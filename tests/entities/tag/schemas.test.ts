@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   groupCreateSchema,
+  groupUpdateSchema,
   optionCreateSchema,
+  optionUpdateSchema,
   proposalTagsSchema,
 } from "@/entities/tag/model/schemas";
 
@@ -20,6 +22,19 @@ describe("tag schemas", () => {
     expect(ok.success).toBe(true);
     expect(optionCreateSchema.safeParse({ groupId: "nope", code: "x", label: "y" }).success).toBe(false);
   });
+  it("groupUpdateSchema: 빈 body({}) 거부", () => {
+    expect(groupUpdateSchema.safeParse({}).success).toBe(false);
+  });
+  it("groupUpdateSchema: 하나 이상 필드 있으면 허용", () => {
+    expect(groupUpdateSchema.safeParse({ label: "x" }).success).toBe(true);
+  });
+  it("optionUpdateSchema: 빈 body({}) 거부", () => {
+    expect(optionUpdateSchema.safeParse({}).success).toBe(false);
+  });
+  it("optionUpdateSchema: description:null은 변경으로 인정", () => {
+    expect(optionUpdateSchema.safeParse({ description: null }).success).toBe(true);
+  });
+
   it("proposalTagsSchema: optionIds는 uuid 배열", () => {
     expect(proposalTagsSchema.safeParse({ optionIds: [] }).success).toBe(true);
     expect(
