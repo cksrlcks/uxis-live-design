@@ -47,7 +47,7 @@
         -webkit-font-smoothing: antialiased;
       }
       .hidden { display: none !important; }
-      .logo { display: block; color: currentColor; }
+      .logo { display: block; width: auto; color: currentColor; }
 
       label { display: block; font-size: 13px; color: var(--muted-foreground); margin: 16px 0 7px; }
       input {
@@ -97,7 +97,7 @@
       header .logo { height: 18px; flex: none; }
       header .who { flex: 1; min-width: 0; text-align: right; }
       header .who .name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .vbar { width: 1px; height: 20px; background: var(--border); flex: none; }
+      header .who .email { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .warn {
         background: color-mix(in srgb, var(--destructive) 10%, transparent);
         color: var(--destructive); padding: 10px 16px; font-size: 13px;
@@ -204,8 +204,10 @@
     <section id="app" class="hidden" style="display: contents">
       <header>
         <svg class="logo" viewBox="0 0 103 25" width="66" height="16"><use href="#covaLogo" /></svg>
-        <div class="who"><div class="name" id="userName"></div></div>
-        <span class="vbar"></span>
+        <div class="who">
+          <div class="name" id="userName"></div>
+          <div class="email" id="userEmail"></div>
+        </div>
         <button class="ghost sm" id="logoutBtn">로그아웃</button>
       </header>
       <div class="warn hidden" id="roleWarn">편집 권한이 없는 계정입니다. 업로드가 막힙니다.</div>
@@ -756,7 +758,8 @@
         $("login").classList.add("hidden");
         $("app").classList.remove("hidden");
         var u = config.user || {};
-        $("userName").textContent = u.name || u.email || "";
+        $("userName").textContent = u.name || "";
+        $("userEmail").textContent = u.email || "";
         var editor = u.role === "editor" || u.role === "admin";
         $("roleWarn").classList.toggle("hidden", editor);
         updateControls();
