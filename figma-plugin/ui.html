@@ -63,9 +63,10 @@
       }
 
       button {
+        display: inline-flex; align-items: center; justify-content: center;
         height: 44px; padding: 0 18px; border: 1px solid transparent; border-radius: var(--radius);
         background: var(--primary); color: var(--primary-foreground);
-        font: inherit; font-weight: 600; cursor: pointer;
+        font: inherit; font-weight: 600; line-height: 1; cursor: pointer;
         transition: background 0.12s, box-shadow 0.12s, border-color 0.12s;
       }
       button:hover:not(:disabled) { background: color-mix(in oklab, var(--primary), #000 12%); }
@@ -124,9 +125,11 @@
       .view { flex: 1; overflow: auto; padding: 18px; }
       #viewNew button { width: 100%; margin-top: 20px; }
 
-      .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
-      .toolbar input { flex: 1; height: 34px; }
+      .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; }
+      .toolbar input { flex: 1; height: 34px; padding: 0 11px; font-size: 13px; }
       .count { color: var(--muted-foreground); margin-bottom: 10px; font-size: 13px; }
+      .pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; }
+      .pager #pageInfo { font-size: 13px; color: var(--muted-foreground); min-width: 56px; text-align: center; }
       .item {
         display: flex; align-items: center; gap: 12px;
         padding: 15px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 11px;
@@ -240,6 +243,11 @@
           </div>
           <div class="count" id="count"></div>
           <div id="list"></div>
+          <div class="pager hidden" id="pager">
+            <button class="soft sm" id="prevBtn">이전</button>
+            <span id="pageInfo"></span>
+            <button class="soft sm" id="nextBtn">다음</button>
+          </div>
         </div>
         <!-- 시안 상세: 안 목록 -->
         <div id="detailView" class="hidden">
@@ -317,6 +325,9 @@
       var pendingExport = null;
       var lastProposalId = null; // 업로드 성공 후 "관리화면 열기" 대상
       var currentDetail = null; // { proposalId, title } — 상세(안 목록) 화면 대상
+      var PAGE_SIZE = 8;
+      var listPage = 1;
+      var listTotal = 0;
       var currentPages = null; // { proposalId, variantId, versionId, label } — 페이지 화면 대상
 
       // ---- 메시지/코드 ----
@@ -488,6 +499,7 @@
           toMain({ type: "notify", message: "새 시안 “" + title + "” 생성됨" });
           $("title").value = "";
           listLoaded = false; // 다음에 기존 탭 열면 새로고침
+          listPage = 1;
           showOpen(created.proposalId);
         });
       }
@@ -546,19 +558,38 @@
         $("list").innerHTML = '<div class="loading">불러오는 중…</div>';
         try {
           var data = await api(
-            "/api/plugin/proposals?pageSize=50&q=" + encodeURIComponent(q),
+            "/api/plugin/proposals?page=" +
+              listPage +
+              "&pageSize=" +
+              PAGE_SIZE +
+              "&q=" +
+              encodeURIComponent(q),
             {},
             true,
           );
           renderList(data.items || [], data.total || 0);
         } catch (e) {
+          $("pager").classList.add("hidden");
           $("list").innerHTML = '<div class="empty">' + humanize(e.message) + "</div>";
         }
       }
+      function renderPager() {
+        var totalPages = Math.max(1, Math.ceil(listTotal / PAGE_SIZE));
+        if (listTotal <= PAGE_SIZE) {
+          $("pager").classList.add("hidden");
+          return;
+        }
+        $("pager").classList.remove("hidden");
+        $("pageInfo").textContent = listPage + " / " + totalPages;
+        $("prevBtn").disabled = listPage <= 1;
+        $("nextBtn").disabled = listPage >= totalPages;
+      }
       function renderList(items, total) {
+        listTotal = total;
         $("count").textContent = total + "개";
         if (!items.length) {
           $("list").innerHTML = '<div class="empty">시안이 없습니다.</div>';
+          renderPager();
           return;
         }
         $("list").innerHTML = "";
@@ -588,6 +619,7 @@
           });
           $("list").appendChild(row);
         });
+        renderPager();
       }
 
       // ---- 시안 상세: 안(variant) 목록 ----
@@ -842,6 +874,7 @@
         config.user = null;
         persist();
         listLoaded = false;
+        listPage = 1;
         currentDetail = null;
         currentPages = null;
         switchExistingView("list");
@@ -875,6 +908,16 @@
       });
       $("title").addEventListener("input", updateControls);
       $("refreshBtn").addEventListener("click", loadProposals);
+      $("prevBtn").addEventListener("click", function () {
+        if (listPage > 1) {
+          listPage--;
+          loadProposals();
+        }
+      });
+      $("nextBtn").addEventListener("click", function () {
+        listPage++;
+        loadProposals();
+      });
       $("backBtn").addEventListener("click", function () {
         currentDetail = null;
         switchExistingView("list");
@@ -888,7 +931,10 @@
       });
       $("search").addEventListener("input", function () {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(loadProposals, 300);
+        searchTimer = setTimeout(function () {
+          listPage = 1;
+          loadProposals();
+        }, 300);
       });
 
       // ---- 메인에서 오는 메시지 ----
