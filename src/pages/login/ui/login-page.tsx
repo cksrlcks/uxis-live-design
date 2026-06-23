@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { AuthLayout, LoginForm } from "@/features/auth";
 
-export function LoginPage({ returnTo, notice }: { returnTo?: string; notice?: string }) {
+export function LoginPage({
+  returnTo,
+  notice,
+  error,
+}: {
+  returnTo?: string;
+  notice?: string;
+  error?: string;
+}) {
   const signupHref = returnTo ? `/signup?returnTo=${encodeURIComponent(returnTo)}` : "/signup";
   return (
     <AuthLayout
@@ -22,6 +30,11 @@ export function LoginPage({ returnTo, notice }: { returnTo?: string; notice?: st
       {notice && (
         <p className="border-primary/30 bg-primary/10 text-foreground mb-4 rounded-lg border px-4 py-3 text-sm">
           {notice}
+        </p>
+      )}
+      {error && (
+        <p className="border-destructive/30 bg-destructive/10 text-destructive mb-4 rounded-lg border px-4 py-3 text-sm">
+          {error}
         </p>
       )}
       <LoginForm returnTo={returnTo} />
