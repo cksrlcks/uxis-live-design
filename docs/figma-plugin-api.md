@@ -170,6 +170,7 @@ PUT  .../versions/{versionId}/pages/{pageId}
 | 시안 목록 | `GET /api/plugin/proposals` |
 | 시안 상세 | `GET /api/plugin/proposals/{id}` |
 | 새 시안 생성 | `POST /api/plugin/proposals` |
+| 새 안(variant) 생성 | `POST /api/plugin/proposals/{id}/variants` |
 | 페이지 확인(생성/추가) | `PUT .../versions/{versionId}/pages` |
 | 페이지 업로드 URL 발급 | `POST .../versions/{versionId}/pages` |
 | 새 버전 생성 | `POST .../variants/{variantId}/versions` |
