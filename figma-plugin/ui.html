@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --bg: var(--figma-color-bg, #fff);
+        --bg2: var(--figma-color-bg-secondary, #f5f5f5);
+        --text: var(--figma-color-text, #1a1a1a);
+        --text-dim: var(--figma-color-text-secondary, #7a7a7a);
+        --border: var(--figma-color-border, #e6e6e6);
+        --brand: var(--figma-color-bg-brand, #0d99ff);
+        --brand-text: var(--figma-color-text-onbrand, #fff);
+        --danger: var(--figma-color-text-danger, #e03e1a);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        font: 12px/1.5 Inter, -apple-system, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      .hidden { display: none !important; }
+      h1 { font-size: 13px; margin: 0; font-weight: 600; }
+      label { display: block; font-size: 11px; color: var(--text-dim); margin: 10px 0 4px; }
+      input {
+        width: 100%; height: 30px; padding: 0 8px;
+        border: 1px solid var(--border); border-radius: 6px;
+        background: var(--bg); color: var(--text); font: inherit;
+      }
+      input:focus { outline: 1px solid var(--brand); border-color: var(--brand); }
+      button {
+        height: 30px; padding: 0 12px; border: 0; border-radius: 6px;
+        background: var(--brand); color: var(--brand-text); font: inherit;
+        font-weight: 500; cursor: pointer;
+      }
+      button:disabled { opacity: 0.5; cursor: default; }
+      button.ghost { background: transparent; color: var(--text-dim); }
+      button.ghost:hover { color: var(--text); }
+      .err { color: var(--danger); margin-top: 10px; min-height: 16px; font-size: 11px; }
+      /* login */
+      #login { padding: 16px; }
+      #login button { width: 100%; margin-top: 14px; }
+      .brandmark { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+      .sub { color: var(--text-dim); margin: 2px 0 4px; }
+      /* app */
+      header {
+        display: flex; align-items: center; gap: 8px;
+        padding: 10px 12px; border-bottom: 1px solid var(--border);
+      }
+      header .who { flex: 1; min-width: 0; }
+      header .who .email { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      header .who .role { color: var(--text-dim); font-size: 11px; }
+      .warn { background: var(--bg2); color: var(--danger); padding: 6px 12px; font-size: 11px; }
+      .toolbar { display: flex; gap: 6px; padding: 10px 12px; }
+      .toolbar input { flex: 1; }
+      .list { flex: 1; overflow: auto; padding: 0 12px 12px; }
+      .item {
+        padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+        margin-bottom: 8px; background: var(--bg);
+      }
+      .item .title { font-weight: 600; }
+      .item .meta { color: var(--text-dim); font-size: 11px; margin-top: 2px; }
+      .empty, .loading { color: var(--text-dim); text-align: center; padding: 24px 0; }
+      .count { color: var(--text-dim); padding: 0 12px 8px; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <!-- 로그인 화면 -->
+    <section id="login">
+      <div class="brandmark">cova</div>
+      <div class="sub">피그마에서 시안을 올리고 관리합니다.</div>
+
+      <label for="apiBase">서버 주소</label>
+      <input id="apiBase" placeholder="http://localhost:3000" />
+
+      <label for="email">이메일</label>
+      <input id="email" type="email" autocomplete="username" placeholder="you@example.com" />
+
+      <label for="password">비밀번호</label>
+      <input id="password" type="password" autocomplete="current-password" />
+
+      <button id="loginBtn">로그인</button>
+      <div class="err" id="loginErr"></div>
+    </section>
+
+    <!-- 앱 화면 (로그인 후) -->
+    <section id="app" class="hidden" style="display: contents">
+      <header>
+        <div class="who">
+          <div class="email" id="userEmail"></div>
+          <div class="role" id="userRole"></div>
+        </div>
+        <button class="ghost" id="logoutBtn">로그아웃</button>
+      </header>
+      <div class="warn hidden" id="roleWarn">편집 권한이 없는 계정입니다. 업로드/수정은 막힙니다.</div>
+      <div class="toolbar">
+        <input id="search" placeholder="시안 검색…" />
+        <button id="refreshBtn">새로고침</button>
+      </div>
+      <div class="count" id="count"></div>
+      <div class="list" id="list"></div>
+    </section>
+
+    <script>
+      // ---- 메인(샌드박스)과의 통신 ----
+      function toMain(msg) {
+        parent.postMessage({ pluginMessage: msg }, "*");
+      }
+
+      // ---- 세션 상태 (메인의 clientStorage 에 영속) ----
+      var config = {
+        apiBase: "http://localhost:3000",
+        accessToken: null,
+        refreshToken: null,
+        expiresAt: null,
+        user: null,
+      };
+
+      function persist() {
+        toMain({ type: "save-session", session: config });
+      }
+
+      // ---- API 호출 ----
+      var MSG = {
+        NETWORK: "서버에 연결할 수 없습니다. 주소와 포트를 확인하세요.",
+        INVALID_CREDENTIALS: "이메일 또는 비밀번호가 올바르지 않습니다.",
+        FORBIDDEN: "편집 권한이 없습니다.",
+        RATE_LIMITED: "요청이 많습니다. 잠시 후 다시 시도하세요.",
+        VALIDATION_ERROR: "입력값을 확인하세요.",
+      };
+      function humanize(code) {
+        return MSG[code] || "오류: " + code;
+      }
+      function joinUrl(base, path) {
+        return String(base).replace(/\/+$/, "") + path;
+      }
+
+      async function api(path, opts, auth) {
+        opts = opts || {};
+        var headers = { "Content-Type": "application/json" };
+        if (auth && config.accessToken) headers["Authorization"] = "Bearer " + config.accessToken;
+        if (opts.headers) for (var k in opts.headers) headers[k] = opts.headers[k];
+
+        var res;
+        try {
+          res = await fetch(joinUrl(config.apiBase, path), {
+            method: opts.method || "GET",
+            headers: headers,
+            body: opts.body,
+          });
+        } catch (e) {
+          throw new Error("NETWORK");
+        }
+        var body = null;
+        try {
+          body = await res.json();
+        } catch (e) {}
+        if (!res.ok) throw new Error((body && body.error) || "HTTP_" + res.status);
+        return body;
+      }
+
+      // ---- 화면 전환 ----
+      var $ = function (id) {
+        return document.getElementById(id);
+      };
+      function showLogin() {
+        $("login").classList.remove("hidden");
+        $("app").classList.add("hidden");
+      }
+      function showApp() {
+        $("login").classList.add("hidden");
+        $("app").classList.remove("hidden");
+        var u = config.user || {};
+        $("userEmail").textContent = u.email || "";
+        $("userRole").textContent = u.role ? "역할: " + u.role : "";
+        var editor = u.role === "editor" || u.role === "admin";
+        $("roleWarn").classList.toggle("hidden", editor);
+      }
+
+      // ---- 로그인 ----
+      async function doLogin() {
+        $("loginErr").textContent = "";
+        config.apiBase = $("apiBase").value.trim() || "http://localhost:3000";
+        var email = $("email").value.trim();
+        var password = $("password").value;
+        if (!email || !password) {
+          $("loginErr").textContent = "이메일과 비밀번호를 입력하세요.";
+          return;
+        }
+        $("loginBtn").disabled = true;
+        $("loginBtn").textContent = "로그인 중…";
+        try {
+          var data = await api("/api/plugin/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ email: email, password: password }),
+          });
+          config.accessToken = data.accessToken;
+          config.refreshToken = data.refreshToken;
+          config.expiresAt = data.expiresAt;
+          config.user = data.user;
+          persist();
+          showApp();
+          loadProposals();
+        } catch (e) {
+          $("loginErr").textContent = humanize(e.message);
+        } finally {
+          $("loginBtn").disabled = false;
+          $("loginBtn").textContent = "로그인";
+        }
+      }
+
+      function doLogout() {
+        config.accessToken = null;
+        config.refreshToken = null;
+        config.expiresAt = null;
+        config.user = null;
+        persist();
+        $("list").innerHTML = "";
+        $("count").textContent = "";
+        showLogin();
+      }
+
+      // ---- 시안 목록 ----
+      var searchTimer = null;
+      async function loadProposals() {
+        var q = $("search").value.trim();
+        $("count").textContent = "";
+        $("list").innerHTML = '<div class="loading">불러오는 중…</div>';
+        try {
+          var data = await api(
+            "/api/plugin/proposals?pageSize=50&q=" + encodeURIComponent(q),
+            {},
+            true,
+          );
+          renderList(data.items || [], data.total || 0);
+        } catch (e) {
+          if (e.message === "FORBIDDEN") {
+            $("list").innerHTML = '<div class="empty">편집 권한이 없어 목록을 볼 수 없습니다.</div>';
+          } else {
+            $("list").innerHTML = '<div class="empty">' + humanize(e.message) + "</div>";
+          }
+        }
+      }
+
+      function renderList(items, total) {
+        $("count").textContent = total + "개";
+        if (!items.length) {
+          $("list").innerHTML = '<div class="empty">시안이 없습니다.</div>';
+          return;
+        }
+        var html = "";
+        for (var i = 0; i < items.length; i++) {
+          var it = items[i];
+          var meta = [];
+          if (it.domain) meta.push(it.domain);
+          if (it.publicId) meta.push("/" + it.publicId);
+          html +=
+            '<div class="item">' +
+            '<div class="title"></div>' +
+            '<div class="meta"></div>' +
+            "</div>";
+          // 텍스트는 안전하게 DOM 으로 주입(아래에서)
+        }
+        $("list").innerHTML = html;
+        var nodes = $("list").querySelectorAll(".item");
+        for (var j = 0; j < items.length; j++) {
+          var it2 = items[j];
+          var m = [];
+          if (it2.domain) m.push(it2.domain);
+          if (it2.publicId) m.push("/" + it2.publicId);
+          nodes[j].querySelector(".title").textContent = it2.title || "(제목 없음)";
+          nodes[j].querySelector(".meta").textContent = m.join(" · ");
+        }
+      }
+
+      // ---- 이벤트 ----
+      $("loginBtn").addEventListener("click", doLogin);
+      $("password").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") doLogin();
+      });
+      $("logoutBtn").addEventListener("click", doLogout);
+      $("refreshBtn").addEventListener("click", loadProposals);
+      $("search").addEventListener("input", function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(loadProposals, 300);
+      });
+
+      // ---- 메인에서 오는 메시지(init: 저장된 세션) ----
+      onmessage = function (event) {
+        var msg = event.data.pluginMessage;
+        if (!msg) return;
+        if (msg.type === "init") {
+          if (msg.session) {
+            config = Object.assign(config, msg.session);
+          }
+          $("apiBase").value = config.apiBase || "http://localhost:3000";
+          if (config.accessToken && config.user) {
+            showApp();
+            loadProposals();
+          } else {
+            showLogin();
+          }
+        }
+      };
+    </script>
+  </body>
+</html>
