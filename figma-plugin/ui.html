@@ -115,13 +115,20 @@
         border: 0; border-bottom: 2px solid transparent; border-radius: 0; height: 48px;
       }
       .tabs button:hover:not(.active) { color: var(--foreground); background: none; }
+      .tabs button:active { background: var(--muted); transform: none; }
       .tabs button.active { color: var(--foreground); border-bottom-color: var(--foreground); }
 
       .view { flex: 1; overflow: auto; padding: 18px; }
       #viewNew button { width: 100%; margin-top: 20px; }
 
-      .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+      .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
       .toolbar input { flex: 1; }
+      .toolbar button {
+        height: 44px; flex: none;
+        border: 1px solid var(--border); background: var(--background);
+        color: var(--muted-foreground); font-weight: 500;
+      }
+      .toolbar button:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
       .count { color: var(--muted-foreground); margin-bottom: 10px; font-size: 13px; }
       .item {
         display: flex; align-items: center; gap: 12px;
@@ -136,9 +143,9 @@
       .item .chev { color: var(--muted-foreground); font-size: 22px; flex: none; }
       .empty, .loading { color: var(--muted-foreground); text-align: center; padding: 40px 0; font-size: 14px; }
 
-      .detailhead { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+      .detailhead { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
       .detailhead .detailtitle {
-        flex: 1; min-width: 0; font-weight: 600; font-size: 16px;
+        max-width: 100%; font-weight: 600; font-size: 16px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       #addVariantBtn {
