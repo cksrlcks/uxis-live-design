@@ -1,10 +1,10 @@
 import "server-only";
 import { createClient, type Session } from "@supabase/supabase-js";
-import { eq } from "drizzle-orm";
+import { eq, lt } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/shared/db";
-import { profiles } from "@drizzle/schema";
-import { loginSchema } from "../model/schema";
+import { profiles, pluginAuthPairings } from "@drizzle/schema";
+import { createSupabaseServer } from "@/shared/supabase/server";
 
 // 쿠키에 세션을 심지 않는 인증 전용 클라이언트. 토큰을 응답 본문으로 돌려주어
 // 플러그인이 figma.clientStorage에 직접 보관하게 한다(웹 앱의 Set-Cookie 경로와 분리).
@@ -18,26 +18,59 @@ function authClient() {
 
 const refreshSchema = z.object({ refreshToken: z.string().min(1) });
 
-// 이메일/비밀번호 로그인 → 액세스·리프레시 토큰을 본문으로 반환. 권한(editor) 검증은
-// 각 작업 라우트의 requireEditor가 하므로 여기서는 인증만 하고 role을 함께 돌려준다.
-export async function pluginLogin(input: unknown) {
-  const { email, password } = loginSchema.parse(input);
-  const { data, error } = await authClient().auth.signInWithPassword({ email, password });
-  if (error || !data.session || !data.user) {
-    if (error?.status === 429) throw new Error("RATE_LIMITED");
-    throw new Error("INVALID_CREDENTIALS");
-  }
+const PAIRING_TTL_MS = 5 * 60 * 1000;
+const pollSchema = z.object({ key: z.string().min(1) });
 
-  const rows = await db.select().from(profiles).where(eq(profiles.id, data.user.id)).limit(1);
+// 외부 브라우저에서 로그인된 쿠키 세션을 읽어, 플러그인이 폴링으로 회수할 토큰을 key로 임시 저장한다.
+// getUser로 진위를 검증한 뒤 getSession으로 토큰을 얻는다. 미로그인이면 false(호출 페이지가 로그인으로 보냄).
+export async function storePluginPairing(key: string): Promise<boolean> {
+  const supabase = await createSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return false;
+
+  const rows = await db.select().from(profiles).where(eq(profiles.id, user.id)).limit(1);
   const profile = rows[0];
-  return {
-    ...tokens(data.session),
+  const payload = {
+    ...tokens(session),
     user: {
-      id: data.user.id,
-      email: data.user.email ?? null,
+      id: user.id,
+      email: user.email ?? null,
       name: profile?.displayName ?? null,
-      role: profile?.role ?? null, // 'pending' | 'editor' | 'admin'
+      role: profile?.role ?? null,
     },
+  };
+  const expiresAt = new Date(Date.now() + PAIRING_TTL_MS);
+  await db
+    .insert(pluginAuthPairings)
+    .values({ key, payload, expiresAt })
+    .onConflictDoUpdate({ target: pluginAuthPairings.key, set: { payload, expiresAt } });
+  return true;
+}
+
+// 플러그인이 key로 폴링. 준비되면 토큰(로그인 응답과 동일 shape) 반환 + 즉시 삭제(1회용), 아니면 pending.
+// 매 호출 시 만료 행을 베스트에포트로 정리한다.
+export async function pollPluginPairing(input: unknown) {
+  const { key } = pollSchema.parse(input);
+  await db.delete(pluginAuthPairings).where(lt(pluginAuthPairings.expiresAt, new Date()));
+  const rows = await db
+    .select()
+    .from(pluginAuthPairings)
+    .where(eq(pluginAuthPairings.key, key))
+    .limit(1);
+  const row = rows[0];
+  if (!row) return { status: "pending" as const };
+  await db.delete(pluginAuthPairings).where(eq(pluginAuthPairings.key, key));
+  return row.payload as {
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: unknown;
+    user: { id: string; email: string | null; name: string | null; role: string | null };
   };
 }
 
