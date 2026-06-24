@@ -14,6 +14,11 @@ function joinUrl(base: string, path: string): string {
   return String(base).replace(/\/+$/, '') + path;
 }
 
+// 외부 브라우저로 열 사인인 URL. 웹 로그인 페이지가 returnTo로 이 페어링 착지점에 복귀시킨다.
+export function signInUrl(baseUrl: string, key: string): string {
+  return joinUrl(baseUrl, '/plugin-auth?k=' + encodeURIComponent(key));
+}
+
 export type User = { name?: string; email?: string; role?: string };
 export type Tokens = { accessToken: string | null; refreshToken: string | null };
 export type LoginResponse = {
@@ -22,6 +27,7 @@ export type LoginResponse = {
   expiresAt: unknown;
   user: User;
 };
+export type PairingPollResponse = LoginResponse | { status: 'pending' };
 export type ProposalListItem = { id: string; title?: string; domain?: string; publicId?: string };
 export type ProposalListResponse = { items?: ProposalListItem[]; total?: number };
 export type Page = { id: string; url?: string; width?: number; height?: number };
@@ -118,6 +124,11 @@ export function createApiClient(opts: {
       request<LoginResponse>('/api/plugin/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
+      }),
+    pollPairing: (key: string) =>
+      request<PairingPollResponse>('/api/plugin/auth/poll', {
+        method: 'POST',
+        body: JSON.stringify({ key }),
       }),
     listProposals: (page: number, pageSize: number, q: string) =>
       request<ProposalListResponse>(
