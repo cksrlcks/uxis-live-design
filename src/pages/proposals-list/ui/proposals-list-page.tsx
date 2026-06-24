@@ -140,7 +140,7 @@ export function ProposalsListPage() {
                     <Skeleton className="h-5 w-12 rounded-full" />
                   </TableCell>
                   <TableCell className={bodyCell}>
-                    <Skeleton className="size-9 rounded-full" />
+                    <Skeleton className="size-6 rounded-full" />
                   </TableCell>
                   <TableCell className={bodyCell}>
                     <Skeleton className="h-4 w-20" />

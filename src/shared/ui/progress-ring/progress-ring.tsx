@@ -2,7 +2,7 @@ import { progressRingColor } from "./progress-color";
 
 // 태깅 완성도용 SVG 도넛. value(0~100)와 색 구간 + 중앙 % 숫자.
 // stroke는 CSS 변수를 쓰므로 presentation 속성이 아닌 style로 지정한다.
-export function ProgressRing({ value, size = 36 }: { value: number; size?: number }) {
+export function ProgressRing({ value, size = 24 }: { value: number; size?: number }) {
   const clamped = Math.max(0, Math.min(100, Math.round(value)));
   const stroke = 4;
   const r = (size - stroke) / 2;

@@ -48,7 +48,9 @@ export async function getProposals(
     .leftJoin(tagOptions, eq(tagOptions.id, proposalTags.optionId))
     .where(where)
     .groupBy(proposals.id)
-    .orderBy(desc(proposals.updatedAt))
+    // 작성일(createdAt) 기준 고정 정렬. 태그 수정 등으로 updatedAt이 바뀌어도
+    // 순서가 흔들리지 않게 하고, 동률 작성일은 id로 tie-break해 결정적으로 만든다.
+    .orderBy(desc(proposals.createdAt), desc(proposals.id))
     .limit(safeSize)
     .offset((safePage - 1) * safeSize);
 
