@@ -98,6 +98,9 @@ export const pinComments = pgTable("pin_comments", {
   pageOrder: integer("page_order").notNull(),
   xNorm: real("x_norm").notNull(),
   yNorm: real("y_norm").notNull(),
+  // 영역(드래그) 코멘트일 때만 채워짐(둘 다 NULL = 점 코멘트). 페이지 기준 정규화 너비/높이.
+  wNorm: real("w_norm"),
+  hNorm: real("h_norm"),
   authorId: uuid("author_id"),                    // FK via SQL (set null), 소유권 기준
   authorName: text("author_name").notNull(),
   authorColor: text("author_color").notNull(),
