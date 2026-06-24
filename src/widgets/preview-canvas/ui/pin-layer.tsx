@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { toContent } from "@/shared/realtime/coords";
-import { locatePin, placePin, type PageBox } from "../lib/locate";
+import { locatePin, locateArea, placePin, type PageBox } from "../lib/locate";
 import { formatPinTime, initialOf, pinElementId } from "../lib/format";
 import { pinQueries, type PinDTO, type PinContext } from "@/entities/pin";
 import { useCreatePin, useEditPin, useToggleResolved, useDeletePin } from "@/features/pin-comment";
@@ -28,8 +28,17 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 
-type Draft = { pageOrder: number; xNorm: number; yNorm: number } | null;
+type Draft = {
+  pageOrder: number;
+  xNorm: number;
+  yNorm: number;
+  wNorm?: number;
+  hNorm?: number;
+} | null;
 const INV = "scale(var(--inv-scale,5))";
+// 점선 박스 테두리를 화면상 ~1.5px로 유지(콘텐츠 좌표라 줌에 반비례 보정).
+const AREA_BORDER = "calc(1.5px * var(--inv-scale, 5))";
+const DRAG_THRESHOLD = 5; // 화면 px — 이 미만 이동은 클릭(점)으로 간주
 
 // 팝오버 헤더용 원형 아바타.
 function PinAvatar({ name, color }: { name: string; color: string }) {
@@ -103,6 +112,14 @@ export function PinLayer({
   const deleteMut = useDeletePin(publicId, variantId, versionId);
 
   const [draft, setDraft] = useState<Draft>(null);
+  // 드래그 추적: 시작 client/content 좌표(ref) + 진행 중 미리보기 박스(state, 콘텐츠 좌표).
+  const dragRef = useRef<{ sx: number; sy: number; cx0: number; cy0: number } | null>(null);
+  const [dragBox, setDragBox] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  } | null>(null);
   const [draftBody, setDraftBody] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBody, setEditBody] = useState("");
@@ -167,26 +184,76 @@ export function PinLayer({
     return out;
   }
 
-  function onCaptureClick(e: React.MouseEvent) {
-    // 스페이스 패닝 중 발생한 클릭은 핀 배치로 처리하지 않는다.
+  // 현재 배율 기준 포인터→콘텐츠 좌표. 측정 실패 시 null.
+  function toContentNow(clientX: number, clientY: number): { cx: number; cy: number } | null {
+    const content = contentRef.current;
+    if (!content) return null;
+    const rect = content.getBoundingClientRect();
+    const ow = content.offsetWidth;
+    if (ow <= 0) return null;
+    return toContent(clientX, clientY, rect, rect.width / ow);
+  }
+
+  function onPointerDownCapture(e: React.PointerEvent) {
+    if (e.button !== 0) return; // 좌클릭만
+    // 스페이스 패닝 중에는 드래그를 시작하지 않는다(라이브러리 패닝에 양보).
     if (spaceHeld) return;
-    // 비로그인 상태에서 핀을 찍으면 로그인 유도 모달.
     if (isGuest) {
       setLoginOpen(true);
       return;
     }
-    const content = contentRef.current;
-    if (!content) return;
-    const rect = content.getBoundingClientRect();
-    const ow = content.offsetWidth;
-    if (ow <= 0) return;
-    const { cx, cy } = toContent(e.clientX, e.clientY, rect, rect.width / ow);
-    const loc = locatePin(cx, cy, measureBoxes());
-    if (!loc) return;
+    const p = toContentNow(e.clientX, e.clientY);
+    if (!p) return;
+    dragRef.current = { sx: e.clientX, sy: e.clientY, cx0: p.cx, cy0: p.cy };
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+  }
+
+  function onPointerMoveCapture(e: React.PointerEvent) {
+    const d = dragRef.current;
+    if (!d) return;
+    const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy);
+    if (moved < DRAG_THRESHOLD) {
+      if (dragBox) setDragBox(null);
+      return;
+    }
+    const p = toContentNow(e.clientX, e.clientY);
+    if (!p) return;
+    setDragBox({
+      left: Math.min(d.cx0, p.cx),
+      top: Math.min(d.cy0, p.cy),
+      width: Math.abs(p.cx - d.cx0),
+      height: Math.abs(p.cy - d.cy0),
+    });
+  }
+
+  function onPointerUpCapture(e: React.PointerEvent) {
+    const d = dragRef.current;
+    dragRef.current = null;
+    setDragBox(null);
+    if (!d) return;
+    try {
+      (e.currentTarget as Element).releasePointerCapture(e.pointerId);
+    } catch {
+      // capture가 이미 해제된 경우 무시
+    }
+    const p = toContentNow(e.clientX, e.clientY);
+    if (!p) return;
+    const boxes = measureBoxes();
+    const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy);
     onSelectId(null);
     setEditingId(null);
     setDraftBody("");
-    setDraft(loc);
+    if (moved < DRAG_THRESHOLD) {
+      // 클릭 = 점 코멘트(시작점 사용 — 기존 동작과 동일).
+      const loc = locatePin(d.cx0, d.cy0, boxes);
+      if (!loc) return;
+      setDraft(loc);
+    } else {
+      // 드래그 = 영역 코멘트.
+      const area = locateArea(d.cx0, d.cy0, p.cx, p.cy, boxes);
+      if (!area) return;
+      setDraft(area);
+    }
   }
 
   function submitDraft() {
@@ -218,13 +285,33 @@ export function PinLayer({
       {mode === "comment" && (
         // 시안 밖에도 핀을 찍을 수 있도록 콘텐츠(이미지 묶음) 박스보다 크게 확장한다.
         // 핀 마커/작성기는 DOM상 이 오버레이 뒤에 와서 위에 깔리므로 클릭이 유지된다.
+        // 클릭=점, 드래그=영역(포인터 이벤트로 구분).
         <div
           className={cn(
             "pointer-events-auto absolute",
             spaceHeld ? "cursor-grab" : "cursor-crosshair",
           )}
           style={{ inset: "-100000px" }}
-          onClick={onCaptureClick}
+          onPointerDown={onPointerDownCapture}
+          onPointerMove={onPointerMoveCapture}
+          onPointerUp={onPointerUpCapture}
+        />
+      )}
+
+      {/* 드래그 중 점선 박스 미리보기(콘텐츠 좌표). 테두리는 줌 보정으로 화면상 일정 두께. */}
+      {dragBox && (
+        <div
+          className="pointer-events-none absolute"
+          style={{
+            left: dragBox.left,
+            top: dragBox.top,
+            width: dragBox.width,
+            height: dragBox.height,
+            borderStyle: "dashed",
+            borderWidth: AREA_BORDER,
+            borderColor: rt?.myColor ?? "#3b82f6",
+            backgroundColor: `${rt?.myColor ?? "#3b82f6"}1a`,
+          }}
         />
       )}
 
@@ -241,6 +328,8 @@ export function PinLayer({
       {pins.map((p) => {
         const b = boxesByOrder.get(p.pageOrder);
         if (!b) return null;
+        const isArea = p.wNorm != null && p.hNorm != null;
+        // 점: (xNorm,yNorm)=뾰족한 끝점 / 영역: (xNorm,yNorm)=좌상단 코너.
         const { x, y } = placePin(b, p.xNorm, p.yNorm);
         const mine = !isGuest && p.authorId === pin.viewerId;
         const open = selectedId === p.id;
@@ -251,6 +340,22 @@ export function PinLayer({
             className="absolute"
             style={{ left: x, top: y }}
           >
+            {isArea && (
+              <div
+                className="pointer-events-none absolute"
+                style={{
+                  left: 0,
+                  top: 0,
+                  width: p.wNorm! * b.width,
+                  height: p.hNorm! * b.height,
+                  borderStyle: "dashed",
+                  borderWidth: AREA_BORDER,
+                  borderColor: p.authorColor,
+                  backgroundColor: `${p.authorColor}14`,
+                  opacity: p.resolved ? 0.4 : 1,
+                }}
+              />
+            )}
             <button
               className="pointer-events-auto block"
               style={{ transform: INV, transformOrigin: "0 100%" }}
@@ -401,9 +506,25 @@ export function PinLayer({
         (() => {
           const b = boxesByOrder.get(draft.pageOrder);
           if (!b) return null;
+          const isArea = draft.wNorm != null && draft.hNorm != null;
           const { x, y } = placePin(b, draft.xNorm, draft.yNorm);
           return (
             <div className="absolute" style={{ left: x, top: y }}>
+              {isArea && (
+                <div
+                  className="pointer-events-none absolute"
+                  style={{
+                    left: 0,
+                    top: 0,
+                    width: draft.wNorm! * b.width,
+                    height: draft.hNorm! * b.height,
+                    borderStyle: "dashed",
+                    borderWidth: AREA_BORDER,
+                    borderColor: rt?.myColor ?? "#3b82f6",
+                    backgroundColor: `${rt?.myColor ?? "#3b82f6"}1a`,
+                  }}
+                />
+              )}
               <span className="block" style={{ transform: INV, transformOrigin: "0 100%" }}>
                 <PinMarker color={rt?.myColor ?? "#3b82f6"} active />
               </span>
