@@ -16,9 +16,19 @@ export function ProposalTagsPanel({ proposalId }: { proposalId: string }) {
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // 서버 선택값이 로드/갱신되면 로컬 선택 상태를 동기화한다.
+  // 단, 사용자가 편집 중(dirty)일 때는 덮어쓰지 않는다 — 백그라운드 refetch가
+  // 미저장 토글을 날리지 않도록. (저장 후엔 selected==서버값이라 정상 동기화된다.)
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: server data loaded async; syncing derived local selection when query result arrives
-    if (current.data) setSelected(new Set(current.data.optionIds));
+    if (!current.data) return;
+    const base = new Set(current.data.optionIds);
+    const isDirty =
+      selected.size !== base.size || [...selected].some((id) => !base.has(id));
+    if (!isDirty) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: server data loaded async; dirty가 아닐 때만 동기화
+      setSelected(base);
+    }
+    // selected는 의도적으로 dep에서 제외 — 초기 로드/저장 후 동기화 전용
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current.data]);
 
   if (taxonomy.isPending || current.isPending) {
