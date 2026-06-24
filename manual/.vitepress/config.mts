@@ -5,6 +5,11 @@ export default defineConfig({
   title: "cova 사용 매뉴얼",
   description: "cova 스튜디오·뷰어·Figma 플러그인 사용 안내",
   cleanUrls: true,
+  // Windows에서 realpathSync가 드라이브 문자 대소문자(d:→D:)를 바꿔 페이지 청크 매칭이
+  // 깨지는 VitePress 버그(resolvePageImports) 회피 — preserveSymlinks면 realpath를 건너뛴다.
+  vite: {
+    resolve: { preserveSymlinks: true },
+  },
   themeConfig: {
     nav: [
       { text: "홈", link: "/" },
