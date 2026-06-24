@@ -1,3 +1,3 @@
-// cova 서버 주소. 개발: http://localhost:3000 / 배포 시 운영 도메인으로 변경.
-export const API_BASE = 'http://localhost:3000';
+// cova 서버 주소. 개발: http://localhost:3000 / 운영: https://uxis-cova.vercel.app
+export const API_BASE = 'https://uxis-cova.vercel.app';
 export const PAGE_SIZE = 8;

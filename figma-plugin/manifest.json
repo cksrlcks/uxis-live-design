@@ -7,8 +7,12 @@
   "ui": "dist/ui.html",
   "documentAccess": "dynamic-page",
   "networkAccess": {
-    "allowedDomains": ["*"],
-    "reasoning": "cova API 연결 (개발 중). 배포 전 실제 운영 도메인으로 좁힐 것.",
-    "devAllowedDomains": ["http://localhost:3000"]
+    "allowedDomains": [
+      "https://uxis-cova.vercel.app",
+      "https://*.supabase.co",
+      "https://cdn.jsdelivr.net"
+    ],
+    "reasoning": "cova 운영 API + Supabase Storage(서명 URL 업로드/이미지) + Pretendard 폰트 CDN.",
+    "devAllowedDomains": ["http://localhost:3000", "https://*.supabase.co", "https://cdn.jsdelivr.net"]
   }
 }
