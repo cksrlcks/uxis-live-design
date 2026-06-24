@@ -19,7 +19,7 @@ function authClient() {
 const refreshSchema = z.object({ refreshToken: z.string().min(1) });
 
 const PAIRING_TTL_MS = 5 * 60 * 1000;
-const pollSchema = z.object({ key: z.string().min(1) });
+const pollSchema = z.object({ key: z.string().min(1).max(200) });
 
 // 외부 브라우저에서 로그인된 쿠키 세션을 읽어, 플러그인이 폴링으로 회수할 토큰을 key로 임시 저장한다.
 // getUser로 진위를 검증한 뒤 getSession으로 토큰을 얻는다. 미로그인이면 false(호출 페이지가 로그인으로 보냄).
@@ -29,6 +29,8 @@ export async function storePluginPairing(key: string): Promise<boolean> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return false;
+  // getUser() 성공 시 세션은 사실상 항상 존재하지만 타입 안전을 위해 검사한다.
+  // key는 플러그인이 생성해 외부에서 주입할 수 없으므로 세션 고정(fixation) 위험이 없다.
   const {
     data: { session },
   } = await supabase.auth.getSession();

@@ -10,7 +10,7 @@ export default async function PluginAuthPage({
   searchParams: Promise<{ k?: string }>;
 }) {
   const { k } = await searchParams;
-  if (!k) return <Centered title="잘못된 요청" message="페어링 키가 없습니다." />;
+  if (!k || k.length > 200) return <Centered title="잘못된 요청" message="페어링 키가 올바르지 않습니다." />;
 
   const stored = await storePluginPairing(k);
   if (!stored) redirect(`/login?returnTo=${encodeURIComponent(`/plugin-auth?k=${k}`)}`);
