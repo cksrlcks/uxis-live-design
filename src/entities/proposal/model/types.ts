@@ -55,6 +55,7 @@ export type ProposalDetailHeader = {
   visibility: string;
   hasPassword: boolean;
   whiteboardEnabled: boolean;
+  exposedToUxisworks: boolean;
 };
 
 // Full editor detail payload returned by GET /api/proposals/[id].

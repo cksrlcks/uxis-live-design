@@ -9,8 +9,16 @@ import { updateSettingsSchema } from "../model/edit-schemas";
 
 export async function updateProposalSettings(id: string, input: unknown): Promise<void> {
   await requireEditor();
-  const { title, visibility, password, domain, whiteboardEnabled, participants, figmaUrl } =
-    updateSettingsSchema.parse(input);
+  const {
+    title,
+    visibility,
+    password,
+    domain,
+    whiteboardEnabled,
+    exposedToUxisworks,
+    participants,
+    figmaUrl,
+  } = updateSettingsSchema.parse(input);
 
   const updates: Partial<typeof proposals.$inferInsert> = {};
   if (title !== undefined) updates.title = title;
@@ -34,6 +42,7 @@ export async function updateProposalSettings(id: string, input: unknown): Promis
     updates.domain = domain;
   }
   if (whiteboardEnabled !== undefined) updates.whiteboardEnabled = whiteboardEnabled;
+  if (exposedToUxisworks !== undefined) updates.exposedToUxisworks = exposedToUxisworks;
   updates.updatedAt = new Date();
 
   await db.update(proposals).set(updates).where(eq(proposals.id, id));
