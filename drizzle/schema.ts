@@ -179,3 +179,39 @@ export const pluginAuthPairings = pgTable("plugin_auth_pairings", {
 });
 
 export type PluginAuthPairing = typeof pluginAuthPairings.$inferSelect;
+
+// === AI 시안 생성 (AI Design Generation) ===
+export const aiDesigns = pgTable(
+  "ai_designs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(), // 제목
+    company: text("company"), // 회사명(선택)
+    pageType: text("page_type").notNull(), // 'main' | 'dashboard' | 'subpage'
+    extraNotes: text("extra_notes"), // 자유 추가 요청
+    status: text("status").notNull().default("working"), // 'working' | 'done' | 'failed'
+    html: text("html"), // 완료 시 채워짐
+    errorMessage: text("error_message"),
+    model: text("model"), // 사용 모델 id 기록
+    createdBy: uuid("created_by"), // FK → profiles (SQL, set null)
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("ai_designs_page_type_check", sql`${t.pageType} in ('main', 'dashboard', 'subpage')`),
+    check("ai_designs_status_check", sql`${t.status} in ('working', 'done', 'failed')`),
+  ],
+);
+
+export type AiDesign = typeof aiDesigns.$inferSelect;
+
+export const aiDesignTags = pgTable(
+  "ai_design_tags",
+  {
+    aiDesignId: uuid("ai_design_id").notNull(), // FK → ai_designs (SQL, cascade)
+    optionId: uuid("option_id").notNull(), // FK → tag_options (SQL, cascade)
+  },
+  (t) => [primaryKey({ columns: [t.aiDesignId, t.optionId] })],
+);
+
+export type AiDesignTag = typeof aiDesignTags.$inferSelect;
