@@ -219,6 +219,11 @@ export function ProposalsListPage() {
                           비번
                         </Badge>
                       )}
+                      {p.exposedToUxisworks && (
+                        <Badge variant="success" size="md">
+                          노출
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell

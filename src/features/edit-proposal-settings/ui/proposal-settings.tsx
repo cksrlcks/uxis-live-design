@@ -52,6 +52,7 @@ export function ProposalSettings({
   visibility,
   hasPassword,
   whiteboardEnabled,
+  exposedToUxisworks,
 }: {
   proposalId: string;
   title: string;
@@ -61,6 +62,7 @@ export function ProposalSettings({
   visibility: string;
   hasPassword: boolean;
   whiteboardEnabled: boolean;
+  exposedToUxisworks: boolean;
 }) {
   const router = useRouter();
   const updateSettings = useUpdateSettings(proposalId);
@@ -322,6 +324,26 @@ export function ProposalSettings({
               onCheckedChange={(checked) => change({ whiteboardEnabled: checked })}
             />
             <span className="text-sm font-medium">{whiteboardEnabled ? "사용" : "사용 안 함"}</span>
+          </label>
+        </CardContent>
+      </Card>
+
+      {/* 유시스웍스 노출 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>유시스웍스 노출</CardTitle>
+          <CardDescription>
+            켜면 이 시안을 유시스웍스(포트폴리오/갤러리)에 노출합니다. 공개 링크 접근과는 별개입니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <label className="flex w-fit cursor-pointer items-center gap-3">
+            <Switch
+              checked={exposedToUxisworks}
+              disabled={pending}
+              onCheckedChange={(checked) => change({ exposedToUxisworks: checked })}
+            />
+            <span className="text-sm font-medium">{exposedToUxisworks ? "노출" : "노출 안 함"}</span>
           </label>
         </CardContent>
       </Card>
