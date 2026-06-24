@@ -1,4 +1,4 @@
-      /* cova 서비스 디자인 토큰 (globals.css) */
+﻿      /* cova 서비스 디자인 토큰 (globals.css) */
       :root {
         --background: #ffffff;
         --foreground: #080808;
@@ -37,6 +37,9 @@
         display: flex; flex-direction: column; height: 100vh;
         -webkit-font-smoothing: antialiased;
       }
+      /* React mounts into #root; make its children participate in body's flex column,
+         replicating the original <section id="app" style="display:contents"> bridge. */
+      #root { display: contents; }
       .hidden { display: none !important; }
       .logo { display: block; width: auto; color: currentColor; }
 

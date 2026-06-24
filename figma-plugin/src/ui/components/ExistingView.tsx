@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import type { ApiClient, Page, ProposalListItem, Variant } from '../lib/api';
 import type { SetStatus } from '../hooks/useUploadRunner';
 import type { ExportedImage } from '../../shared/messages';
@@ -20,6 +20,7 @@ export function ExistingView({
   selectionCount,
   notify,
   onUploaded,
+  reloadKey,
 }: {
   visible: boolean;
   active: boolean;
@@ -29,6 +30,7 @@ export function ExistingView({
   selectionCount: number;
   notify: (message: string, error?: boolean) => void;
   onUploaded: (proposalId: string) => void;
+  reloadKey: number;
 }) {
   const [nav, setNav] = useState<Nav>('list');
 
@@ -79,9 +81,20 @@ export function ExistingView({
 
   // 탭이 처음 활성화될 때 1회 로드(원본 listLoaded 동작).
   useEffect(() => {
-    if (active && !loadedRef.current) loadProposals(1, '');
+    if (!active) return;
+    setNav('list'); // 원본 switchTab("existing") → switchExistingView("list")
+    if (!loadedRef.current) loadProposals(page, query);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
+
+  // 새 시안 생성 등으로 reloadKey가 바뀌면 목록을 무효화 → 다음 활성화 시 page1 재로드.
+  useEffect(() => {
+    if (reloadKey > 0) {
+      loadedRef.current = false;
+      setPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloadKey]);
 
   function onQueryChange(q: string) {
     setQuery(q);

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { API_BASE } from './config';
 import { createApiClient } from './lib/api';
 import { humanize } from './lib/errors';
@@ -87,7 +87,7 @@ export function App() {
         created.versionId,
         confirmPages(created.uploads, images),
       );
-      notify('새 시안 "' + title + '" 생성됨');
+      notify('새 시안 “' + title + '” 생성됨');
       setCreateKey((k) => k + 1); // 제목 입력 리셋
       setOpenProposalId(created.proposalId);
     });
@@ -131,6 +131,7 @@ export function App() {
         selectionCount={selectionCount}
         notify={notify}
         onUploaded={setOpenProposalId}
+        reloadKey={createKey}
       />
 
       <StatusBar
