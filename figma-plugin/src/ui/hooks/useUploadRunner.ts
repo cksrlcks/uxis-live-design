@@ -20,28 +20,31 @@ export function useUploadRunner(opts: {
   );
   const setStatusOk = useCallback((text: string) => setStatusState({ text, kind: 'ok' }), []);
 
+  const optsRef = useRef(opts);
+  optsRef.current = opts;
+
   const run = useCallback(
     async (label: string, fn: (images: ExportedImage[], setStatus: SetStatus) => Promise<void>) => {
       if (busyRef.current) return;
       busyRef.current = true;
       setBusy(true);
-      opts.onBeforeRun?.();
+      optsRef.current.onBeforeRun?.();
       setStatus(label + ' — 프레임 내보내는 중…');
       try {
-        const images = await opts.exportSelection();
+        const images = await optsRef.current.exportSelection();
         if (!images.length) throw new Error('NO_SELECTION');
         await fn(images, setStatus);
         setStatusOk(label + ' 완료 ✓');
       } catch (e) {
         const m = humanize(e instanceof Error ? e.message : String(e));
         setStatus(m, true);
-        opts.notify(m, true);
+        optsRef.current.notify(m, true);
       } finally {
         busyRef.current = false;
         setBusy(false);
       }
     },
-    [opts, setStatus, setStatusOk],
+    [setStatus, setStatusOk],
   );
 
   return { busy, status, setStatus, setStatusOk, run };
