@@ -168,3 +168,14 @@ export const proposalTags = pgTable("proposal_tags", {
 export type TagGroup = typeof tagGroups.$inferSelect;
 export type TagOption = typeof tagOptions.$inferSelect;
 export type ProposalTag = typeof proposalTags.$inferSelect;
+
+// 플러그인 로그인 페어링 — 외부 브라우저 로그인 결과(토큰)를 플러그인이 폴링으로 회수할 때까지
+// 잠깐 보관하는 1회용 저장소. key = 플러그인이 만든 uuid. 최초 폴링 시 삭제, TTL 5분.
+export const pluginAuthPairings = pgTable("plugin_auth_pairings", {
+  key: text("key").primaryKey(),
+  payload: jsonb("payload").notNull(), // { accessToken, refreshToken, expiresAt, user }
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type PluginAuthPairing = typeof pluginAuthPairings.$inferSelect;
