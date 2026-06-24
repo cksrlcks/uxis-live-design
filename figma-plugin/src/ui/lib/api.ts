@@ -120,11 +120,6 @@ export function createApiClient(opts: {
   }
 
   return {
-    login: (email: string, password: string) =>
-      request<LoginResponse>('/api/plugin/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      }),
     pollPairing: (key: string) =>
       request<PairingPollResponse>('/api/plugin/auth/poll', {
         method: 'POST',
