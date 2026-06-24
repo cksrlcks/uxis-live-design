@@ -42,6 +42,8 @@ export async function getPins(
     pageOrder: r.pageOrder,
     xNorm: r.xNorm,
     yNorm: r.yNorm,
+    wNorm: r.wNorm,
+    hNorm: r.hNorm,
     authorId: r.authorId,
     authorName: r.authorName,
     authorColor: r.authorColor,

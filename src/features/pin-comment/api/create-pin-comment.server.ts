@@ -15,7 +15,7 @@ export async function createPinComment(publicId: string, raw: unknown): Promise<
   const profile = await getProfile();
   if (!profile) throw new Error("LOGIN_REQUIRED");
 
-  const { variantId, versionId, pageOrder, xNorm, yNorm, authorColor, body } =
+  const { variantId, versionId, pageOrder, xNorm, yNorm, wNorm, hNorm, authorColor, body } =
     createPinInputSchema.parse(raw);
 
   const v = await db
@@ -49,6 +49,8 @@ export async function createPinComment(publicId: string, raw: unknown): Promise<
     pageOrder,
     xNorm,
     yNorm,
+    wNorm: wNorm ?? null,
+    hNorm: hNorm ?? null,
     authorId: profile.id,
     authorName,
     authorColor,
@@ -62,6 +64,8 @@ export async function createPinComment(publicId: string, raw: unknown): Promise<
     pageOrder,
     xNorm,
     yNorm,
+    wNorm: wNorm ?? null,
+    hNorm: hNorm ?? null,
     authorId: profile.id,
     authorName,
     authorColor,
