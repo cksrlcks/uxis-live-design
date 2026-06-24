@@ -26,6 +26,8 @@ export const proposals = pgTable("proposals", {
   visibility: text("visibility").notNull().default("private"), // 'private' | 'public'
   accessPasswordHash: text("access_password_hash"), // 'salt:hash' (scrypt), public+password only
   whiteboardEnabled: boolean("whiteboard_enabled").notNull().default(false),
+  // 유시스웍스(포트폴리오/갤러리) 노출 여부. visibility(공개 링크 접근)와 독립된 축.
+  exposedToUxisworks: boolean("exposed_to_uxisworks").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
