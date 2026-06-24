@@ -10,6 +10,7 @@ import { PROPOSALS_PAGE_SIZE } from "@/entities/proposal/model/types";
 import { NewProposalDialog } from "@/features/create-proposal";
 import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
+import { ProgressRing } from "@/shared/ui/progress-ring";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -108,6 +109,7 @@ export function ProposalsListPage() {
               <TableHead className={headCell}>공개 ID</TableHead>
               <TableHead className={headCell}>공개 도메인</TableHead>
               <TableHead className={headCell}>상태</TableHead>
+              <TableHead className={headCell}>태깅</TableHead>
               <TableHead className={cn(headCell, "whitespace-nowrap")}>작성일</TableHead>
               <TableHead className={cn(headCell, "whitespace-nowrap")}>최근수정일</TableHead>
               <TableHead className={cn(headCell, "w-0")}>
@@ -138,6 +140,9 @@ export function ProposalsListPage() {
                     <Skeleton className="h-5 w-12 rounded-full" />
                   </TableCell>
                   <TableCell className={bodyCell}>
+                    <Skeleton className="size-9 rounded-full" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
                     <Skeleton className="h-4 w-20" />
                   </TableCell>
                   <TableCell className={bodyCell}>
@@ -151,7 +156,7 @@ export function ProposalsListPage() {
 
             {isError && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={8} className="text-destructive px-5 py-16 text-center">
+                <TableCell colSpan={9} className="text-destructive px-5 py-16 text-center">
                   목록을 불러오지 못했습니다.
                 </TableCell>
               </TableRow>
@@ -159,7 +164,7 @@ export function ProposalsListPage() {
 
             {rows?.length === 0 && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={8} className="px-5 py-16 text-center">
+                <TableCell colSpan={9} className="px-5 py-16 text-center">
                   {q ? (
                     <p className="text-muted-foreground text-sm">검색 결과가 없습니다.</p>
                   ) : (
@@ -225,6 +230,9 @@ export function ProposalsListPage() {
                         </Badge>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <ProgressRing value={p.taggingProgress} />
                   </TableCell>
                   <TableCell
                     className={cn(
