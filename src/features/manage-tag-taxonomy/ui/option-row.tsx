@@ -15,17 +15,22 @@ export function OptionRow({ option }: { option: TagOption }) {
   const del = useDeleteOption();
 
   return (
-    <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm">{option.label}</span>
-          <span className="text-muted-foreground font-mono text-xs">{option.code}</span>
+    <div className="group/row hover:bg-muted/40 flex items-start justify-between gap-3 py-2.5 pr-2.5 pl-4 transition-colors">
+      <div className="flex min-w-0 gap-2.5">
+        {/* dot 마커 — 항목이 구분의 하위 목록임을 시각적으로 표시 */}
+        <span className="bg-muted-foreground/40 mt-1.5 size-1.5 shrink-0 rounded-full" aria-hidden />
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">{option.label}</span>
+            <span className="text-muted-foreground font-mono text-xs">{option.code}</span>
+          </div>
+          {option.description && (
+            <p className="text-muted-foreground truncate text-xs">{option.description}</p>
+          )}
         </div>
-        {option.description && (
-          <p className="text-muted-foreground truncate text-xs">{option.description}</p>
-        )}
       </div>
-      <div className="flex shrink-0 gap-1">
+      {/* 항목 컨트롤 — 호버/포커스 시에만 노출(구분 헤더의 상시 컨트롤과 대비) */}
+      <div className="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100">
         <Button
           type="button"
           variant="ghost"

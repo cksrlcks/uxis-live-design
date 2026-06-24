@@ -18,11 +18,15 @@ export function GroupCard({ group }: { group: TagGroupWithOptions }) {
   const del = useDeleteGroup();
 
   return (
-    <div className="bg-card ring-foreground/10 rounded-xl ring-1">
-      <div className="border-border/60 flex items-start justify-between gap-3 border-b p-4">
+    <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
+      {/* 구분 헤더 — 틴트 밴드 + 굵은 라벨 + 항목 수 배지로 '상위'임을 또렷하게 */}
+      <div className="bg-muted/40 border-border/60 flex items-start justify-between gap-3 border-b px-4 py-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium">{group.label}</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base font-semibold">{group.label}</h3>
+            <span className="bg-foreground/10 text-muted-foreground rounded-full px-1.5 py-0.5 text-[11px] font-medium tabular-nums">
+              {group.options.length}
+            </span>
             <span className="text-muted-foreground font-mono text-xs">{group.code}</span>
           </div>
           {group.description && (
@@ -51,17 +55,24 @@ export function GroupCard({ group }: { group: TagGroupWithOptions }) {
         </div>
       </div>
 
-      <div className="divide-border/60 divide-y">
+      {/* 항목 목록 — 들여쓰기 + dot 마커로 '하위'임을 표시(OptionRow 내부) */}
+      <div className="divide-border/50 divide-y">
         {group.options.map((opt) => (
           <OptionRow key={opt.id} option={opt} />
         ))}
         {group.options.length === 0 && (
-          <p className="text-muted-foreground px-4 py-3 text-xs">항목이 없습니다.</p>
+          <p className="text-muted-foreground py-3 pr-3 pl-9 text-xs">항목이 없습니다.</p>
         )}
       </div>
 
-      <div className="p-3">
-        <Button type="button" variant="outline" size="sm" onClick={() => setAddOpen(true)}>
+      <div className="border-border/50 border-t p-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setAddOpen(true)}
+          className="text-muted-foreground w-full justify-start"
+        >
           <Plus />
           항목 추가
         </Button>
