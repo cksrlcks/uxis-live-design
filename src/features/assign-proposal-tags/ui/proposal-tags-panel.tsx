@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { tagQueries } from "@/entities/tag";
@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/lib/utils";
 import { useSaveProposalTags } from "../api/use-save-proposal-tags";
+import { shouldSyncSelection } from "../lib/sync-selection";
 
 export function ProposalTagsPanel({ proposalId }: { proposalId: string }) {
   const taxonomy = useQuery(tagQueries.taxonomy());
@@ -15,21 +16,20 @@ export function ProposalTagsPanel({ proposalId }: { proposalId: string }) {
   const save = useSaveProposalTags(proposalId);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  // 서버 선택값이 로드/갱신되면 로컬 선택 상태를 동기화한다.
-  // 단, 사용자가 편집 중(dirty)일 때는 덮어쓰지 않는다 — 백그라운드 refetch가
-  // 미저장 토글을 날리지 않도록. (저장 후엔 selected==서버값이라 정상 동기화된다.)
+  // 이 시안에 대해 서버값을 이미 반영했는지 추적. 최초 로드(새로고침 포함)에는
+  // 로컬이 빈 Set이라도 반드시 서버값으로 시드해야 하고, 이후 백그라운드 refetch는
+  // 사용자가 편집 중일 때 미저장 선택을 덮어쓰지 않아야 한다(shouldSyncSelection 참고).
+  const syncedProposalRef = useRef<string | null>(null);
   useEffect(() => {
     if (!current.data) return;
-    const base = new Set(current.data.optionIds);
-    const isDirty =
-      selected.size !== base.size || [...selected].some((id) => !base.has(id));
-    if (!isDirty) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: server data loaded async; dirty가 아닐 때만 동기화
-      setSelected(base);
+    const isFirstSync = syncedProposalRef.current !== proposalId;
+    if (shouldSyncSelection(isFirstSync, selected, current.data.optionIds)) {
+      syncedProposalRef.current = proposalId;
+      setSelected(new Set(current.data.optionIds));
     }
-    // selected는 의도적으로 dep에서 제외 — 초기 로드/저장 후 동기화 전용
+    // selected는 의도적으로 dep에서 제외 — current.data/proposalId 변경 시에만 평가
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current.data]);
+  }, [current.data, proposalId]);
 
   if (taxonomy.isPending || current.isPending) {
     return (
