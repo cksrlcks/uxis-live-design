@@ -1,3 +1,4 @@
 node_modules/
-# tsc 산출물 (code.ts → code.js). 빌드해서 사용.
+dist/
+# tsc 산출물 (구버전). 빌드해서 사용.
 code.js
