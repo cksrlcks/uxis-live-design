@@ -2,9 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { parseAsStringEnum, useQueryState } from "nuqs";
+import { ArrowUpRight } from "lucide-react";
 import { proposalQueries } from "@/entities/proposal";
 import { ProposalSettings } from "@/features/edit-proposal-settings";
 import { ProposalTagsPanel } from "@/features/assign-proposal-tags";
+import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { PageHeader } from "@/widgets/studio-shell";
@@ -101,12 +103,42 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
     </span>
   );
 
+  // 상단 우측 액션 — 공개ID/도메인 뷰어를 새 창에서 연다. 도메인 미지정 시 해당 버튼은 숨김.
+  const headerActions = (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        nativeButton={false}
+        render={<a href={`/p/${proposal.publicId}`} target="_blank" rel="noopener noreferrer" />}
+      >
+        공개ID
+        <ArrowUpRight />
+      </Button>
+      {proposal.domain && (
+        <Button
+          variant="outline"
+          size="sm"
+          nativeButton={false}
+          render={<a href={`/p/${proposal.domain}`} target="_blank" rel="noopener noreferrer" />}
+        >
+          도메인
+          <ArrowUpRight />
+        </Button>
+      )}
+    </>
+  );
+
   // Mirror the RSC page's `if (variants.length === 0) notFound()` guard: VariantTabs /
   // ProposalEditorPreview read `active.label` unconditionally and crash on an empty list.
   if (variants.length === 0) {
     return (
       <div className="mx-auto max-w-3xl">
-        <PageHeader title={proposal.title} description={headerDescription} />
+        <PageHeader
+          title={proposal.title}
+          description={headerDescription}
+          actions={headerActions}
+        />
         <p className="text-muted-foreground text-sm">표시할 안이 없습니다.</p>
       </div>
     );
@@ -114,7 +146,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title={proposal.title} description={headerDescription} />
+      <PageHeader title={proposal.title} description={headerDescription} actions={headerActions} />
 
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* 좌측 탭 메뉴 — 활성 탭만 본문에 표시(?tab) */}
