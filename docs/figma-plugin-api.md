@@ -49,12 +49,24 @@
 
 ## 1. 인증
 
-### `POST /api/plugin/auth/login`
+플러그인은 **외부 브라우저 + 폴링 페어링**으로 로그인한다(샌드박스 iframe은 OAuth 리다이렉트를
+되돌려받을 수 없으므로). 흐름:
+
+1. 플러그인이 임의의 `key`(uuid)를 만들어 외부 브라우저로 `https://<cova-host>/plugin-auth?k=<key>` 를 연다.
+2. 그 페이지는 미로그인 시 웹 로그인(`/login`, 이메일·구글)으로 보내고, 로그인 후 돌아오면
+   세션 토큰을 `key` 로 임시 저장한다(5분 TTL, 1회용).
+3. 플러그인은 `POST /api/plugin/auth/poll` 을 `key` 로 폴링해 토큰을 회수한다.
+
+### `POST /api/plugin/auth/poll`
 요청 (인증 헤더 불필요):
 ```json
-{ "email": "you@example.com", "password": "••••••••" }
+{ "key": "<플러그인이 만든 uuid>" }
 ```
-응답 `200`:
+응답 `200` — 아직 로그인 전:
+```json
+{ "status": "pending" }
+```
+응답 `200` — 로그인 완료(토큰 회수, 해당 key 는 즉시 폐기):
 ```json
 {
   "accessToken": "eyJ...",
@@ -165,7 +177,8 @@ PUT  .../versions/{versionId}/pages/{pageId}
 
 | 시나리오 | 메서드 · 경로 |
 |---|---|
-| 로그인 | `POST /api/plugin/auth/login` |
+| 로그인 시작(브라우저) | `GET /plugin-auth?k=<key>` |
+| 로그인 폴링 | `POST /api/plugin/auth/poll` |
 | 토큰 갱신 | `POST /api/plugin/auth/refresh` |
 | 시안 목록 | `GET /api/plugin/proposals` |
 | 시안 상세 | `GET /api/plugin/proposals/{id}` |

@@ -3,7 +3,8 @@ import { API_BASE } from './config';
 import { createApiClient } from './lib/api';
 import { humanize } from './lib/errors';
 import { confirmPages, filesMeta, uploadAll } from './lib/upload';
-import { useSession, type SessionConfig } from './hooks/useSession';
+import { useSession } from './hooks/useSession';
+import { usePairingLogin } from './hooks/usePairingLogin';
 import { useFigmaBridge } from './hooks/useFigmaBridge';
 import { useUploadRunner } from './hooks/useUploadRunner';
 import { CovaLogoSymbol } from './components/CovaLogo';
@@ -22,8 +23,6 @@ export function App() {
   const [tab, setTab] = useState<'new' | 'existing'>('new');
   const [openProposalId, setOpenProposalId] = useState<string | null>(null);
   const [createKey, setCreateKey] = useState(0);
-  const [loginBusy, setLoginBusy] = useState(false);
-  const [loginErr, setLoginErr] = useState('');
 
   const bridge = useFigmaBridge(session.hydrate);
   const { selectionCount, exportSelection, notify, openUrl } = bridge;
@@ -41,29 +40,7 @@ export function App() {
     [session.getTokens, session.setTokens],
   );
 
-  /* ── 로그인 ── */
-  async function doLogin(email: string, password: string) {
-    setLoginErr('');
-    if (!email || !password) {
-      setLoginErr('이메일과 비밀번호를 입력하세요.');
-      return;
-    }
-    setLoginBusy(true);
-    try {
-      const data = await api.login(email, password);
-      const next: SessionConfig = {
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-        expiresAt: data.expiresAt,
-        user: data.user,
-      };
-      session.setSession(next);
-    } catch (e) {
-      setLoginErr(humanize(e instanceof Error ? e.message : String(e)));
-    } finally {
-      setLoginBusy(false);
-    }
-  }
+  const pairing = usePairingLogin({ api, openUrl: bridge.openUrl, onSuccess: session.setSession });
 
   function doLogout() {
     session.logout();
@@ -97,7 +74,13 @@ export function App() {
     return (
       <>
         <CovaLogoSymbol />
-        <Login busy={loginBusy} errorText={loginErr} onSubmit={doLogin} onSignup={() => openUrl(API_BASE.replace(/\/+$/, '') + '/signup')} />
+        <Login
+          busy={pairing.busy}
+          errorText={pairing.error ? humanize(pairing.error) : ''}
+          onLogin={pairing.start}
+          onCancel={pairing.cancel}
+          onSignup={() => openUrl(API_BASE.replace(/\/+$/, '') + '/signup')}
+        />
       </>
     );
   }
