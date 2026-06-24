@@ -52,8 +52,7 @@ export function ProposalTagsPanel({ proposalId }: { proposalId: string }) {
   }
 
   const baseline = new Set(current.data.optionIds);
-  const dirty =
-    selected.size !== baseline.size || [...selected].some((id) => !baseline.has(id));
+  const dirty = selected.size !== baseline.size || [...selected].some((id) => !baseline.has(id));
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -111,7 +110,7 @@ export function ProposalTagsPanel({ proposalId }: { proposalId: string }) {
 
       <div className="flex items-center justify-end gap-3">
         {dirty && <span className="text-muted-foreground text-xs">저장되지 않은 변경사항</span>}
-        <Button type="button" onClick={handleSave} disabled={!dirty || save.isPending}>
+        <Button type="button" size="lg" onClick={handleSave} disabled={!dirty || save.isPending}>
           {save.isPending ? "저장 중…" : "저장"}
         </Button>
       </div>

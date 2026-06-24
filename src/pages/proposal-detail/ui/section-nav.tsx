@@ -8,7 +8,7 @@ export type SectionId = "settings" | "variants" | "tags";
 const SECTIONS = [
   { id: "settings", label: "사이트설정", icon: Settings },
   { id: "variants", label: "시안설정", icon: Layers },
-  { id: "tags", label: "시안태그관리", icon: Tag },
+  { id: "tags", label: "태그관리", icon: Tag },
 ] as const;
 
 // 좌측 탭 메뉴 — 선택한 탭만 본문에 표시한다(상태는 ?tab URL 파라미터). 활성 효과는
