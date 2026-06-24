@@ -47,6 +47,19 @@ describe("createPinInputSchema", () => {
     expect(createPinInputSchema.safeParse({ ...valid, variantId: "" }).success).toBe(false);
     expect(createPinInputSchema.safeParse({ ...valid, versionId: "" }).success).toBe(false);
   });
+  it("accepts a valid area payload (w/h together)", () => {
+    const area = { ...valid, wNorm: 0.4, hNorm: 0.25 };
+    expect(createPinInputSchema.parse(area)).toEqual(area);
+  });
+  it("rejects only one of w/h present", () => {
+    expect(createPinInputSchema.safeParse({ ...valid, wNorm: 0.4 }).success).toBe(false);
+    expect(createPinInputSchema.safeParse({ ...valid, hNorm: 0.25 }).success).toBe(false);
+  });
+  it("rejects non-positive or oversized w/h", () => {
+    expect(createPinInputSchema.safeParse({ ...valid, wNorm: 0, hNorm: 0.2 }).success).toBe(false);
+    expect(createPinInputSchema.safeParse({ ...valid, wNorm: -0.1, hNorm: 0.2 }).success).toBe(false);
+    expect(createPinInputSchema.safeParse({ ...valid, wNorm: 0.2, hNorm: 99 }).success).toBe(false);
+  });
 });
 
 describe("patchPinInputSchema", () => {

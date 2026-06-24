@@ -6,6 +6,9 @@ export type PinDTO = {
   pageOrder: number;
   xNorm: number;
   yNorm: number;
+  // 영역 코멘트면 채워짐(점 코멘트는 null/undefined).
+  wNorm?: number | null;
+  hNorm?: number | null;
   authorId: string | null;
   authorName: string;
   authorColor: string;
