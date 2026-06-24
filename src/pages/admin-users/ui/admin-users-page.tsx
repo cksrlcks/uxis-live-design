@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";
-import { userQueries } from "@/entities/user";
+import { ProviderBadges, userQueries } from "@/entities/user";
 import { UserRowActions } from "@/features/manage-users";
 import { PageHeader } from "@/widgets/studio-shell";
 import { cn } from "@/shared/lib/utils";
@@ -56,6 +56,7 @@ export function AdminUsersPage() {
             <TableRow className="bg-muted/50 border-border/60 border-b">
               <TableHead className={headCell}>이름</TableHead>
               <TableHead className={headCell}>이메일</TableHead>
+              <TableHead className={headCell}>가입수단</TableHead>
               <TableHead className={headCell}>가입일</TableHead>
               <TableHead className={headCell}>작업</TableHead>
             </TableRow>
@@ -74,6 +75,9 @@ export function AdminUsersPage() {
                     <Skeleton className="h-4 w-44" />
                   </TableCell>
                   <TableCell className={bodyCell}>
+                    <Skeleton className="h-4 w-28" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
                     <Skeleton className="h-4 w-20" />
                   </TableCell>
                   <TableCell className={bodyCell}>
@@ -84,7 +88,7 @@ export function AdminUsersPage() {
 
             {isError && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={4} className="text-destructive px-5 py-16 text-center">
+                <TableCell colSpan={5} className="text-destructive px-5 py-16 text-center">
                   사용자 목록을 불러오지 못했습니다.
                 </TableCell>
               </TableRow>
@@ -93,7 +97,7 @@ export function AdminUsersPage() {
             {filtered?.length === 0 && (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="text-muted-foreground px-5 py-16 text-center text-sm"
                 >
                   {q ? "검색 결과가 없습니다." : "아직 사용자가 없습니다."}
@@ -107,6 +111,9 @@ export function AdminUsersPage() {
                   {u.name ?? <span className="text-muted-foreground">—</span>}
                 </TableCell>
                 <TableCell className={bodyCell}>{u.email}</TableCell>
+                <TableCell className={bodyCell}>
+                  <ProviderBadges providers={u.providers} />
+                </TableCell>
                 <TableCell className={cn(bodyCell, "text-muted-foreground tabular-nums")}>
                   {formatDate(u.createdAt)}
                 </TableCell>
