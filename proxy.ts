@@ -14,6 +14,15 @@ const PLUGIN_CORS: Record<string, string> = {
   "Access-Control-Max-Age": "86400",
 };
 
+// 읽기전용 공개 표면(/api/public/*). 인증 없이 노출(exposed) 시안만 반환한다.
+// 쿠키 자격증명을 받지 않으니 와일드카드 Origin(*)이 안전하다. 읽기 전용이라 GET/OPTIONS만 허용.
+const PUBLIC_CORS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Max-Age": "86400",
+};
+
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
@@ -25,6 +34,17 @@ export async function proxy(request: NextRequest) {
     }
     const response = NextResponse.next({ request });
     for (const [key, value] of Object.entries(PLUGIN_CORS)) response.headers.set(key, value);
+    return response;
+  }
+
+  // 공개 표면: 프리플라이트는 즉시 응답하고, 그 외 GET에는 CORS 헤더만 달아 통과시킨다.
+  // 인증·쿠키 세션 처리는 적용하지 않는다(무인증 읽기전용).
+  if (path.startsWith("/api/public/")) {
+    if (request.method === "OPTIONS") {
+      return new NextResponse(null, { status: 204, headers: PUBLIC_CORS });
+    }
+    const response = NextResponse.next({ request });
+    for (const [key, value] of Object.entries(PUBLIC_CORS)) response.headers.set(key, value);
     return response;
   }
 
