@@ -7,4 +7,5 @@ export type {
   EditorVariant,
   ProposalDetailHeader,
   ProposalDetail,
+  ProposalListItem,
 } from "./model/types";
