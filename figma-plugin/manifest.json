@@ -3,8 +3,8 @@
   "id": "1437300000000000001",
   "api": "1.0.0",
   "editorType": ["figma"],
-  "main": "code.js",
-  "ui": "ui.html",
+  "main": "dist/main.js",
+  "ui": "dist/ui.html",
   "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": ["*"],

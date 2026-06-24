@@ -7,13 +7,14 @@
 > **현재 범위:** 로그인 · 시안 목록 · **새 시안 만들기** · **기존 시안 → 안(A·B) 선택/추가 → 새 버전 올리기**.
 > (개별 이미지 교체는 다음 단계.)
 
-## 구성 (Figma 공식 권장 방식: TypeScript + `tsc`)
+## 구성 (React + TypeScript + Vite)
 
 | 파일 | 역할 |
 |---|---|
 | `manifest.json` | 플러그인 정의 (`main`, `ui`, `networkAccess`) |
-| `code.ts` → `code.js` | 메인(샌드박스): figma API + 세션 영속화(`clientStorage`) |
-| `ui.html` | UI(iframe): 로그인/목록 화면 + 네트워크 요청(`fetch`) |
+| `src/main.ts` → `dist/main.js` | 메인(샌드박스): figma API + 세션 영속(`clientStorage`) |
+| `src/shared/messages.ts` | UI ↔ main 메시지 타입 |
+| `src/ui/**` → `dist/ui.html` | UI(iframe): React 화면 + 네트워크 요청(`fetch`). 단일 HTML로 인라인 빌드 |
 
 네트워크 요청은 UI(iframe)에서 한다. iframe은 **null origin** 이라 대상 API가
 `Access-Control-Allow-Origin: *` 를 줘야 하는데, cova `/api/plugin/*` 가 그렇게 응답한다.
@@ -23,8 +24,9 @@
 ```bash
 cd figma-plugin
 npm install
-npm run build      # code.ts → code.js (1회)
-npm run watch      # 개발 중 자동 컴파일
+npm run build      # dist/ui.html + dist/main.js
+npm run dev        # ui/main 동시 watch
+npm run test       # 단위 테스트
 ```
 
 ## Figma에 올리기
