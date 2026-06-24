@@ -9,6 +9,7 @@ export function PageList({
   selectionCount,
   onBack,
   onReplace,
+  onAddPages,
 }: {
   title: string;
   pages: Page[];
@@ -18,6 +19,7 @@ export function PageList({
   selectionCount: number;
   onBack: () => void;
   onReplace: (pageId: string, ordinal: number) => void;
+  onAddPages: () => void;
 }) {
   const needsSelDisabled = busy || selectionCount === 0;
   return (
@@ -30,7 +32,7 @@ export function PageList({
           {title}
         </div>
       </div>
-      <div className="hint">교체는 캔버스에서 선택한 첫 프레임을 사용합니다.</div>
+      <div className="hint">교체는 첫 프레임을, 이미지 추가는 선택한 모든 프레임을 사용합니다.</div>
       <div id="pages">
         {loading ? (
           <div className="loading">불러오는 중…</div>
@@ -64,6 +66,15 @@ export function PageList({
           ))
         )}
       </div>
+      <button
+        className="sm"
+        id="addPagesBtn"
+        type="button"
+        disabled={needsSelDisabled}
+        onClick={onAddPages}
+      >
+        ＋ 이미지 추가 (선택 프레임)
+      </button>
     </div>
   );
 }

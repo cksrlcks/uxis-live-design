@@ -197,6 +197,20 @@ export function ExistingView({
     });
   }
 
+  async function onAddPages() {
+    const ctx = pagesCtx;
+    if (!ctx || !ctx.versionId) return;
+    const verId = ctx.versionId;
+    await run('이미지 추가', async (images, setStatus) => {
+      const issued = await api.issuePages(ctx.proposalId, ctx.variantId, verId, filesMeta(images));
+      await uploadAll(issued.uploads, images, (d, t) => setStatus('업로드 중 ' + d + '/' + t + '…'));
+      await api.confirmPages(ctx.proposalId, ctx.variantId, verId, confirmPages(issued.uploads, images));
+      notify(images.length + '장 추가됨');
+      onUploaded(ctx.proposalId);
+      await loadPages({ proposalId: ctx.proposalId, variantId: ctx.variantId });
+    });
+  }
+
   async function onReplace(pageId: string, ordinal: number) {
     const ctx = pagesCtx;
     if (!ctx || !ctx.versionId) return;
@@ -267,6 +281,7 @@ export function ExistingView({
             setNav('detail');
           }}
           onReplace={onReplace}
+          onAddPages={onAddPages}
         />
       )}
     </div>
