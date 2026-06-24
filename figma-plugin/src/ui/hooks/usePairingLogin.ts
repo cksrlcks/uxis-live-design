@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { API_BASE } from '../config';
 import { signInUrl, type ApiClient } from '../lib/api';
+import { randomKey } from '../lib/random';
 import type { SessionConfig } from './useSession';
 
 const POLL_INTERVAL_MS = 1500;
@@ -16,8 +17,9 @@ function delay(ms: number) {
   return new Promise<void>((r) => setTimeout(r, ms));
 }
 
-// 로그인 페어링: uuid 생성 → 외부 브라우저로 사인인 페이지 열기 → uuid로 폴링.
-// 성공 시 onSuccess로 세션 전달. 타임아웃/취소 가능. (crypto.randomUUID는 Figma 데스크톱 iframe 제공)
+// 로그인 페어링: 랜덤 키 생성 → 외부 브라우저로 사인인 페이지 열기 → 키로 폴링.
+// 성공 시 onSuccess로 세션 전달. 타임아웃/취소 가능.
+// 키는 randomKey()로 만든다(플러그인 iframe은 비보안 컨텍스트라 crypto.randomUUID 사용 불가).
 export function usePairingLogin(opts: Opts) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -35,7 +37,7 @@ export function usePairingLogin(opts: Opts) {
     setBusy(true);
     cancelRef.current = false;
     try {
-      const key = crypto.randomUUID();
+      const key = randomKey();
       optsRef.current.openUrl(signInUrl(API_BASE, key));
 
       const deadline = Date.now() + POLL_TIMEOUT_MS;
@@ -59,7 +61,8 @@ export function usePairingLogin(opts: Opts) {
         return;
       }
       if (!cancelRef.current) setError('OAUTH_TIMEOUT');
-    } catch {
+    } catch (e) {
+      console.error('[pairing-login]', e); // 조용한 실패 방지(원인 콘솔 노출)
       setError('OAUTH_FAILED');
     } finally {
       setBusy(false);
