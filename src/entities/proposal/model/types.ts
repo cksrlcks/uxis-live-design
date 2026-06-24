@@ -2,6 +2,9 @@ import type { Proposal } from "@drizzle/schema";
 
 export type { Proposal };
 
+// 목록 행 = 시안 + 태깅 완성도(0~100). 서버에서 구분 커버리지로 계산해 내려준다.
+export type ProposalListItem = Proposal & { taggingProgress: number };
+
 // 목록 페이징 공통 형태.
 export type Paginated<T> = {
   items: T[];
@@ -55,6 +58,7 @@ export type ProposalDetailHeader = {
   visibility: string;
   hasPassword: boolean;
   whiteboardEnabled: boolean;
+  exposedToUxisworks: boolean;
 };
 
 // Full editor detail payload returned by GET /api/proposals/[id].

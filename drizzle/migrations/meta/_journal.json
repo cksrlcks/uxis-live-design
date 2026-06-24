@@ -121,5 +121,12 @@
       "tag": "0016_seed_tags",
       "breakpoints": true
     }
+    ,{
+      "idx": 17,
+      "version": "7",
+      "when": 1783100000000,
+      "tag": "0017_proposal_exposed_to_uxisworks",
+      "breakpoints": true
+    }
   ]
 }
