@@ -35,7 +35,8 @@ export async function putToSignedUrl(signedUrl: string, img: ExportedImage): Pro
         'cache-control': 'max-age=3600',
         'x-upsert': 'false',
       },
-      body: img.bytes,
+      // TS 5.7 made Uint8Array generic; BodyInit/BufferSource types became stricter but runtime is fine.
+      body: img.bytes as unknown as BodyInit,
     });
   } catch {
     throw new Error('UPLOAD_NETWORK');
