@@ -47,5 +47,28 @@ export function useUploadRunner(opts: {
     [setStatus, setStatusOk],
   );
 
-  return { busy, status, setStatus, setStatusOk, run };
+  // 선택 프레임이 필요 없는 액션(삭제 등)용 러너. busy 상태는 run과 공유한다.
+  const runAction = useCallback(
+    async (label: string, fn: () => Promise<void>) => {
+      if (busyRef.current) return;
+      busyRef.current = true;
+      setBusy(true);
+      optsRef.current.onBeforeRun?.();
+      setStatus(label + '…');
+      try {
+        await fn();
+        setStatusOk(label + ' 완료 ✓');
+      } catch (e) {
+        const m = humanize(e instanceof Error ? e.message : String(e));
+        setStatus(m, true);
+        optsRef.current.notify(m, true);
+      } finally {
+        busyRef.current = false;
+        setBusy(false);
+      }
+    },
+    [setStatus, setStatusOk],
+  );
+
+  return { busy, status, setStatus, setStatusOk, run, runAction };
 }

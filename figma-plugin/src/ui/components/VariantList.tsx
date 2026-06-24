@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { Variant } from '../lib/api';
+import { DeleteButton } from './DeleteButton';
 
 export function VariantList({
   title,
@@ -11,6 +13,7 @@ export function VariantList({
   onOpenPages,
   onNewVersion,
   onAddVariant,
+  onDeleteVariant,
 }: {
   title: string;
   variants: Variant[];
@@ -22,8 +25,10 @@ export function VariantList({
   onOpenPages: (variantId: string) => void;
   onNewVersion: (variantId: string, label: string) => void;
   onAddVariant: () => void;
+  onDeleteVariant: (variantId: string, label: string) => void;
 }) {
   const needsSelDisabled = busy || selectionCount === 0;
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   return (
     <div id="detailView">
       <div className="detailhead">
@@ -65,6 +70,15 @@ export function VariantList({
                 >
                   새 버전
                 </button>
+                <DeleteButton
+                  armed={confirmId === v.id}
+                  disabled={busy}
+                  onArm={() => setConfirmId(v.id)}
+                  onConfirm={() => {
+                    setConfirmId(null);
+                    onDeleteVariant(v.id, label);
+                  }}
+                />
                 <div className="chev">›</div>
               </div>
             );

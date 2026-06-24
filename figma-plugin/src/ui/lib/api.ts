@@ -187,5 +187,9 @@ export function createApiClient(opts: {
         { method: 'PUT', body: JSON.stringify(meta) },
         true,
       ),
+    deletePage: (pid: string, vid: string, verId: string, pageId: string) =>
+      request<unknown>(pagesPath(pid, vid, verId) + '/' + pageId, { method: 'DELETE' }, true),
+    deleteVariant: (pid: string, vid: string) =>
+      request<unknown>(variantsPath(pid) + '/' + vid, { method: 'DELETE' }, true),
   };
 }

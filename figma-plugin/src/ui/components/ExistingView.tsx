@@ -16,6 +16,7 @@ export function ExistingView({
   active,
   api,
   run,
+  runAction,
   busy,
   selectionCount,
   notify,
@@ -26,6 +27,7 @@ export function ExistingView({
   active: boolean;
   api: ApiClient;
   run: (label: string, fn: (images: ExportedImage[], setStatus: SetStatus) => Promise<void>) => Promise<void>;
+  runAction: (label: string, fn: () => Promise<void>) => Promise<void>;
   busy: boolean;
   selectionCount: number;
   notify: (message: string, error?: boolean) => void;
@@ -197,6 +199,29 @@ export function ExistingView({
     });
   }
 
+  async function onDeleteVariant(variantId: string, label: string) {
+    if (!detail) return;
+    const pid = detail.proposalId;
+    await runAction('안 ' + label + ' 삭제', async () => {
+      await api.deleteVariant(pid, variantId);
+      notify('안 ' + label + ' 삭제됨');
+      onUploaded(pid);
+      await loadDetail(pid);
+    });
+  }
+
+  async function onDeletePage(pageId: string, ordinal: number) {
+    const ctx = pagesCtx;
+    if (!ctx || !ctx.versionId) return;
+    const verId = ctx.versionId;
+    await runAction(ordinal + '페이지 삭제', async () => {
+      await api.deletePage(ctx.proposalId, ctx.variantId, verId, pageId);
+      notify(ordinal + '페이지 삭제됨');
+      onUploaded(ctx.proposalId);
+      await loadPages({ proposalId: ctx.proposalId, variantId: ctx.variantId });
+    });
+  }
+
   async function onAddPages() {
     const ctx = pagesCtx;
     if (!ctx || !ctx.versionId) return;
@@ -266,6 +291,7 @@ export function ExistingView({
           onOpenPages={openPages}
           onNewVersion={onNewVersion}
           onAddVariant={onAddVariant}
+          onDeleteVariant={onDeleteVariant}
         />
       )}
       {nav === 'pages' && (
@@ -282,6 +308,7 @@ export function ExistingView({
           }}
           onReplace={onReplace}
           onAddPages={onAddPages}
+          onDeletePage={onDeletePage}
         />
       )}
     </div>

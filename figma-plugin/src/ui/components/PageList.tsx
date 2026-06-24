@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { Page } from '../lib/api';
+import { DeleteButton } from './DeleteButton';
 
 export function PageList({
   title,
@@ -10,6 +12,7 @@ export function PageList({
   onBack,
   onReplace,
   onAddPages,
+  onDeletePage,
 }: {
   title: string;
   pages: Page[];
@@ -20,8 +23,10 @@ export function PageList({
   onBack: () => void;
   onReplace: (pageId: string, ordinal: number) => void;
   onAddPages: () => void;
+  onDeletePage: (pageId: string, ordinal: number) => void;
 }) {
   const needsSelDisabled = busy || selectionCount === 0;
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   return (
     <div id="pagesView">
       <div className="detailhead">
@@ -62,6 +67,15 @@ export function PageList({
               >
                 교체
               </button>
+              <DeleteButton
+                armed={confirmId === p.id}
+                disabled={busy}
+                onArm={() => setConfirmId(p.id)}
+                onConfirm={() => {
+                  setConfirmId(null);
+                  onDeletePage(p.id, idx + 1);
+                }}
+              />
             </div>
           ))
         )}

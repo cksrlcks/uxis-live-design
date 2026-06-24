@@ -32,7 +32,7 @@ export function App() {
     notify,
     onBeforeRun: () => setOpenProposalId(null), // hideOpen
   });
-  const { busy, status, setStatus, run } = runner;
+  const { busy, status, setStatus, run, runAction } = runner;
 
   // api 클라이언트는 1회 생성. 토큰은 useSession ref로 항상 최신 읽기.
   const api = useMemo(
@@ -110,6 +110,7 @@ export function App() {
         active={tab === 'existing'}
         api={api}
         run={run}
+        runAction={runAction}
         busy={busy}
         selectionCount={selectionCount}
         notify={notify}

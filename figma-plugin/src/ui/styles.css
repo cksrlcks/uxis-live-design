@@ -73,6 +73,8 @@
       button.ghost:hover:not(:disabled) { background: var(--muted); color: var(--foreground); }
       button.soft { background: var(--muted); color: var(--foreground); font-weight: 500; }
       button.soft:hover:not(:disabled) { background: color-mix(in srgb, var(--muted), var(--foreground) 8%); }
+      button.danger { background: var(--destructive); color: #fff; border-color: var(--destructive); }
+      button.danger:hover:not(:disabled) { background: color-mix(in oklab, var(--destructive), #000 12%); }
       button.sm { height: 34px; padding: 0 12px; font-size: 13px; }
       .err { color: var(--destructive); margin-top: 12px; min-height: 18px; font-size: 13px; }
 
