@@ -62,6 +62,9 @@ export function GroupDialog({
           onSuccess: () => {
             toast.success("구분을 추가했습니다");
             onOpenChange(false);
+            setCode("");
+            setLabel("");
+            setDescription("");
           },
           onError: () => toast.error("추가에 실패했습니다(코드 중복일 수 있어요)"),
         },
