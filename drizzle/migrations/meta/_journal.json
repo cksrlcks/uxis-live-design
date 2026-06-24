@@ -106,6 +106,20 @@
       "when": 1782800000000,
       "tag": "0014_proposal_figma_url",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1782900000000,
+      "tag": "0015_proposal_tags",
+      "breakpoints": true
+    }
+    ,{
+      "idx": 16,
+      "version": "7",
+      "when": 1783000000000,
+      "tag": "0016_seed_tags",
+      "breakpoints": true
     }
   ]
 }

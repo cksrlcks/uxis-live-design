@@ -30,4 +30,16 @@ describe("nav-config", () => {
   it("visibleNavItems: admin은 모든 항목을 봄", () => {
     expect(visibleNavItems("admin")).toHaveLength(NAV_ITEMS.length);
   });
+
+  it("matchNav: 태그 설정 경로", () => {
+    expect(matchNav("/studio/tags")?.label).toBe("태그 설정");
+  });
+  it("visibleNavItems: editor는 태그 설정을 숨김", () => {
+    const labels = visibleNavItems("editor").map((i) => i.label);
+    expect(labels).not.toContain("태그 설정");
+  });
+  it("visibleNavItems: admin은 태그 설정을 봄", () => {
+    const labels = visibleNavItems("admin").map((i) => i.label);
+    expect(labels).toContain("태그 설정");
+  });
 });
