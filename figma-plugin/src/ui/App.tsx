@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { API_BASE } from './config';
 import { createApiClient } from './lib/api';
 import { humanize } from './lib/errors';

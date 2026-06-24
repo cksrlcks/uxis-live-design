@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ApiClient, Page, ProposalListItem, Variant } from '../lib/api';
 import type { SetStatus } from '../hooks/useUploadRunner';
 import type { ExportedImage } from '../../shared/messages';
