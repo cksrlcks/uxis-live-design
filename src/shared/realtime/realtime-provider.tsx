@@ -29,12 +29,14 @@ export type RemoteCursor = {
   color: string;
   cx: number;
   cy: number;
+  // 발신자가 보고 있는 안/버전(`${variantId}:${versionId}`). 구버전 클라이언트는 누락될 수 있음.
+  view?: string;
 };
 
 type RealtimeContextValue = {
   participants: Participant[];
   cursors: RemoteCursor[];
-  sendCursor: (cx: number, cy: number) => void;
+  sendCursor: (cx: number, cy: number, view?: string) => void;
   clearCursor: () => void;
   subscribeChat: (handler: (message: unknown) => void) => () => void;
   broadcastChat: (message: unknown) => void;
@@ -190,14 +192,14 @@ export function RealtimeProvider({
   // WebSocket-only delivery: skip when the channel isn't joined (pre-subscribe or
   // dropped). send() would otherwise auto-fall back to REST — now deprecated, and
   // wrong for high-frequency cursors (one HTTP request per move while disconnected).
-  const sendCursor = useCallback((cx: number, cy: number) => {
+  const sendCursor = useCallback((cx: number, cy: number, view?: string) => {
     const ch = channelRef.current;
     if (ch?.state !== "joined") return;
     const me = identityRef.current;
     ch.send({
       type: "broadcast",
       event: "cursor",
-      payload: { id: me.id, name: me.name, color: me.color, cx, cy },
+      payload: { id: me.id, name: me.name, color: me.color, cx, cy, view },
     });
   }, []);
 

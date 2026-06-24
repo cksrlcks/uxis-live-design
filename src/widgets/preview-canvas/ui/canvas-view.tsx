@@ -9,6 +9,7 @@ import {
 import type { ProposalPage } from "@/entities/proposal";
 import type { PinContext } from "@/entities/pin";
 import { CanvasCursorLayer, CanvasCursorCapture } from "./canvas-cursors";
+import { viewKey as makeViewKey } from "../lib/cursor-view";
 import { PinLayer } from "./pin-layer";
 import { WhiteboardLayer } from "./whiteboard-layer";
 import { CommentsPanel } from "./comments-panel";
@@ -106,6 +107,8 @@ export function CanvasView({
   const commenting = !!pin && mode === "comment";
   // 그리기 모드에서도 좌클릭은 펜 입력이므로 패닝 비활성(스페이스 예외).
   const drawing = !!pin && mode === "draw";
+  // 커서 구분용 보기 키 — pin이 없으면(에디터 프리뷰) undefined → 기존처럼 선명.
+  const cursorViewKey = pin ? makeViewKey(pin.variantId, pin.versionId) : undefined;
 
   return (
     <div ref={rootRef} className="bg-dot-grid relative h-full w-full">
@@ -251,7 +254,7 @@ export function CanvasView({
                 />
               ))}
             </div>
-            <CanvasCursorLayer />
+            <CanvasCursorLayer viewKey={cursorViewKey} />
             {pin && (
               <PinLayer
                 contentRef={contentRef}
@@ -280,7 +283,7 @@ export function CanvasView({
             )}
           </div>
         </TransformComponent>
-        <CanvasCursorCapture rootRef={rootRef} contentRef={contentRef} />
+        <CanvasCursorCapture rootRef={rootRef} contentRef={contentRef} viewKey={cursorViewKey} />
       </TransformWrapper>
     </div>
   );
