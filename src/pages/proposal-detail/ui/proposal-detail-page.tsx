@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { parseAsStringEnum, useQueryState } from "nuqs";
 import { proposalQueries } from "@/entities/proposal";
 import { ProposalSettings } from "@/features/edit-proposal-settings";
+import { ProposalTagsPanel } from "@/features/assign-proposal-tags";
 import { Card, CardContent, CardFooter, CardHeader } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { PageHeader } from "@/widgets/studio-shell";
@@ -16,7 +17,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
   // 좌측 메뉴 = 탭. 활성 탭만 본문에 렌더링하고 ?tab으로 URL에 유지한다.
   const [tab, setTab] = useQueryState(
     "tab",
-    parseAsStringEnum(["settings", "variants"] as const)
+    parseAsStringEnum(["settings", "variants", "tags"] as const)
       .withDefault("settings")
       .withOptions({ history: "push" }),
   );
@@ -159,6 +160,12 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
                   </div>
                 </div>
               </div>
+            </section>
+          )}
+
+          {tab === "tags" && (
+            <section>
+              <ProposalTagsPanel proposalId={proposal.id} />
             </section>
           )}
         </div>
