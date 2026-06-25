@@ -16,13 +16,14 @@ const { update, set, where, selectChain } = vi.hoisted(() => {
 vi.mock("@/shared/db", () => ({ db: { update, select: selectChain } }));
 
 import { markDone, markFailed, resolveReferences } from "@/entities/ai-design/api/generation-mutations.server";
+import { AI_DESIGN_MODEL } from "@/entities/ai-design/model/constants";
 
 beforeEach(() => vi.clearAllMocks());
 
 describe("generation mutations", () => {
   it("markDone: status=done, html 설정", async () => {
     await markDone("d1", "<html></html>");
-    expect(set).toHaveBeenCalledWith(expect.objectContaining({ status: "done", html: "<html></html>" }));
+    expect(set).toHaveBeenCalledWith(expect.objectContaining({ status: "done", html: "<html></html>", model: AI_DESIGN_MODEL }));
     expect(where).toHaveBeenCalled();
   });
 

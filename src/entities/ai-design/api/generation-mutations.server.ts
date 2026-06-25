@@ -5,6 +5,7 @@ import { aiDesigns, aiDesignTags, tagOptions } from "@drizzle/schema";
 import { getTagMatchedImages } from "./get-tag-matched-images.server";
 import type { GenerationInput } from "../model/types";
 import type { PageType } from "../model/constants";
+import { AI_DESIGN_MODEL } from "../model/constants";
 
 export async function resolveReferences(
   id: string,
@@ -35,7 +36,7 @@ export async function resolveReferences(
 export async function markDone(id: string, html: string): Promise<void> {
   await db
     .update(aiDesigns)
-    .set({ html, status: "done", errorMessage: null, updatedAt: new Date() })
+    .set({ html, status: "done", model: AI_DESIGN_MODEL, errorMessage: null, updatedAt: new Date() })
     .where(eq(aiDesigns.id, id));
 }
 
