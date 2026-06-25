@@ -41,14 +41,20 @@ export async function getProfile(): Promise<Profile | null> {
   return rows[0] ?? null;
 }
 
+// 미인증(토큰 없음/만료/위조)과 권한 부족을 구분한다.
+// 미인증은 LOGIN_REQUIRED(401) — Bearer 클라이언트(피그마 플러그인)가 401에서만
+// 토큰 리프레시 후 재시도하므로, 만료 토큰을 403으로 내리면 리프레시가 영영 안 돈다.
+// 인증됐으나 권한이 없으면 FORBIDDEN(403).
 export async function requireEditor(): Promise<Profile> {
   const profile = await getProfile();
-  if (!profile || !isEditor(profile.role as Role)) throw new Error("FORBIDDEN");
+  if (!profile) throw new Error("LOGIN_REQUIRED");
+  if (!isEditor(profile.role as Role)) throw new Error("FORBIDDEN");
   return profile;
 }
 
 export async function requireAdmin(): Promise<Profile> {
   const profile = await getProfile();
-  if (!profile || !isAdmin(profile.role as Role)) throw new Error("FORBIDDEN");
+  if (!profile) throw new Error("LOGIN_REQUIRED");
+  if (!isAdmin(profile.role as Role)) throw new Error("FORBIDDEN");
   return profile;
 }

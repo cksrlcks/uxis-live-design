@@ -62,6 +62,8 @@ export function createApiClient(opts: {
   baseUrl: string;
   getTokens: () => Tokens;
   onTokens: (t: { accessToken: string; refreshToken: string; expiresAt: unknown }) => void;
+  // 리프레시까지 실패(리프레시 토큰 만료/폐기)했을 때. 세션을 비우고 로그인 화면으로.
+  onAuthExpired?: () => void;
 }) {
   const { baseUrl } = opts;
 
@@ -104,9 +106,11 @@ export function createApiClient(opts: {
     } catch {
       throw new Error('NETWORK');
     }
-    // 액세스 토큰 만료(401) → 리프레시 후 1회 재시도.
+    // 액세스 토큰 만료(401) → 리프레시 후 1회 재시도. 리프레시도 실패하면 세션 만료로 처리.
     if (res.status === 401 && auth && !retried) {
       if (await tryRefresh()) return request<T>(path, init, auth, true);
+      opts.onAuthExpired?.();
+      throw new Error('SESSION_EXPIRED');
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let body: any = null;

@@ -35,9 +35,16 @@ export function App() {
   const { busy, status, setStatus, run, runAction } = runner;
 
   // api 클라이언트는 1회 생성. 토큰은 useSession ref로 항상 최신 읽기.
+  // 리프레시까지 실패하면 세션을 비워 로그인 화면으로 되돌린다(만료 토큰으로 멈춰 있지 않게).
   const api = useMemo(
-    () => createApiClient({ baseUrl: API_BASE, getTokens: session.getTokens, onTokens: session.setTokens }),
-    [session.getTokens, session.setTokens],
+    () =>
+      createApiClient({
+        baseUrl: API_BASE,
+        getTokens: session.getTokens,
+        onTokens: session.setTokens,
+        onAuthExpired: session.logout,
+      }),
+    [session.getTokens, session.setTokens, session.logout],
   );
 
   const pairing = usePairingLogin({ api, openUrl: bridge.openUrl, onSuccess: session.setSession });

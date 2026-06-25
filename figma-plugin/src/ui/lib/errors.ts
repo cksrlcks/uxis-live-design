@@ -12,6 +12,8 @@ const MSG: Record<string, string> = {
   EXPORT_FAILED: '프레임 내보내기에 실패했습니다.',
   OAUTH_TIMEOUT: '로그인 시간이 초과되었습니다. 다시 시도하세요.',
   OAUTH_FAILED: '로그인에 실패했습니다. 다시 시도하세요.',
+  SESSION_EXPIRED: '세션이 만료되었습니다. 다시 로그인해 주세요.',
+  LOGIN_REQUIRED: '세션이 만료되었습니다. 다시 로그인해 주세요.',
 };
 
 export function humanize(code: string): string {
