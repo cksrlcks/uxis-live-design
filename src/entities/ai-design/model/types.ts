@@ -1,6 +1,6 @@
 import type { PageType, AiDesignStatus } from "./constants";
 
-// 생성 step에 넘기는 입력(직렬화 가능해야 함 — workflow step 경계를 넘음).
+// 생성에 넘기는 입력.
 export type GenerationInput = {
   title: string;
   company: string | null;
