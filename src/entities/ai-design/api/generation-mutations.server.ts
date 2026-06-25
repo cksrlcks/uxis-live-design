@@ -1,7 +1,7 @@
 import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { aiDesigns, aiDesignReferenceProposals, aiDesignTags, tagOptions } from "@drizzle/schema";
+import { aiDesigns, aiDesignReferenceProposals, aiDesignTags } from "@drizzle/schema";
 import { getTagMatchedImages } from "./get-tag-matched-images.server";
 import type { TagMatchedImage } from "./get-tag-matched-images.server";
 import type { GenerationInput, GeneratedDesign } from "../model/types";
@@ -14,13 +14,15 @@ export async function resolveReferences(
   const [row] = await db.select().from(aiDesigns).where(eq(aiDesigns.id, id)).limit(1);
   if (!row) throw new Error("NOT_FOUND");
 
+  // 스냅샷 라벨을 그대로 쓴다(조인 불필요). optionId는 참고 이미지 매칭에만 쓰며, 항목이
+  // 삭제됐으면 null이라 매칭에서 제외한다.
   const tagRows = await db
-    .select({ optionId: aiDesignTags.optionId, label: tagOptions.label })
+    .select({ optionId: aiDesignTags.optionId, label: aiDesignTags.optionLabel })
     .from(aiDesignTags)
-    .innerJoin(tagOptions, eq(tagOptions.id, aiDesignTags.optionId))
     .where(eq(aiDesignTags.aiDesignId, id));
 
-  const images = await getTagMatchedImages(tagRows.map((t) => t.optionId));
+  const optionIds = tagRows.map((t) => t.optionId).filter((x): x is string => !!x);
+  const images = await getTagMatchedImages(optionIds);
 
   if (images.length > 0) {
     await saveReferences(id, images);

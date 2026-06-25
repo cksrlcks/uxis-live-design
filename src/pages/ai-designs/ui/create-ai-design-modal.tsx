@@ -18,7 +18,7 @@ import { Label } from "@/shared/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { cn } from "@/shared/lib/utils";
 import { tagQueries } from "@/entities/tag";
-import { AI_MODEL_OPTIONS, MODAL_TAG_GROUP_CODES, PageTypeCards, type PageType } from "@/entities/ai-design";
+import { AI_MODEL_OPTIONS, PageTypeCards, type PageType } from "@/entities/ai-design";
 import { useCreateAiDesign } from "@/entities/ai-design/api/use-ai-design-mutations";
 
 const MODEL_ITEMS = AI_MODEL_OPTIONS.map((m) => ({ value: m.value, label: m.label }));
@@ -42,10 +42,8 @@ export function CreateAiDesignModal({
   const [extraNotes, setExtraNotes] = useState("");
   const [model, setModel] = useState<string>(DEFAULT_MODEL);
 
-  // 화이트리스트 그룹만 노출. 매칭되는 코드가 없으면(시드 코드 불일치) 전체 그룹을 노출.
-  const allGroups = taxonomy ?? [];
-  const whitelisted = allGroups.filter((g) => MODAL_TAG_GROUP_CODES.includes(g.code));
-  const shownGroups = whitelisted.length > 0 ? whitelisted : allGroups;
+  // 모든 구분을 노출한다(대부분 생성에 쓰이므로 별도 필터 없음).
+  const shownGroups = taxonomy ?? [];
 
   function toggleOption(id: string) {
     setOptionIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));

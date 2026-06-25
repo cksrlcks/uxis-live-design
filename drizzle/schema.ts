@@ -210,13 +210,20 @@ export const aiDesigns = pgTable(
 
 export type AiDesign = typeof aiDesigns.$inferSelect;
 
+// 생성 시점에 선택한 태그의 스냅샷. 라벨/정렬을 박아 두어 이후 구분/항목이
+// 삭제·변경되어도 상세에 그 시점 기록이 그대로 보인다(ai_design_reference_proposals와 같은 패턴).
 export const aiDesignTags = pgTable(
   "ai_design_tags",
   {
+    id: uuid("id").primaryKey().defaultRandom(),
     aiDesignId: uuid("ai_design_id").notNull(), // FK → ai_designs (SQL, cascade)
-    optionId: uuid("option_id").notNull(), // FK → tag_options (SQL, cascade)
+    optionId: uuid("option_id"), // FK → tag_options (SQL, set null) — nullable: 항목 삭제 후에도 기록 보존
+    groupLabel: text("group_label").notNull(), // 생성 시점 구분 라벨 스냅샷
+    optionLabel: text("option_label").notNull(), // 생성 시점 항목 라벨 스냅샷
+    groupSort: integer("group_sort").notNull().default(0), // 상세 표시용 구분 정렬
+    optionSort: integer("option_sort").notNull().default(0), // 상세 표시용 항목 정렬
   },
-  (t) => [primaryKey({ columns: [t.aiDesignId, t.optionId] })],
+  (t) => [index("ai_design_tags_ai_design_idx").on(t.aiDesignId)],
 );
 
 export type AiDesignTag = typeof aiDesignTags.$inferSelect;

@@ -5,17 +5,33 @@ vi.mock("@/shared/auth/guards.server", () => ({
   requireAdmin: vi.fn(async () => ({ id: "admin-1" })),
 }));
 
-const { after, runGeneration, insert, values } = vi.hoisted(() => {
+const { after, runGeneration, insert, values, select } = vi.hoisted(() => {
   // after()는 콜백을 받기만 하고 자동 실행하지 않는다(응답 후 실행을 흉내). 테스트에서 수동 호출해 검증.
   const after = vi.fn((_cb: () => unknown) => undefined);
   const runGeneration = vi.fn(async () => undefined);
   const values = vi.fn(async () => undefined);
   const insert = vi.fn(() => ({ values }));
-  return { after, runGeneration, insert, values };
+  // 태그 스냅샷 라벨 조회 체인: select().from().innerJoin().where() → 행 배열.
+  const select = vi.fn(() => ({
+    from: () => ({
+      innerJoin: () => ({
+        where: async () => [
+          {
+            optionId: "11111111-1111-4111-a111-111111111111",
+            optionLabel: "모던",
+            optionSort: 1,
+            groupLabel: "스타일",
+            groupSort: 2,
+          },
+        ],
+      }),
+    }),
+  }));
+  return { after, runGeneration, insert, values, select };
 });
 vi.mock("next/server", () => ({ after }));
 vi.mock("@/entities/ai-design/api/run-generation.server", () => ({ runGeneration }));
-vi.mock("@/shared/db", () => ({ db: { insert } }));
+vi.mock("@/shared/db", () => ({ db: { insert, select } }));
 
 import { createAiDesign } from "@/entities/ai-design/api/create-ai-design.server";
 
@@ -34,6 +50,17 @@ describe("createAiDesign", () => {
     expect(values).toHaveBeenCalledWith(
       expect.objectContaining({ title: "ACME", pageType: "dashboard", status: "working", createdBy: "admin-1" }),
     );
+    // ai_design_tags insert — 라벨/정렬 스냅샷이 함께 박힌다
+    expect(values).toHaveBeenCalledWith([
+      expect.objectContaining({
+        aiDesignId: res.id,
+        optionId: "11111111-1111-4111-a111-111111111111",
+        optionLabel: "모던",
+        groupLabel: "스타일",
+        optionSort: 1,
+        groupSort: 2,
+      }),
+    ]);
     // after()로 생성 예약됨; 예약된 콜백은 runGeneration(id)를 호출한다
     expect(after).toHaveBeenCalledTimes(1);
     const scheduled = (after.mock.calls as any[][])[0][0] as () => unknown;

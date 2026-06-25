@@ -42,10 +42,10 @@ export type PaginatedAiDesigns = {
 };
 
 // 상세에서 보여줄 '선택했던 사전정보'의 태그 묶음(구분별 선택 옵션).
+// 생성 시점 라벨 스냅샷이라 이후 태그가 삭제/변경돼도 그대로 보인다(id 없이 라벨만).
 export type AiDesignTagGroupView = {
-  groupId: string;
   groupLabel: string;
-  options: { id: string; label: string }[];
+  options: { label: string }[];
 };
 
 // AI 제공사에 실제로 전달한 참고 시안 이미지 스냅샷.

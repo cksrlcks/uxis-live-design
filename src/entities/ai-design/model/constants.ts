@@ -43,8 +43,3 @@ const DEFAULT_MODEL_BY_PROVIDER: Record<string, string> = {
 };
 export const AI_DESIGN_MODEL =
   DEFAULT_MODEL_BY_PROVIDER[AI_PROVIDER] ?? DEFAULT_MODEL_BY_PROVIDER.openai;
-
-// 모달에 노출할 태그 그룹 코드 화이트리스트(생성에 유용한 것만).
-// 시드(0016_seed_tags.sql)의 실제 group.code와 일치해야 한다 — 구현 시 확인하고,
-// taxonomy에 없는 코드는 무시되며(아래 모달 로직), 하나도 없으면 전체 그룹을 노출한다.
-export const MODAL_TAG_GROUP_CODES = ["field", "style", "target", "structure"];

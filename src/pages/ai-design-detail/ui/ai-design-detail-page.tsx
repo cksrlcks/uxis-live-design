@@ -197,12 +197,12 @@ export function AiDesignDetailPage({ id }: { id: string }) {
           ) : (
             <div className="space-y-3">
               {design.tagGroups.map((g) => (
-                <div key={g.groupId} className="space-y-1.5">
+                <div key={g.groupLabel} className="space-y-1.5">
                   <p className="text-muted-foreground text-xs">{g.groupLabel}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {g.options.map((o) => (
                       <span
-                        key={o.id}
+                        key={o.label}
                         className="border-primary bg-primary/10 text-primary rounded-full border px-2.5 py-1 text-xs"
                       >
                         {o.label}

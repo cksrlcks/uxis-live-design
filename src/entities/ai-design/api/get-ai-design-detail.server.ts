@@ -1,14 +1,7 @@
 import "server-only";
 import { asc, eq, sql } from "drizzle-orm";
 import { db } from "@/shared/db";
-import {
-  aiDesigns,
-  aiDesignReferenceProposals,
-  aiDesignTags,
-  profiles,
-  tagGroups,
-  tagOptions,
-} from "@drizzle/schema";
+import { aiDesigns, aiDesignReferenceProposals, aiDesignTags, profiles } from "@drizzle/schema";
 import { requireAdmin } from "@/shared/auth/guards.server";
 import type { AiDesignDetail, AiDesignReferenceProposal, AiDesignTagGroupView } from "../model/types";
 import type { PageType, AiDesignStatus } from "../model/constants";
@@ -43,30 +36,24 @@ export async function getAiDesignDetail(id: string): Promise<AiDesignDetail> {
 
   if (!row) throw new Error("NOT_FOUND");
 
-  // 선택했던 태그를 구분(group)별로 묶는다 — 구분/옵션 정렬 순서를 유지.
+  // 생성 시점 스냅샷(라벨/정렬)에서 읽어 구분별로 묶는다 — 이후 태그 삭제/변경에 영향받지 않는다.
   const tagRows = await db
     .select({
-      groupId: tagGroups.id,
-      groupLabel: tagGroups.label,
-      groupSort: tagGroups.sortOrder,
-      optionId: tagOptions.id,
-      optionLabel: tagOptions.label,
-      optionSort: tagOptions.sortOrder,
+      groupLabel: aiDesignTags.groupLabel,
+      optionLabel: aiDesignTags.optionLabel,
     })
     .from(aiDesignTags)
-    .innerJoin(tagOptions, eq(tagOptions.id, aiDesignTags.optionId))
-    .innerJoin(tagGroups, eq(tagGroups.id, tagOptions.groupId))
     .where(eq(aiDesignTags.aiDesignId, id))
-    .orderBy(asc(tagGroups.sortOrder), asc(tagOptions.sortOrder));
+    .orderBy(asc(aiDesignTags.groupSort), asc(aiDesignTags.optionSort));
 
   const byGroup = new Map<string, AiDesignTagGroupView>();
   for (const t of tagRows) {
-    let g = byGroup.get(t.groupId);
+    let g = byGroup.get(t.groupLabel);
     if (!g) {
-      g = { groupId: t.groupId, groupLabel: t.groupLabel, options: [] };
-      byGroup.set(t.groupId, g);
+      g = { groupLabel: t.groupLabel, options: [] };
+      byGroup.set(t.groupLabel, g);
     }
-    g.options.push({ id: t.optionId, label: t.optionLabel });
+    g.options.push({ label: t.optionLabel });
   }
 
   const refRows = await db

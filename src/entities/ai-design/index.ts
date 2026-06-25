@@ -12,7 +12,6 @@ export {
   PAGE_TYPE_LABELS,
   AI_DESIGN_STATUSES,
   AI_DESIGN_STATUS_LABELS,
-  MODAL_TAG_GROUP_CODES,
   AI_MODEL_OPTIONS,
 } from "./model/constants";
 export type { PageType, AiDesignStatus, AiModelValue } from "./model/constants";
