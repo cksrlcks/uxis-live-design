@@ -4,13 +4,13 @@ import { db } from "@/shared/db";
 import { aiDesigns, aiDesignReferenceProposals, aiDesignTags, tagOptions } from "@drizzle/schema";
 import { getTagMatchedImages } from "./get-tag-matched-images.server";
 import type { TagMatchedImage } from "./get-tag-matched-images.server";
-import type { GenerationInput } from "../model/types";
+import type { GenerationInput, GeneratedDesign } from "../model/types";
 import type { PageType } from "../model/constants";
 import { AI_DESIGN_MODEL } from "../model/constants";
 
 export async function resolveReferences(
   id: string,
-): Promise<{ input: GenerationInput; imageUrls: string[] }> {
+): Promise<{ input: GenerationInput; imageUrls: string[]; model: string }> {
   const [row] = await db.select().from(aiDesigns).where(eq(aiDesigns.id, id)).limit(1);
   if (!row) throw new Error("NOT_FOUND");
 
@@ -35,6 +35,8 @@ export async function resolveReferences(
       extraNotes: row.extraNotes,
     },
     imageUrls: images.map((i) => i.url),
+    // 생성 시 선택된 모델. 과거 행(null)은 환경 기본 모델로 폴백.
+    model: row.model ?? AI_DESIGN_MODEL,
   };
 }
 
@@ -52,10 +54,18 @@ async function saveReferences(aiDesignId: string, refs: TagMatchedImage[]): Prom
   );
 }
 
-export async function markDone(id: string, html: string): Promise<void> {
+export async function markDone(id: string, result: GeneratedDesign): Promise<void> {
+  // model은 생성 시점에 저장됨 — 여기서 덮어쓰지 않는다.
   await db
     .update(aiDesigns)
-    .set({ html, status: "done", model: AI_DESIGN_MODEL, errorMessage: null, updatedAt: new Date() })
+    .set({
+      html: result.html,
+      analysis: result.analysis,
+      approach: result.approach,
+      status: "done",
+      errorMessage: null,
+      updatedAt: new Date(),
+    })
     .where(eq(aiDesigns.id, id));
 }
 

@@ -27,6 +27,8 @@ export async function getAiDesignDetail(id: string): Promise<AiDesignDetail> {
       status: aiDesigns.status,
       errorMessage: aiDesigns.errorMessage,
       model: aiDesigns.model,
+      analysis: aiDesigns.analysis,
+      approach: aiDesigns.approach,
       // 큰 html 본문은 가져오지 않고 존재 여부만 SQL로 계산한다(목록 쿼리와 동일).
       hasHtml: sql<boolean>`(${aiDesigns.html} is not null)`,
       requesterName: profiles.displayName,
@@ -94,6 +96,8 @@ export async function getAiDesignDetail(id: string): Promise<AiDesignDetail> {
     status: row.status as AiDesignStatus,
     errorMessage: row.errorMessage,
     model: row.model,
+    analysis: row.analysis,
+    approach: row.approach,
     hasHtml: row.hasHtml,
     requestedBy: row.requesterName ?? row.requesterEmail ?? null,
     tagGroups: [...byGroup.values()],

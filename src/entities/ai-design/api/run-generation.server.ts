@@ -13,11 +13,11 @@ export async function runGeneration(id: string): Promise<void> {
   const startedAt = Date.now();
   console.log(`[ai-design] generation start id=${id}`);
   try {
-    const { input, imageUrls } = await resolveReferences(id);
-    const html = await generateHtml(input, imageUrls);
-    await markDone(id, html);
+    const { input, imageUrls, model } = await resolveReferences(id);
+    const result = await generateHtml(input, imageUrls, model);
+    await markDone(id, result);
     console.log(
-      `[ai-design] generation done id=${id} ms=${Date.now() - startedAt} htmlChars=${html.length} images=${imageUrls.length}`,
+      `[ai-design] generation done id=${id} ms=${Date.now() - startedAt} htmlChars=${result.html.length} images=${imageUrls.length}`,
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : "생성 실패";

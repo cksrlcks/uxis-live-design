@@ -13,8 +13,9 @@ export {
   AI_DESIGN_STATUSES,
   AI_DESIGN_STATUS_LABELS,
   MODAL_TAG_GROUP_CODES,
+  AI_MODEL_OPTIONS,
 } from "./model/constants";
-export type { PageType, AiDesignStatus } from "./model/constants";
+export type { PageType, AiDesignStatus, AiModelValue } from "./model/constants";
 export { aiDesignQueries } from "./api/ai-design.query";
 export { AiDesignStatusBadge } from "./ui/status-badge";
 export { PageTypeCards } from "./ui/page-type-cards";

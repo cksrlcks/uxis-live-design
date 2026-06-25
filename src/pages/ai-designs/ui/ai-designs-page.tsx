@@ -29,7 +29,13 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { cn } from "@/shared/lib/utils";
-import { aiDesignQueries, AI_DESIGNS_PAGE_SIZE, AiDesignStatusBadge, PAGE_TYPE_LABELS } from "@/entities/ai-design";
+import {
+  aiDesignQueries,
+  AI_DESIGNS_PAGE_SIZE,
+  AI_MODEL_OPTIONS,
+  AiDesignStatusBadge,
+  PAGE_TYPE_LABELS,
+} from "@/entities/ai-design";
 import { useDeleteAiDesign, useRetryAiDesign } from "@/entities/ai-design/api/use-ai-design-mutations";
 import { CreateAiDesignModal } from "./create-ai-design-modal";
 
@@ -37,7 +43,12 @@ const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-w
 const bodyCell = "px-5 py-3.5 align-middle";
 const menuItem = "gap-2.5 px-2.5 py-2";
 
-const COL_COUNT = 6;
+const COL_COUNT = 7;
+
+// 모델 value → 짧은 라벨. 화이트리스트에 없는 값(과거 행)은 원본 문자열을 그대로 표시.
+const MODEL_LABELS: Record<string, string> = Object.fromEntries(
+  AI_MODEL_OPTIONS.map((m) => [m.value, m.label]),
+);
 
 // BFF JSON으로 넘어온 날짜는 문자열 — Date로 감싸 안전하게 포맷한다.
 function formatDate(value: string) {
@@ -114,6 +125,7 @@ export function AiDesignsPage() {
             <TableRow className="bg-muted/50 border-border/60 border-b">
               <TableHead className={headCell}>제목</TableHead>
               <TableHead className={headCell}>유형</TableHead>
+              <TableHead className={headCell}>모델</TableHead>
               <TableHead className={headCell}>요청자</TableHead>
               <TableHead className={headCell}>상태</TableHead>
               <TableHead className={cn(headCell, "whitespace-nowrap")}>작성일</TableHead>
@@ -134,6 +146,9 @@ export function AiDesignsPage() {
                   </TableCell>
                   <TableCell className={bodyCell}>
                     <Skeleton className="h-5 w-16 rounded-full" />
+                  </TableCell>
+                  <TableCell className={bodyCell}>
+                    <Skeleton className="h-3.5 w-28" />
                   </TableCell>
                   <TableCell className={bodyCell}>
                     <Skeleton className="h-3.5 w-20" />
@@ -190,12 +205,17 @@ export function AiDesignsPage() {
                     >
                       {d.title}
                     </Link>
+                    {/* 회사명 표시 비활성화(필요 시 주석 해제하여 복구)
                     {d.company && (
                       <span className="text-muted-foreground ml-2 text-xs">{d.company}</span>
                     )}
+                    */}
                   </TableCell>
                   <TableCell className={bodyCell}>
                     <Badge variant="outline">{PAGE_TYPE_LABELS[d.pageType] ?? d.pageType}</Badge>
+                  </TableCell>
+                  <TableCell className={cn(bodyCell, "text-muted-foreground text-sm")}>
+                    {d.model ? (MODEL_LABELS[d.model] ?? d.model) : <span className="text-muted-foreground/50">—</span>}
                   </TableCell>
                   <TableCell className={cn(bodyCell, "text-sm")}>
                     {d.requestedBy ? (

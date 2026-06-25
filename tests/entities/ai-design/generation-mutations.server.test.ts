@@ -16,14 +16,18 @@ const { update, set, where, selectChain } = vi.hoisted(() => {
 vi.mock("@/shared/db", () => ({ db: { update, select: selectChain } }));
 
 import { markDone, markFailed, resolveReferences } from "@/entities/ai-design/api/generation-mutations.server";
-import { AI_DESIGN_MODEL } from "@/entities/ai-design/model/constants";
 
 beforeEach(() => vi.clearAllMocks());
 
 describe("generation mutations", () => {
-  it("markDone: status=done, html 설정", async () => {
-    await markDone("d1", "<html></html>");
-    expect(set).toHaveBeenCalledWith(expect.objectContaining({ status: "done", html: "<html></html>", model: AI_DESIGN_MODEL }));
+  it("markDone: status=done, html/분석/도입 설정 (model은 덮어쓰지 않음)", async () => {
+    await markDone("d1", { html: "<html></html>", analysis: "분석", approach: "도입" });
+    expect(set).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "done", html: "<html></html>", analysis: "분석", approach: "도입" }),
+    );
+    // model은 생성 시점 값 유지 — markDone이 건드리지 않는다.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((set.mock.calls as any[][])[0][0]).not.toHaveProperty("model");
     expect(where).toHaveBeenCalled();
   });
 

@@ -149,6 +149,28 @@ export function AiDesignDetailPage({ id }: { id: string }) {
         </div>
       )}
 
+      {/* AI가 참고 시안을 분석하고 어떻게 반영했는지 설명. 생성 완료 시 채워진다. */}
+      {(design.analysis || design.approach) && (
+        <div className="bg-card mb-4 space-y-4 rounded-xl border p-6">
+          {design.analysis && (
+            <div className="space-y-1.5">
+              <Label>AI 분석</Label>
+              <p className="text-foreground/90 text-sm leading-relaxed whitespace-pre-wrap">
+                {design.analysis}
+              </p>
+            </div>
+          )}
+          {design.approach && (
+            <div className="space-y-1.5">
+              <Label>참고 시안 도입</Label>
+              <p className="text-foreground/90 text-sm leading-relaxed whitespace-pre-wrap">
+                {design.approach}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 생성 모달과 동일한 폼 레이아웃을 읽기전용으로 재현한다. */}
       <div className="bg-card space-y-6 rounded-xl border p-6">
         <div className="space-y-1.5">
@@ -156,10 +178,12 @@ export function AiDesignDetailPage({ id }: { id: string }) {
           <ReadonlyField>{design.title}</ReadonlyField>
         </div>
 
+        {/* 회사명 필드 비활성화(필요 시 주석 해제하여 복구)
         <div className="space-y-1.5">
           <Label>회사명</Label>
           <ReadonlyField empty={!design.company}>{design.company || "입력 안 함"}</ReadonlyField>
         </div>
+        */}
 
         <div className="space-y-2">
           <Label>페이지 유형</Label>

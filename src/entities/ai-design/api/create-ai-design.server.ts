@@ -5,7 +5,6 @@ import { db } from "@/shared/db";
 import { aiDesigns, aiDesignTags } from "@drizzle/schema";
 import { requireAdmin } from "@/shared/auth/guards.server";
 import { createAiDesignSchema } from "../model/schemas";
-import { AI_DESIGN_MODEL } from "../model/constants";
 import { runGeneration } from "./run-generation.server";
 
 export async function createAiDesign(input: unknown): Promise<{ id: string }> {
@@ -20,7 +19,7 @@ export async function createAiDesign(input: unknown): Promise<{ id: string }> {
     pageType: data.pageType,
     extraNotes: data.extraNotes ?? null,
     status: "working",
-    model: AI_DESIGN_MODEL,
+    model: data.model,
     createdBy: admin.id,
   });
 

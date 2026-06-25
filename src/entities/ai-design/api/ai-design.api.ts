@@ -18,6 +18,7 @@ export function createAiDesignReq(body: {
   pageType: string;
   optionIds: string[];
   extraNotes?: string | null;
+  model: string;
 }): Promise<{ id: string }> {
   return http<{ id: string }>("/api/admin/ai-designs", {
     method: "POST",

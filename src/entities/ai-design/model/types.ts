@@ -9,6 +9,13 @@ export type GenerationInput = {
   extraNotes: string | null;
 };
 
+// 생성 결과 — HTML 본문 + AI 분석글/참고 시안 도입 설명.
+export type GeneratedDesign = {
+  html: string;
+  analysis: string | null;
+  approach: string | null;
+};
+
 // 목록 행 DTO(클라이언트로 반환; 내부 컬럼 일부 제외).
 export type AiDesignListItem = {
   id: string;
@@ -16,6 +23,7 @@ export type AiDesignListItem = {
   company: string | null;
   pageType: PageType;
   status: AiDesignStatus;
+  model: string | null; // 생성에 사용한 모델
   hasHtml: boolean;
   errorMessage: string | null;
   requestedBy: string | null; // 요청자 표시명(없으면 이메일, 둘 다 없으면 null)
@@ -40,7 +48,7 @@ export type AiDesignTagGroupView = {
   options: { id: string; label: string }[];
 };
 
-// OpenAI에 실제로 전달한 참고 시안 이미지 스냅샷.
+// AI 제공사에 실제로 전달한 참고 시안 이미지 스냅샷.
 export type AiDesignReferenceProposal = {
   proposalId: string | null; // 시안 삭제 후에는 null
   proposalTitle: string;
@@ -58,6 +66,8 @@ export type AiDesignDetail = {
   status: AiDesignStatus;
   errorMessage: string | null;
   model: string | null;
+  analysis: string | null; // AI가 생성한 짧은 분석글
+  approach: string | null; // 참고 시안을 어떻게 도입했는지 설명
   hasHtml: boolean;
   requestedBy: string | null;
   tagGroups: AiDesignTagGroupView[];

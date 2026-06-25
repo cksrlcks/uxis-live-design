@@ -15,10 +15,14 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { cn } from "@/shared/lib/utils";
 import { tagQueries } from "@/entities/tag";
-import { MODAL_TAG_GROUP_CODES, PageTypeCards, type PageType } from "@/entities/ai-design";
+import { AI_MODEL_OPTIONS, MODAL_TAG_GROUP_CODES, PageTypeCards, type PageType } from "@/entities/ai-design";
 import { useCreateAiDesign } from "@/entities/ai-design/api/use-ai-design-mutations";
+
+const MODEL_ITEMS = AI_MODEL_OPTIONS.map((m) => ({ value: m.value, label: m.label }));
+const DEFAULT_MODEL = AI_MODEL_OPTIONS[0].value;
 
 export function CreateAiDesignModal({
   open,
@@ -31,10 +35,12 @@ export function CreateAiDesignModal({
   const { data: taxonomy } = useQuery(tagQueries.taxonomy());
 
   const [title, setTitle] = useState("");
-  const [company, setCompany] = useState("");
+  // 회사명 필드 비활성화(필요 시 주석 해제하여 복구)
+  // const [company, setCompany] = useState("");
   const [pageType, setPageType] = useState<PageType | null>(null);
   const [optionIds, setOptionIds] = useState<string[]>([]);
   const [extraNotes, setExtraNotes] = useState("");
+  const [model, setModel] = useState<string>(DEFAULT_MODEL);
 
   // 화이트리스트 그룹만 노출. 매칭되는 코드가 없으면(시드 코드 불일치) 전체 그룹을 노출.
   const allGroups = taxonomy ?? [];
@@ -47,10 +53,11 @@ export function CreateAiDesignModal({
 
   function reset() {
     setTitle("");
-    setCompany("");
+    // setCompany("");
     setPageType(null);
     setOptionIds([]);
     setExtraNotes("");
+    setModel(DEFAULT_MODEL);
   }
 
   function submit() {
@@ -59,10 +66,11 @@ export function CreateAiDesignModal({
     create.mutate(
       {
         title: title.trim(),
-        company: company.trim() || null,
+        // company: company.trim() || null, // 회사명 필드 비활성화
         pageType,
         optionIds,
         extraNotes: extraNotes.trim() || null,
+        model,
       },
       {
         onSuccess: () => {
@@ -91,14 +99,32 @@ export function CreateAiDesignModal({
             <Input id="ai-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ACME Inc." />
           </div>
 
+          {/* 회사명 필드 비활성화(필요 시 주석 해제하여 복구)
           <div className="space-y-1.5">
             <Label htmlFor="ai-company">회사명(선택, 제목과 다를 때)</Label>
             <Input id="ai-company" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
+          */}
 
           <div className="space-y-2">
             <Label>페이지 유형</Label>
             <PageTypeCards value={pageType} onChange={setPageType} />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>생성 모델</Label>
+            <Select items={MODEL_ITEMS} value={model} onValueChange={(v) => setModel(v as string)}>
+              <SelectTrigger className="w-full" aria-label="생성 모델 선택">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {AI_MODEL_OPTIONS.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {shownGroups.length > 0 && (

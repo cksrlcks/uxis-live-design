@@ -194,6 +194,8 @@ export const aiDesigns = pgTable(
     extraNotes: text("extra_notes"), // 자유 추가 요청
     status: text("status").notNull().default("working"), // 'working' | 'done' | 'failed'
     html: text("html"), // 완료 시 채워짐
+    analysis: text("analysis"), // 참고 시안/요구사항에 대한 짧은 분석글
+    approach: text("approach"), // 참고 시안을 어떻게 도입했는지 설명
     errorMessage: text("error_message"),
     model: text("model"), // 사용 모델 id 기록
     createdBy: uuid("created_by"), // FK → profiles (SQL, set null)
