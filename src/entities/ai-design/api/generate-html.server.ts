@@ -1,5 +1,5 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { AI_DESIGN_MODEL } from "../model/constants";
 import type { GenerationInput } from "../model/types";
 import { stripCodeFence } from "../lib/strip-code-fence";
@@ -31,32 +31,29 @@ function buildUserText(input: GenerationInput): string {
   return lines.join("\n");
 }
 
-const client = new Anthropic();
+const client = new OpenAI();
 
-// Claude(Sonnet 4.6, vision, streaming)로 HTML 시안 생성. 실패 시 throw(워크플로우가 잡아 failed 처리).
+// OpenAI(gpt-5.5, vision, Responses API)로 HTML 시안 생성. 실패 시 throw(러너가 잡아 failed 처리).
 export async function generateHtml(input: GenerationInput, imageUrls: string[]): Promise<string> {
-  const content: Anthropic.ContentBlockParam[] = [
+  const content: OpenAI.Responses.ResponseInputMessageContentList = [
     ...imageUrls.map(
-      (url): Anthropic.ContentBlockParam => ({ type: "image", source: { type: "url", url } }),
+      (url): OpenAI.Responses.ResponseInputImage => ({
+        type: "input_image",
+        image_url: url,
+        detail: "auto",
+      }),
     ),
-    { type: "text", text: buildUserText(input) },
+    { type: "input_text", text: buildUserText(input) },
   ];
 
-  const stream = client.messages.stream({
+  const response = await client.responses.create({
     model: AI_DESIGN_MODEL,
-    max_tokens: 64000,
-    thinking: { type: "adaptive" },
-    output_config: { effort: "medium" },
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content }],
+    instructions: SYSTEM_PROMPT,
+    input: [{ role: "user", content }],
+    max_output_tokens: 32000,
   });
 
-  const message = await stream.finalMessage();
-  const text = message.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("\n");
-  const html = stripCodeFence(text);
+  const html = stripCodeFence(response.output_text ?? "");
   if (!html) throw new Error("EMPTY_GENERATION");
   return html;
 }
