@@ -42,4 +42,13 @@ describe("nav-config", () => {
     const labels = visibleNavItems("admin").map((i) => i.label);
     expect(labels).toContain("태그 설정");
   });
+
+  it("AI 시안 생성: editor는 숨김, admin은 봄(adminOnly)", () => {
+    expect(visibleNavItems("editor").map((i) => i.label)).not.toContain("AI 시안 생성");
+    expect(visibleNavItems("admin").map((i) => i.label)).toContain("AI 시안 생성");
+  });
+  it("matchNav: /studio/ai-designs 및 하위 경로", () => {
+    expect(matchNav("/studio/ai-designs")?.label).toBe("AI 시안 생성");
+    expect(matchNav("/studio/ai-designs/abc/raw")?.label).toBe("AI 시안 생성");
+  });
 });
