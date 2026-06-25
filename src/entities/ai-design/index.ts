@@ -2,6 +2,7 @@ export type {
   AiDesignListItem,
   AiDesignDetail,
   AiDesignTagGroupView,
+  AiDesignReferenceProposal,
   GenerationInput,
   PaginatedAiDesigns,
 } from "./model/types";

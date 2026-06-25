@@ -1,8 +1,9 @@
 import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { aiDesigns, aiDesignTags, tagOptions } from "@drizzle/schema";
+import { aiDesigns, aiDesignReferenceProposals, aiDesignTags, tagOptions } from "@drizzle/schema";
 import { getTagMatchedImages } from "./get-tag-matched-images.server";
+import type { TagMatchedImage } from "./get-tag-matched-images.server";
 import type { GenerationInput } from "../model/types";
 import type { PageType } from "../model/constants";
 import { AI_DESIGN_MODEL } from "../model/constants";
@@ -21,6 +22,10 @@ export async function resolveReferences(
 
   const images = await getTagMatchedImages(tagRows.map((t) => t.optionId));
 
+  if (images.length > 0) {
+    await saveReferences(id, images);
+  }
+
   return {
     input: {
       title: row.title,
@@ -31,6 +36,20 @@ export async function resolveReferences(
     },
     imageUrls: images.map((i) => i.url),
   };
+}
+
+// 재시도 시 이전 레코드를 교체하도록 delete + insert.
+async function saveReferences(aiDesignId: string, refs: TagMatchedImage[]): Promise<void> {
+  await db.delete(aiDesignReferenceProposals).where(eq(aiDesignReferenceProposals.aiDesignId, aiDesignId));
+  await db.insert(aiDesignReferenceProposals).values(
+    refs.map((ref, idx) => ({
+      aiDesignId,
+      proposalId: ref.proposalId,
+      proposalTitle: ref.proposalTitle,
+      imageUrl: ref.url,
+      sortOrder: idx,
+    })),
+  );
 }
 
 export async function markDone(id: string, html: string): Promise<void> {

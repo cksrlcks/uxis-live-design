@@ -9,6 +9,7 @@ import {
   AiDesignStatusBadge,
   PageTypeCards,
   type AiDesignDetail,
+  type AiDesignReferenceProposal,
 } from "@/entities/ai-design";
 import { useRetryAiDesign } from "@/entities/ai-design/api/use-ai-design-mutations";
 import { Button, buttonVariants } from "@/shared/ui/button";
@@ -202,6 +203,33 @@ export function AiDesignDetailPage({ id }: { id: string }) {
             생성 모델 <span className="font-mono">{design.model}</span>
           </p>
         )}
+      </div>
+
+      {design.referenceProposals.length > 0 && (
+        <ReferenceProposalsSection refs={design.referenceProposals} />
+      )}
+    </div>
+  );
+}
+
+function ReferenceProposalsSection({ refs }: { refs: AiDesignReferenceProposal[] }) {
+  return (
+    <div className="bg-card mt-4 space-y-3 rounded-xl border p-6">
+      <Label>참고한 시안 ({refs.length}개)</Label>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {refs.map((ref) => (
+          <div key={ref.sortOrder} className="group flex flex-col gap-1.5">
+            <div className="bg-muted relative aspect-[3/4] overflow-hidden rounded-lg border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={ref.imageUrl}
+                alt={ref.proposalTitle}
+                className="h-full w-full object-cover object-top"
+              />
+            </div>
+            <p className="text-muted-foreground line-clamp-1 text-xs">{ref.proposalTitle}</p>
+          </div>
+        ))}
       </div>
     </div>
   );

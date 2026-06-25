@@ -1,9 +1,16 @@
 import "server-only";
 import { asc, eq, sql } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { aiDesigns, aiDesignTags, profiles, tagGroups, tagOptions } from "@drizzle/schema";
+import {
+  aiDesigns,
+  aiDesignReferenceProposals,
+  aiDesignTags,
+  profiles,
+  tagGroups,
+  tagOptions,
+} from "@drizzle/schema";
 import { requireAdmin } from "@/shared/auth/guards.server";
-import type { AiDesignDetail, AiDesignTagGroupView } from "../model/types";
+import type { AiDesignDetail, AiDesignReferenceProposal, AiDesignTagGroupView } from "../model/types";
 import type { PageType, AiDesignStatus } from "../model/constants";
 
 // 상세 — 생성 시 입력한 사전정보(제목·회사·유형·태그·추가요청)와 상태/결과 메타를 모은다.
@@ -60,6 +67,24 @@ export async function getAiDesignDetail(id: string): Promise<AiDesignDetail> {
     g.options.push({ id: t.optionId, label: t.optionLabel });
   }
 
+  const refRows = await db
+    .select({
+      proposalId: aiDesignReferenceProposals.proposalId,
+      proposalTitle: aiDesignReferenceProposals.proposalTitle,
+      imageUrl: aiDesignReferenceProposals.imageUrl,
+      sortOrder: aiDesignReferenceProposals.sortOrder,
+    })
+    .from(aiDesignReferenceProposals)
+    .where(eq(aiDesignReferenceProposals.aiDesignId, id))
+    .orderBy(asc(aiDesignReferenceProposals.sortOrder));
+
+  const referenceProposals: AiDesignReferenceProposal[] = refRows.map((r) => ({
+    proposalId: r.proposalId,
+    proposalTitle: r.proposalTitle,
+    imageUrl: r.imageUrl,
+    sortOrder: r.sortOrder,
+  }));
+
   return {
     id: row.id,
     title: row.title,
@@ -72,6 +97,7 @@ export async function getAiDesignDetail(id: string): Promise<AiDesignDetail> {
     hasHtml: row.hasHtml,
     requestedBy: row.requesterName ?? row.requesterEmail ?? null,
     tagGroups: [...byGroup.values()],
+    referenceProposals,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

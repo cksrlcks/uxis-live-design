@@ -218,3 +218,18 @@ export const aiDesignTags = pgTable(
 );
 
 export type AiDesignTag = typeof aiDesignTags.$inferSelect;
+
+// 생성 시 OpenAI에 넘긴 참고 시안 이미지 스냅샷.
+export const aiDesignReferenceProposals = pgTable(
+  "ai_design_reference_proposals",
+  {
+    aiDesignId: uuid("ai_design_id").notNull(), // FK → ai_designs (SQL, cascade)
+    proposalId: uuid("proposal_id"), // FK → proposals (SQL, set null) — nullable: 시안 삭제 후에도 기록 보존
+    proposalTitle: text("proposal_title").notNull(), // 생성 시점의 제목 스냅샷
+    imageUrl: text("image_url").notNull(), // 생성 시점의 URL 스냅샷
+    sortOrder: integer("sort_order").notNull(), // OpenAI에 전달한 순서
+  },
+  (t) => [primaryKey({ columns: [t.aiDesignId, t.sortOrder] })],
+);
+
+export type AiDesignReferenceProposal = typeof aiDesignReferenceProposals.$inferSelect;

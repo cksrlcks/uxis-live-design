@@ -1,16 +1,18 @@
 import "server-only";
 import { asc, desc, inArray, sql } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { proposalTags, proposalVariants, proposalPages } from "@drizzle/schema";
+import { proposals, proposalTags, proposalVariants, proposalPages } from "@drizzle/schema";
 import { publicUrl } from "@/shared/lib/proposals/constants";
 import { pickCoverPaths } from "../lib/pick-cover-paths";
+
+export type TagMatchedImage = { proposalId: string; proposalTitle: string; url: string };
 
 // 선택 태그(optionIds)로 전체 시안에서 느슨 매칭 + 매칭수 정렬 → 각 시안 커버 1장.
 // 항상 결과가 나오도록 한다(0건 허용). 최대 limit개.
 export async function getTagMatchedImages(
   optionIds: string[],
   limit = 10,
-): Promise<{ proposalId: string; url: string }[]> {
+): Promise<TagMatchedImage[]> {
   if (optionIds.length === 0) return [];
 
   const matched = await db
@@ -24,14 +26,22 @@ export async function getTagMatchedImages(
   const proposalIds = matched.map((m) => m.proposalId);
   if (proposalIds.length === 0) return [];
 
-  const variants = await db
-    .select({
-      proposalId: proposalVariants.proposalId,
-      currentVersionId: proposalVariants.currentVersionId,
-      sortOrder: proposalVariants.sortOrder,
-    })
-    .from(proposalVariants)
-    .where(inArray(proposalVariants.proposalId, proposalIds));
+  const [proposalRows, variants] = await Promise.all([
+    db
+      .select({ id: proposals.id, title: proposals.title })
+      .from(proposals)
+      .where(inArray(proposals.id, proposalIds)),
+    db
+      .select({
+        proposalId: proposalVariants.proposalId,
+        currentVersionId: proposalVariants.currentVersionId,
+        sortOrder: proposalVariants.sortOrder,
+      })
+      .from(proposalVariants)
+      .where(inArray(proposalVariants.proposalId, proposalIds)),
+  ]);
+
+  const titleMap = new Map(proposalRows.map((p) => [p.id, p.title]));
 
   const versionIds = variants.map((v) => v.currentVersionId).filter((x): x is string => !!x);
   if (versionIds.length === 0) return [];
@@ -48,6 +58,7 @@ export async function getTagMatchedImages(
 
   return pickCoverPaths(matched, variants, pages).map((c) => ({
     proposalId: c.proposalId,
+    proposalTitle: titleMap.get(c.proposalId) ?? "",
     url: publicUrl(c.storagePath),
   }));
 }

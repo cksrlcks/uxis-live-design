@@ -40,6 +40,14 @@ export type AiDesignTagGroupView = {
   options: { id: string; label: string }[];
 };
 
+// OpenAI에 실제로 전달한 참고 시안 이미지 스냅샷.
+export type AiDesignReferenceProposal = {
+  proposalId: string | null; // 시안 삭제 후에는 null
+  proposalTitle: string;
+  imageUrl: string;
+  sortOrder: number;
+};
+
 // 상세 DTO — 생성 시 입력한 사전정보 + 상태/결과 메타.
 export type AiDesignDetail = {
   id: string;
@@ -53,6 +61,7 @@ export type AiDesignDetail = {
   hasHtml: boolean;
   requestedBy: string | null;
   tagGroups: AiDesignTagGroupView[];
+  referenceProposals: AiDesignReferenceProposal[]; // 생성에 사용된 참고 시안 (없으면 빈 배열)
   createdAt: string; // ISO
   updatedAt: string; // ISO
 };
