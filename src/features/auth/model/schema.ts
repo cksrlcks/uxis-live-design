@@ -23,7 +23,7 @@ export const signupSchema = z.object({
 export type SignupInput = z.infer<typeof signupSchema>;
 
 export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, "현재 비밀번호를 입력하세요"),
+  currentPassword: z.string().optional(),
   newPassword,
 });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

@@ -113,15 +113,19 @@ export async function changePassword(input: unknown): Promise<void> {
   } = await supabase.auth.getUser();
   if (!user?.email) throw new Error("UNAUTHORIZED");
 
-  // Supabase updateUser doesn't verify the old password — re-authenticate first so a
-  // hijacked session can't silently change the password.
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: currentPassword,
-  });
-  if (signInError) {
-    if (signInError.status === 429) throw new Error("RATE_LIMITED");
-    throw new Error("INVALID_CREDENTIALS");
+  // OAuth 전용 계정(이메일 identity 없음)은 기존 비밀번호가 없으므로 재인증 건너뜀.
+  // 이메일/비밀번호 계정은 hijacked session 방어를 위해 현재 비밀번호를 반드시 확인한다.
+  const hasEmailIdentity = user.identities?.some((id) => id.provider === "email");
+  if (hasEmailIdentity) {
+    if (!currentPassword) throw new Error("INVALID_CREDENTIALS");
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+    if (signInError) {
+      if (signInError.status === 429) throw new Error("RATE_LIMITED");
+      throw new Error("INVALID_CREDENTIALS");
+    }
   }
 
   const { error } = await supabase.auth.updateUser({ password: newPassword });

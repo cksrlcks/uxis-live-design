@@ -19,22 +19,37 @@ import {
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
-import { changePasswordSchema } from "../model/schema";
 import { useChangePassword } from "../api/use-auth";
 
-// 새 비밀번호 확인은 클라이언트 전용 — 서버로는 currentPassword/newPassword만 보낸다.
-const formSchema = changePasswordSchema
-  .extend({ confirmPassword: z.string() })
-  .refine((d) => d.newPassword === d.confirmPassword, {
-    message: "새 비밀번호가 일치하지 않습니다",
-    path: ["confirmPassword"],
-  })
-  .refine((d) => d.currentPassword !== d.newPassword, {
-    message: "현재 비밀번호와 다른 비밀번호를 사용하세요",
-    path: ["newPassword"],
-  });
+const newPasswordRule = z
+  .string()
+  .min(8, "비밀번호는 8자 이상이어야 합니다")
+  .regex(/[A-Za-z]/, "영문을 포함해야 합니다")
+  .regex(/[0-9]/, "숫자를 포함해야 합니다")
+  .regex(/[^A-Za-z0-9]/, "특수문자를 포함해야 합니다");
 
-type FormValues = z.infer<typeof formSchema>;
+function buildSchema(isOAuthUser: boolean) {
+  return z
+    .object({
+      currentPassword: z.string().optional(),
+      newPassword: newPasswordRule,
+      confirmPassword: z.string(),
+    })
+    .refine((d) => isOAuthUser || (d.currentPassword !== undefined && d.currentPassword.length > 0), {
+      message: "현재 비밀번호를 입력하세요",
+      path: ["currentPassword"],
+    })
+    .refine((d) => d.newPassword === d.confirmPassword, {
+      message: "새 비밀번호가 일치하지 않습니다",
+      path: ["confirmPassword"],
+    })
+    .refine((d) => isOAuthUser || d.currentPassword !== d.newPassword, {
+      message: "현재 비밀번호와 다른 비밀번호를 사용하세요",
+      path: ["newPassword"],
+    });
+}
+
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 function changePasswordErrorMessage(err: unknown): string {
   if (err instanceof HttpError) {
@@ -46,7 +61,7 @@ function changePasswordErrorMessage(err: unknown): string {
   return "비밀번호 변경 중 오류가 발생했습니다.";
 }
 
-export function ChangePasswordDialog() {
+export function ChangePasswordDialog({ isOAuthUser = false }: { isOAuthUser?: boolean }) {
   const changePasswordMutation = useChangePassword();
   const [open, setOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -57,7 +72,7 @@ export function ChangePasswordDialog() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({ resolver: zodResolver(formSchema) });
+  } = useForm<FormValues>({ resolver: zodResolver(buildSchema(isOAuthUser)) });
 
   function onOpenChange(next: boolean) {
     setOpen(next);
@@ -72,7 +87,7 @@ export function ChangePasswordDialog() {
     setFormError(null);
     try {
       await changePasswordMutation.mutateAsync({
-        currentPassword: values.currentPassword,
+        currentPassword: isOAuthUser ? undefined : values.currentPassword,
         newPassword: values.newPassword,
       });
       reset();
@@ -91,7 +106,11 @@ export function ChangePasswordDialog() {
       <DialogContent showCloseButton={false} className="gap-5 p-6">
         <DialogHeader>
           <DialogTitle>비밀번호 변경</DialogTitle>
-          <DialogDescription>현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다.</DialogDescription>
+          <DialogDescription>
+            {isOAuthUser
+              ? "새 비밀번호를 설정합니다."
+              : "현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다."}
+          </DialogDescription>
         </DialogHeader>
 
         {done ? (
@@ -105,22 +124,24 @@ export function ChangePasswordDialog() {
           </>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2.5">
-              <Label htmlFor="current-password" className="text-muted-foreground font-normal">
-                현재 비밀번호
-              </Label>
-              <Input
-                id="current-password"
-                type="password"
-                autoComplete="current-password"
-                autoFocus
-                className="h-11 rounded-lg px-4"
-                {...register("currentPassword")}
-              />
-              {errors.currentPassword && (
-                <p className="text-destructive text-sm">{errors.currentPassword.message}</p>
-              )}
-            </div>
+            {!isOAuthUser && (
+              <div className="space-y-2.5">
+                <Label htmlFor="current-password" className="text-muted-foreground font-normal">
+                  현재 비밀번호
+                </Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  autoComplete="current-password"
+                  autoFocus
+                  className="h-11 rounded-lg px-4"
+                  {...register("currentPassword")}
+                />
+                {errors.currentPassword && (
+                  <p className="text-destructive text-sm">{errors.currentPassword.message}</p>
+                )}
+              </div>
+            )}
 
             <div className="space-y-2.5">
               <Label htmlFor="new-password" className="text-muted-foreground font-normal">
@@ -130,6 +151,7 @@ export function ChangePasswordDialog() {
                 id="new-password"
                 type="password"
                 autoComplete="new-password"
+                autoFocus={isOAuthUser}
                 placeholder="영문·숫자·특수문자 포함 8자 이상"
                 className="h-11 rounded-lg px-4"
                 {...register("newPassword")}
