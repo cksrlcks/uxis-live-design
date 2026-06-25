@@ -1,21 +1,29 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
-import { ArrowUpRight, Copy, MoreVertical, Pencil } from "lucide-react";
+import { ArrowUpRight, Copy, MoreVertical, Pencil, Share2 } from "lucide-react";
 import { proposalQueries } from "@/entities/proposal";
 import { PROPOSALS_PAGE_SIZE } from "@/entities/proposal/model/types";
 import { NewProposalDialog } from "@/features/create-proposal";
 import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/shared/ui/dialog";
 import { ProgressRing } from "@/shared/ui/progress-ring";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import {
@@ -69,10 +77,16 @@ function pageItems(current: number, count: number): (number | "ellipsis")[] {
   return items;
 }
 
+type ShareTarget = {
+  title: string;
+  links: { key: string; label: string; path: string }[];
+};
+
 export function ProposalsListPage() {
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [q, setQ] = useQueryState("q", parseAsString.withDefault(""));
   const { data, isPending, isError, isPlaceholderData } = useQuery(proposalQueries.list(page, q));
+  const [shareTarget, setShareTarget] = useState<ShareTarget | null>(null);
 
   // 검색어 변경 시 1페이지로 — 빈 값은 URL에서 q 파라미터를 제거(null)한다.
   function onSearch(next: string) {
@@ -259,7 +273,7 @@ export function ProposalsListPage() {
                         >
                           <MoreVertical className="size-4" aria-hidden />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-52 p-1.5">
+                        <DropdownMenuContent align="end" className="w-44 p-1.5">
                           <DropdownMenuItem
                             className={menuItem}
                             render={<Link href={`/studio/proposals/${p.id}`} />}
@@ -267,28 +281,22 @@ export function ProposalsListPage() {
                             <Pencil />
                             수정하기
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          {links.map((l) => (
-                            <DropdownMenuItem
-                              key={`copy-${l.key}`}
-                              className={menuItem}
-                              onClick={() => copyViewerLink(l.path)}
-                            >
-                              <Copy />
-                              {l.name} 복사
-                            </DropdownMenuItem>
-                          ))}
-                          <DropdownMenuSeparator />
-                          {links.map((l) => (
-                            <DropdownMenuItem
-                              key={`open-${l.key}`}
-                              className={menuItem}
-                              render={<a href={l.path} target="_blank" rel="noreferrer" />}
-                            >
-                              <ArrowUpRight />
-                              {l.name} 열기
-                            </DropdownMenuItem>
-                          ))}
+                          <DropdownMenuItem
+                            className={menuItem}
+                            onClick={() =>
+                              setShareTarget({
+                                title: p.title,
+                                links: links.map((l) => ({
+                                  key: l.key,
+                                  label: l.label,
+                                  path: l.path,
+                                })),
+                              })
+                            }
+                          >
+                            <Share2 />
+                            공유하기
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -299,6 +307,54 @@ export function ProposalsListPage() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!shareTarget} onOpenChange={(open) => !open && setShareTarget(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>시안 공유</DialogTitle>
+            {shareTarget && (
+              <DialogDescription className="truncate">{shareTarget.title}</DialogDescription>
+            )}
+          </DialogHeader>
+          {shareTarget && (
+            <div className="flex flex-col gap-3">
+              {shareTarget.links.map((l) => {
+                const fullUrl = `${typeof window !== "undefined" ? window.location.origin : ""}${l.path}`;
+                return (
+                  <div key={l.key} className="flex flex-col gap-1.5">
+                    <span className="text-muted-foreground text-xs font-medium">{l.label} 링크</span>
+                    <div className="flex gap-2">
+                      <input
+                        readOnly
+                        value={fullUrl}
+                        className="bg-muted text-foreground border-input flex-1 rounded-md border px-3 py-1.5 font-mono text-xs outline-none"
+                        onFocus={(e) => e.target.select()}
+                      />
+                      <Button
+                        size="icon-sm"
+                        variant="outline"
+                        aria-label="링크 복사"
+                        onClick={() => copyViewerLink(l.path)}
+                      >
+                        <Copy className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              <a
+                href={(shareTarget.links.find((l) => l.key === "domain") ?? shareTarget.links[0]).path}
+                target="_blank"
+                rel="noreferrer"
+                className="border-input bg-background hover:bg-accent hover:text-accent-foreground mt-1 flex w-full items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
+              >
+                <ArrowUpRight className="size-4" />
+                바로가기
+              </a>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {total > 0 && (
         <div className="mt-4">
