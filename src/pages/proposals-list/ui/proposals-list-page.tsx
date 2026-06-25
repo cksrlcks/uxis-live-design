@@ -309,19 +309,19 @@ export function ProposalsListPage() {
       </div>
 
       <Dialog open={!!shareTarget} onOpenChange={(open) => !open && setShareTarget(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md p-6">
+          <DialogHeader className="mb-1">
             <DialogTitle>시안 공유</DialogTitle>
             {shareTarget && (
               <DialogDescription className="truncate">{shareTarget.title}</DialogDescription>
             )}
           </DialogHeader>
           {shareTarget && (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {shareTarget.links.map((l) => {
                 const fullUrl = `${typeof window !== "undefined" ? window.location.origin : ""}${l.path}`;
                 return (
-                  <div key={l.key} className="flex flex-col gap-1.5">
+                  <div key={l.key} className="flex flex-col gap-2">
                     <span className="text-muted-foreground text-xs font-medium">{l.label} 링크</span>
                     <div className="flex gap-2">
                       <input
@@ -346,7 +346,7 @@ export function ProposalsListPage() {
                 href={(shareTarget.links.find((l) => l.key === "domain") ?? shareTarget.links[0]).path}
                 target="_blank"
                 rel="noreferrer"
-                className="border-input bg-background hover:bg-accent hover:text-accent-foreground mt-1 flex w-full items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
+                className="border-input bg-background hover:bg-accent hover:text-accent-foreground mt-2 flex w-full items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors"
               >
                 <ArrowUpRight className="size-4" />
                 바로가기
