@@ -3,9 +3,12 @@ import { createAiDesign } from "@/entities/ai-design/api/create-ai-design.server
 import { listAiDesigns } from "@/entities/ai-design/api/list-ai-designs.server";
 import { toErrorResponse } from "@/shared/api/to-error-response";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    return Response.json(await listAiDesigns());
+    const { searchParams } = new URL(req.url);
+    const page = Number(searchParams.get("page") ?? "1");
+    const search = searchParams.get("q") ?? "";
+    return Response.json(await listAiDesigns(Number.isFinite(page) ? page : 1, undefined, search));
   } catch (error) {
     return toErrorResponse(error);
   }

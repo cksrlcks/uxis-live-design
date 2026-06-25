@@ -1,8 +1,20 @@
 export const PAGE_TYPES = ["main", "dashboard", "subpage"] as const;
 export type PageType = (typeof PAGE_TYPES)[number];
 
+export const PAGE_TYPE_LABELS: Record<PageType, string> = {
+  main: "메인",
+  dashboard: "대시보드",
+  subpage: "서브페이지",
+};
+
 export const AI_DESIGN_STATUSES = ["working", "done", "failed"] as const;
 export type AiDesignStatus = (typeof AI_DESIGN_STATUSES)[number];
+
+export const AI_DESIGN_STATUS_LABELS: Record<AiDesignStatus, string> = {
+  working: "작업중",
+  done: "완료",
+  failed: "실패",
+};
 
 // 생성에 사용할 OpenAI 모델. env(OPENAI_MODEL)로 교체 가능. 기본은 비전 지원 gpt-5.5.
 export const AI_DESIGN_MODEL = process.env.OPENAI_MODEL ?? "gpt-5.5";

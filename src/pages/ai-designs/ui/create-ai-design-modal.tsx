@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -16,9 +17,8 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { cn } from "@/shared/lib/utils";
 import { tagQueries } from "@/entities/tag";
-import { MODAL_TAG_GROUP_CODES, type PageType } from "@/entities/ai-design";
+import { MODAL_TAG_GROUP_CODES, PageTypeCards, type PageType } from "@/entities/ai-design";
 import { useCreateAiDesign } from "@/entities/ai-design/api/use-ai-design-mutations";
-import { PageTypeCards } from "./page-type-cards";
 
 export function CreateAiDesignModal({
   open,
@@ -77,12 +77,15 @@ export function CreateAiDesignModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="gap-5 p-6 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>AI 시안 생성</DialogTitle>
+          <DialogDescription>
+            제목과 페이지 유형은 필수입니다. 참고 태그·추가 요청사항으로 방향을 더 좁힐 수 있어요.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
+        <div className="-mr-2 max-h-[60vh] space-y-6 overflow-y-auto pr-2">
           <div className="space-y-1.5">
             <Label htmlFor="ai-title">제목(회사명)</Label>
             <Input id="ai-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ACME Inc." />
@@ -93,39 +96,41 @@ export function CreateAiDesignModal({
             <Input id="ai-company" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>페이지 유형</Label>
             <PageTypeCards value={pageType} onChange={setPageType} />
           </div>
 
           {shownGroups.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>참고 태그(선택)</Label>
-              {shownGroups.map((g) => (
-                <div key={g.id} className="space-y-1">
-                  <p className="text-muted-foreground text-xs">{g.label}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {g.options.map((o) => {
-                      const active = optionIds.includes(o.id);
-                      return (
-                        <button
-                          key={o.id}
-                          type="button"
-                          onClick={() => toggleOption(o.id)}
-                          className={cn(
-                            "rounded-full border px-2.5 py-1 text-xs transition-colors",
-                            active
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border hover:bg-muted",
-                          )}
-                        >
-                          {o.label}
-                        </button>
-                      );
-                    })}
+              <div className="space-y-3">
+                {shownGroups.map((g) => (
+                  <div key={g.id} className="space-y-1.5">
+                    <p className="text-muted-foreground text-xs">{g.label}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {g.options.map((o) => {
+                        const active = optionIds.includes(o.id);
+                        return (
+                          <button
+                            key={o.id}
+                            type="button"
+                            onClick={() => toggleOption(o.id)}
+                            className={cn(
+                              "rounded-full border px-2.5 py-1 text-xs transition-colors",
+                              active
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border hover:bg-muted",
+                            )}
+                          >
+                            {o.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
 

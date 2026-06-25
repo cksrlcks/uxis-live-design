@@ -1,8 +1,15 @@
 import { http } from "@/shared/api/http";
-import type { AiDesignListItem } from "../model/types";
+import type { AiDesignDetail, PaginatedAiDesigns } from "../model/types";
 
-export function fetchAiDesigns(): Promise<AiDesignListItem[]> {
-  return http<AiDesignListItem[]>("/api/admin/ai-designs");
+export function fetchAiDesigns(page = 1, search = ""): Promise<PaginatedAiDesigns> {
+  const qs = new URLSearchParams({ page: String(page) });
+  const term = search.trim();
+  if (term) qs.set("q", term);
+  return http<PaginatedAiDesigns>(`/api/admin/ai-designs?${qs}`);
+}
+
+export function fetchAiDesignDetail(id: string): Promise<AiDesignDetail> {
+  return http<AiDesignDetail>(`/api/admin/ai-designs/${id}`);
 }
 
 export function createAiDesignReq(body: {

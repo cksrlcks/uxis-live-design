@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/shared/lib/utils";
-import { PAGE_TYPES, type PageType } from "@/entities/ai-design";
+import { PAGE_TYPES, type PageType } from "../model/constants";
 
 const META: Record<PageType, { label: string; desc: string; thumb: React.ReactNode }> = {
   main: {
@@ -59,31 +59,58 @@ const META: Record<PageType, { label: string; desc: string; thumb: React.ReactNo
 export function PageTypeCards({
   value,
   onChange,
+  readOnly = false,
 }: {
   value: PageType | null;
-  onChange: (v: PageType) => void;
+  onChange?: (v: PageType) => void;
+  readOnly?: boolean;
 }) {
+  // 읽기전용(상세)에서는 선택된 유형만 보여주고, 없으면 아무것도 렌더링하지 않는다.
+  const types = readOnly ? PAGE_TYPES.filter((pt) => pt === value) : PAGE_TYPES;
+
   return (
-    <div className="grid grid-cols-3 gap-3">
-      {PAGE_TYPES.map((pt) => {
+    <div className={cn(readOnly ? "flex" : "grid grid-cols-3 gap-3")}>
+      {types.map((pt) => {
         const m = META[pt];
         const active = value === pt;
+
+        const inner = (
+          <>
+            <div className="aspect-3/2 w-full overflow-hidden rounded-md">{m.thumb}</div>
+            <div>
+              <div className="text-sm font-medium">{m.label}</div>
+              <div className="text-muted-foreground text-xs">{m.desc}</div>
+            </div>
+          </>
+        );
+
+        if (readOnly) {
+          return (
+            <div
+              key={pt}
+              aria-current={active}
+              className={cn(
+                "flex w-36 max-w-full flex-col gap-2 rounded-lg border p-2 text-left",
+                active ? "border-primary ring-2 ring-primary/40" : "border-border",
+              )}
+            >
+              {inner}
+            </div>
+          );
+        }
+
         return (
           <button
             key={pt}
             type="button"
-            onClick={() => onChange(pt)}
+            onClick={() => onChange?.(pt)}
             aria-pressed={active}
             className={cn(
               "flex flex-col gap-2 rounded-lg border p-2 text-left transition-all",
               active ? "border-primary ring-2 ring-primary/40" : "border-border hover:bg-muted",
             )}
           >
-            <div className="aspect-[3/2] w-full overflow-hidden rounded-md">{m.thumb}</div>
-            <div>
-              <div className="text-sm font-medium">{m.label}</div>
-              <div className="text-muted-foreground text-xs">{m.desc}</div>
-            </div>
+            {inner}
           </button>
         );
       })}
