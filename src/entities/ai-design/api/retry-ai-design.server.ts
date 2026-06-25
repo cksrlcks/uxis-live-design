@@ -1,12 +1,12 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import { start } from "workflow/api";
+import { after } from "next/server";
 import { db } from "@/shared/db";
 import { aiDesigns } from "@drizzle/schema";
 import { requireAdmin } from "@/shared/auth/guards.server";
-import { generateAiDesignWorkflow } from "../workflow/generate-ai-design.workflow";
+import { runGeneration } from "./run-generation.server";
 
-// failed/멈춘 행을 다시 working으로 되돌리고 워크플로우 재트리거.
+// failed/멈춘 행을 다시 working으로 되돌리고 생성을 after로 재실행.
 export async function retryAiDesign(id: string): Promise<void> {
   await requireAdmin();
   const [row] = await db.select({ id: aiDesigns.id, status: aiDesigns.status }).from(aiDesigns).where(eq(aiDesigns.id, id)).limit(1);
@@ -17,5 +17,5 @@ export async function retryAiDesign(id: string): Promise<void> {
     .update(aiDesigns)
     .set({ status: "working", errorMessage: null, html: null, updatedAt: new Date() })
     .where(eq(aiDesigns.id, id));
-  await start(generateAiDesignWorkflow, [id]);
+  after(() => runGeneration(id));
 }

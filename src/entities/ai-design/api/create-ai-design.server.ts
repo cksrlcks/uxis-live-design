@@ -1,12 +1,12 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { start } from "workflow/api";
+import { after } from "next/server";
 import { db } from "@/shared/db";
 import { aiDesigns, aiDesignTags } from "@drizzle/schema";
 import { requireAdmin } from "@/shared/auth/guards.server";
 import { createAiDesignSchema } from "../model/schemas";
 import { AI_DESIGN_MODEL } from "../model/constants";
-import { generateAiDesignWorkflow } from "../workflow/generate-ai-design.workflow";
+import { runGeneration } from "./run-generation.server";
 
 export async function createAiDesign(input: unknown): Promise<{ id: string }> {
   const admin = await requireAdmin();
@@ -28,8 +28,8 @@ export async function createAiDesign(input: unknown): Promise<{ id: string }> {
     await db.insert(aiDesignTags).values(data.optionIds.map((optionId) => ({ aiDesignId: id, optionId })));
   }
 
-  // durable 워크플로우 트리거(fire-and-forget; run id 미반환). 행이 진실원천.
-  await start(generateAiDesignWorkflow, [id]);
+  // 응답 후 백그라운드로 생성 실행(after). 함수 maxDuration(300s) 안에서 완료. 행이 진실원천.
+  after(() => runGeneration(id));
 
   return { id };
 }
