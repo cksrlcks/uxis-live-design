@@ -32,6 +32,15 @@ export async function HomePage() {
               마이페이지
             </Link>
             <span className="bg-border h-3 w-px" aria-hidden="true" />
+            <a
+              href="https://cova-manual.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              메뉴얼
+            </a>
+            <span className="bg-border h-3 w-px" aria-hidden="true" />
             <LogoutButton
               variant="link"
               className="text-muted-foreground hover:text-foreground h-auto p-0 text-sm font-normal hover:no-underline"
