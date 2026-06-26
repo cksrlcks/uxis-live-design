@@ -6,13 +6,16 @@ import { getViewerVariants } from "./get-viewer-variants";
 export const proposalQueries = {
   all: () => ["proposals"] as const,
   lists: () => [...proposalQueries.all(), "list"] as const,
-  // 검색어가 없으면 기존 키([...,page]) 그대로 — 빈 검색은 키에 포함하지 않는다.
-  list: (page = 1, search = "") =>
+  list: (page = 1, search = "", year?: number, visibility?: "public" | "private") =>
     queryOptions({
-      queryKey: search
-        ? [...proposalQueries.lists(), page, search]
-        : [...proposalQueries.lists(), page],
-      queryFn: () => getProposals(page, search),
+      queryKey: [
+        ...proposalQueries.lists(),
+        page,
+        ...(search ? [search] : []),
+        ...(year !== undefined ? [year] : []),
+        ...(visibility ? [visibility] : []),
+      ],
+      queryFn: () => getProposals(page, search, year, visibility),
       placeholderData: keepPreviousData,
     }),
   details: () => [...proposalQueries.all(), "detail"] as const,
