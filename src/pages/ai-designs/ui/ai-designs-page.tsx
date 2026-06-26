@@ -106,6 +106,7 @@ export function AiDesignsPage() {
             <Button
               variant="ghost"
               size="icon"
+              nativeButton={false}
               render={<Link href="/studio/ai-designs/settings" aria-label="AI 생성 설정" />}
             >
               <Settings />
