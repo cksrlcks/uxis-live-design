@@ -35,17 +35,28 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/shared/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 import { SearchInput } from "@/shared/ui/search-input";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { PageHeader } from "@/widgets/studio-shell";
 
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from(
+  { length: CURRENT_YEAR - 2000 + 1 },
+  (_, i) => CURRENT_YEAR - i,
+);
+
 const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-wide";
 const bodyCell = "px-5 py-3.5 align-middle";
-// 행 작업 드롭다운 — 기본 항목보다 여유 있게(패딩·간격) 보이도록 한다.
 const menuItem = "gap-2.5 px-2.5 py-2";
 
-// BFF JSON으로 넘어온 날짜는 문자열 — Date로 감싸 안전하게 포맷한다.
 function formatDate(value: string | Date) {
   return new Date(value).toLocaleDateString("ko-KR", {
     year: "numeric",
@@ -54,7 +65,6 @@ function formatDate(value: string | Date) {
   });
 }
 
-// 공개 뷰어 경로(path)를 현재 origin과 합쳐 절대 URL로 클립보드에 복사한다.
 async function copyViewerLink(path: string) {
   try {
     await navigator.clipboard.writeText(`${window.location.origin}${path}`);
@@ -64,7 +74,6 @@ async function copyViewerLink(path: string) {
   }
 }
 
-// 번호 페이지네이션 항목 — 1, 2, …, current-1, current, current+1, …, last.
 function pageItems(current: number, count: number): (number | "ellipsis")[] {
   if (count <= 7) return Array.from({ length: count }, (_, i) => i + 1);
   const items: (number | "ellipsis")[] = [1];
@@ -82,35 +91,93 @@ type ShareTarget = {
   links: { key: string; label: string; path: string }[];
 };
 
+// nuqs parseAs helpers for filter params
+const parseAsYear = parseAsInteger;
+const parseAsVisibility = parseAsString;
+
 export function ProposalsListPage() {
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [q, setQ] = useQueryState("q", parseAsString.withDefault(""));
-  const { data, isPending, isError, isPlaceholderData } = useQuery(proposalQueries.list(page, q));
+  const [yearFilter, setYearFilter] = useQueryState("year", parseAsYear);
+  const [visFilter, setVisFilter] = useQueryState("visibility", parseAsVisibility);
+
+  const year = yearFilter ?? undefined;
+  const visibility =
+    visFilter === "public" || visFilter === "private" ? visFilter : undefined;
+
+  const { data, isPending, isError, isPlaceholderData } = useQuery(
+    proposalQueries.list(page, q, year, visibility),
+  );
   const [shareTarget, setShareTarget] = useState<ShareTarget | null>(null);
 
-  // 검색어 변경 시 1페이지로 — 빈 값은 URL에서 q 파라미터를 제거(null)한다.
   function onSearch(next: string) {
     setQ(next || null);
+    setPage(1);
+  }
+
+  function onYearChange(v: number | null) {
+    setYearFilter(v);
+    setPage(1);
+  }
+
+  function onVisChange(v: string | null) {
+    setVisFilter(v);
     setPage(1);
   }
 
   const rows = data?.items;
   const total = data?.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PROPOSALS_PAGE_SIZE));
+  // 테이블 colspan: 기존 9 → 연도 칼럼 추가로 10
+  const COL_COUNT = 10;
 
   return (
     <div>
       <PageHeader title="시안" actions={<NewProposalDialog />} />
 
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-3 flex items-center gap-3">
         <SearchInput
           value={q}
           onChange={onSearch}
           placeholder="제목·참여자·도메인 검색"
           className="w-full max-w-xs"
         />
+
+        {/* 연도 필터 */}
+        <Select<number | null>
+          value={yearFilter}
+          onValueChange={(v) => onYearChange(v)}
+        >
+          <SelectTrigger size="sm" className="w-32">
+            <SelectValue placeholder="전체 연도" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>전체 연도</SelectItem>
+            {YEAR_OPTIONS.map((y) => (
+              <SelectItem key={y} value={y}>
+                {y}년
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* 공개상태 필터 */}
+        <Select<string | null>
+          value={visFilter}
+          onValueChange={(v) => onVisChange(v)}
+        >
+          <SelectTrigger size="sm" className="w-28">
+            <SelectValue placeholder="전체" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>전체</SelectItem>
+            <SelectItem value="public">공개</SelectItem>
+            <SelectItem value="private">비공개</SelectItem>
+          </SelectContent>
+        </Select>
+
         {total > 0 && (
-          <p className="text-muted-foreground shrink-0 text-sm">전체 {total}개</p>
+          <p className="text-muted-foreground ml-auto shrink-0 text-sm">전체 {total}개</p>
         )}
       </div>
 
@@ -120,6 +187,7 @@ export function ProposalsListPage() {
             <TableRow className="bg-muted/50 border-border/60 border-b">
               <TableHead className={headCell}>제목</TableHead>
               <TableHead className={headCell}>참여자</TableHead>
+              <TableHead className={cn(headCell, "whitespace-nowrap")}>연도</TableHead>
               <TableHead className={headCell}>공개 ID</TableHead>
               <TableHead className={headCell}>공개 도메인</TableHead>
               <TableHead className={headCell}>상태</TableHead>
@@ -138,39 +206,22 @@ export function ProposalsListPage() {
                   key={`skeleton-${i}`}
                   className="border-border/60 border-b last:border-0 hover:bg-transparent"
                 >
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="h-4 w-32" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="h-3.5 w-24" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="h-3.5 w-16" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="h-3.5 w-24" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="h-5 w-12 rounded-full" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="size-6 rounded-full" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="h-4 w-20" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="h-4 w-20" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="ml-auto size-7 rounded-full" />
-                  </TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="h-3.5 w-24" /></TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="h-3.5 w-10" /></TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="h-3.5 w-16" /></TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="h-3.5 w-24" /></TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="h-5 w-12 rounded-full" /></TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="size-6 rounded-full" /></TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="h-4 w-20" /></TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="h-4 w-20" /></TableCell>
+                  <TableCell className={bodyCell}><Skeleton className="ml-auto size-7 rounded-full" /></TableCell>
                 </TableRow>
               ))}
 
             {isError && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={9} className="text-destructive px-5 py-16 text-center">
+                <TableCell colSpan={COL_COUNT} className="text-destructive px-5 py-16 text-center">
                   목록을 불러오지 못했습니다.
                 </TableCell>
               </TableRow>
@@ -178,8 +229,8 @@ export function ProposalsListPage() {
 
             {rows?.length === 0 && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={9} className="px-5 py-16 text-center">
-                  {q ? (
+                <TableCell colSpan={COL_COUNT} className="px-5 py-16 text-center">
+                  {q || yearFilter || visFilter ? (
                     <p className="text-muted-foreground text-sm">검색 결과가 없습니다.</p>
                   ) : (
                     <>
@@ -194,7 +245,6 @@ export function ProposalsListPage() {
             {rows?.map((p) => {
               const isPublic = p.visibility === "public";
               const hasPassword = isPublic && !!p.accessPasswordHash;
-              // 시안 공개 링크 — 공개ID는 항상, 커스텀 도메인은 지정된 경우에만(최대 2개).
               const links = [
                 { key: "id", label: "ID", name: "공개ID 링크", path: `/p/${p.publicId}` },
                 ...(p.domain
@@ -218,6 +268,13 @@ export function ProposalsListPage() {
                       <span className="text-muted-foreground/50">—</span>
                     )}
                   </TableCell>
+                  <TableCell className={cn(bodyCell, "tabular-nums")}>
+                    {p.workYear ? (
+                      <span className="text-foreground">{p.workYear}</span>
+                    ) : (
+                      <span className="text-muted-foreground/50">—</span>
+                    )}
+                  </TableCell>
                   <TableCell className={cn(bodyCell, "text-muted-foreground font-mono")}>
                     {p.publicId}
                   </TableCell>
@@ -234,14 +291,10 @@ export function ProposalsListPage() {
                         {isPublic ? "공개" : "비공개"}
                       </Badge>
                       {hasPassword && (
-                        <Badge variant="purple" size="md">
-                          비번
-                        </Badge>
+                        <Badge variant="purple" size="md">비번</Badge>
                       )}
                       {p.exposedToUxisworks && (
-                        <Badge variant="success" size="md">
-                          노출
-                        </Badge>
+                        <Badge variant="success" size="md">노출</Badge>
                       )}
                     </div>
                   </TableCell>
@@ -249,18 +302,12 @@ export function ProposalsListPage() {
                     <ProgressRing value={p.taggingProgress} />
                   </TableCell>
                   <TableCell
-                    className={cn(
-                      bodyCell,
-                      "text-muted-foreground text-sm whitespace-nowrap tabular-nums",
-                    )}
+                    className={cn(bodyCell, "text-muted-foreground text-sm whitespace-nowrap tabular-nums")}
                   >
                     {formatDate(p.createdAt)}
                   </TableCell>
                   <TableCell
-                    className={cn(
-                      bodyCell,
-                      "text-muted-foreground text-sm whitespace-nowrap tabular-nums",
-                    )}
+                    className={cn(bodyCell, "text-muted-foreground text-sm whitespace-nowrap tabular-nums")}
                   >
                     {formatDate(p.updatedAt)}
                   </TableCell>
