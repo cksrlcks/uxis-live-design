@@ -5,29 +5,13 @@ import { stripCodeFence } from "../lib/strip-code-fence";
 import type { AiHtmlProvider } from "./providers/types";
 import { openaiProvider } from "./providers/openai.server";
 import { anthropicProvider } from "./providers/anthropic.server";
+import { getAiSystemPrompt } from "./ai-settings.server";
 
 const PAGE_TYPE_LABEL: Record<GenerationInput["pageType"], string> = {
   main: "메인/랜딩 페이지",
   dashboard: "대시보드(좌측 사이드바 + 상단 KPI 카드 + 차트/표)",
   subpage: "서브페이지(헤더 + 본문 + 사이드)",
 };
-
-const SYSTEM_PROMPT = [
-  "당신은 시니어 웹 디자이너 겸 프론트엔드 개발자입니다.",
-  "요구사항과 참고 이미지(기존 시안)를 분석해, 하나의 완결형 HTML 문서를 생성합니다.",
-  "",
-  "다음 순서로 정확히 출력하세요(이 외 설명/코드펜스 금지):",
-  "1) <분석>...</분석> — 참고 시안과 요구사항을 어떻게 이해했는지 2~3문장(한국어).",
-  "2) <도입>...</도입> — 참고 시안의 어떤 요소를 이번 시안에 어떻게 반영했는지 1~2문장(한국어).",
-  "3) '<!DOCTYPE html>'로 시작하는 단일 HTML 문서. 앞의 두 태그 뒤에 이어서 출력.",
-  "",
-  "HTML 규칙:",
-  "- CSS는 <style>에 인라인. 외부 스크립트/네트워크/폰트 CDN 의존을 최소화.",
-  "- 참고 이미지의 레이아웃/톤/구성요소를 참고하되 그대로 베끼지 말고 요구사항에 맞게 재구성.",
-  "- 색상은 절제하여 사용한다. primary·secondary를 정해 일관된 스타일 가이드를 따르고, 강조색은 1~2개로 제한한다. 과도하게 화려한 색이나 무분별한 그라데이션은 지양.",
-  "- 모서리(border-radius)는 적당히 둥글게(약 6~10px). 버튼이 pill 형태이거나 과하게 둥근 모서리는 지양.",
-  "- 한국어 콘텐츠. 실제같은 더미 텍스트 사용.",
-].join("\n");
 
 // 태그(<분석>/<도입>)에서 내용 추출. 없으면 null.
 function extractTag(raw: string, tag: string): string | null {
@@ -86,7 +70,7 @@ export async function generateHtml(
 
   const raw = await provider.generate({
     model,
-    system: SYSTEM_PROMPT,
+    system: await getAiSystemPrompt(),
     userText: buildUserText(input),
     imageUrls,
     maxOutputTokens: MAX_OUTPUT_TOKENS,

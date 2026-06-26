@@ -11,6 +11,10 @@ vi.mock("openai", () => ({
   },
 }));
 
+vi.mock("@/entities/ai-design/api/ai-settings.server", () => ({
+  getAiSystemPrompt: vi.fn().mockResolvedValue("test system prompt"),
+}));
+
 import { generateHtml } from "@/entities/ai-design/api/generate-html.server";
 
 beforeEach(() => vi.clearAllMocks());
@@ -33,7 +37,7 @@ describe("generateHtml", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const arg = (create.mock.calls as any[][])[0][0];
     expect(arg.model).toBe("gpt-5.5");
-    expect(arg.instructions).toContain("HTML");
+    expect(arg.instructions).toBe("test system prompt");
     // 이미지 블록이 먼저, 텍스트 블록이 뒤
     expect(arg.input[0].content[0]).toMatchObject({ type: "input_image", image_url: "https://x/img.png" });
     expect(arg.input[0].content.at(-1)).toMatchObject({ type: "input_text" });
