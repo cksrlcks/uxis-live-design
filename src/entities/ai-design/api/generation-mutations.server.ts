@@ -6,7 +6,7 @@ import { getTagMatchedImages } from "./get-tag-matched-images.server";
 import type { TagMatchedImage } from "./get-tag-matched-images.server";
 import type { GenerationInput, GeneratedDesign } from "../model/types";
 import type { PageType } from "../model/constants";
-import { AI_DESIGN_MODEL } from "../model/constants";
+import { AI_DESIGN_MODEL, AI_MAX_REFERENCE_IMAGES } from "../model/constants";
 
 export async function resolveReferences(
   id: string,
@@ -22,7 +22,7 @@ export async function resolveReferences(
     .where(eq(aiDesignTags.aiDesignId, id));
 
   const optionIds = tagRows.map((t) => t.optionId).filter((x): x is string => !!x);
-  const images = await getTagMatchedImages(optionIds);
+  const images = await getTagMatchedImages(optionIds, AI_MAX_REFERENCE_IMAGES);
 
   if (images.length > 0) {
     await saveReferences(id, images);

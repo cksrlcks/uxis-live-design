@@ -1,5 +1,5 @@
 import "server-only";
-import { AI_PROVIDER, PROVIDER_BY_MODEL } from "../model/constants";
+import { AI_PROVIDER, PROVIDER_BY_MODEL, AI_MAX_OUTPUT_TOKENS } from "../model/constants";
 import type { GenerationInput, GeneratedDesign } from "../model/types";
 import { stripCodeFence } from "../lib/strip-code-fence";
 import type { AiHtmlProvider } from "./providers/types";
@@ -50,8 +50,6 @@ function buildUserText(input: GenerationInput): string {
   return lines.join("\n");
 }
 
-const MAX_OUTPUT_TOKENS = 32000;
-
 // 제공사 레지스트리. AI_PROVIDER로 선택. 새 제공사는 여기에 등록한다.
 const PROVIDERS: Record<string, AiHtmlProvider> = {
   openai: openaiProvider,
@@ -73,7 +71,7 @@ export async function generateHtml(
     system: await getAiSystemPrompt(),
     userText: buildUserText(input),
     imageUrls,
-    maxOutputTokens: MAX_OUTPUT_TOKENS,
+    maxOutputTokens: AI_MAX_OUTPUT_TOKENS,
   });
 
   const result = parseGeneration(raw);

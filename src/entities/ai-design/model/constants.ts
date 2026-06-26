@@ -43,3 +43,19 @@ const DEFAULT_MODEL_BY_PROVIDER: Record<string, string> = {
 };
 export const AI_DESIGN_MODEL =
   DEFAULT_MODEL_BY_PROVIDER[AI_PROVIDER] ?? DEFAULT_MODEL_BY_PROVIDER.openai;
+
+// === 생성 성능 튜닝 노브 (provider 공통) ===
+// 재배포 없이 env로 조정 가능. 기본값은 "60초 이내" 목표의 균형 설정.
+// 두 값 모두 OpenAI/Anthropic 경로에 함께 적용된다.
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+
+// 참고 이미지 최대 장수. 적을수록 비전 prefill 토큰↓ → 첫 토큰까지 빨라짐(참고 다양성 트레이드오프).
+// 매칭수 정렬이라 상위 N개가 가장 관련도 높은 시안이다. 기본 6.
+export const AI_MAX_REFERENCE_IMAGES = parsePositiveInt(process.env.AI_MAX_REFERENCE_IMAGES, 6);
+
+// 출력 토큰 상한. 단일 HTML 시안은 보통 3~8k면 충분. (추론 모델은 추론 토큰도 이 상한에 포함되므로
+// reasoning effort를 낮게 유지해야 출력이 잘리지 않는다.) 기본 16000.
+export const AI_MAX_OUTPUT_TOKENS = parsePositiveInt(process.env.AI_MAX_OUTPUT_TOKENS, 16000);
