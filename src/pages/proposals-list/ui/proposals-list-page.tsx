@@ -48,10 +48,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PageHeader } from "@/widgets/studio-shell";
 
 const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from(
-  { length: CURRENT_YEAR - 2000 + 1 },
-  (_, i) => CURRENT_YEAR - i,
-);
+const YEAR_OPTIONS = Array.from({ length: 10 }, (_, i) => CURRENT_YEAR - i);
 
 const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-wide";
 const bodyCell = "px-5 py-3.5 align-middle";
@@ -148,7 +145,7 @@ export function ProposalsListPage() {
           value={yearFilter}
           onValueChange={(v) => onYearChange(v)}
         >
-          <SelectTrigger size="sm" className="w-32">
+          <SelectTrigger className="h-10 w-32">
             <SelectValue placeholder="전체 연도" />
           </SelectTrigger>
           <SelectContent>
@@ -166,7 +163,7 @@ export function ProposalsListPage() {
           value={visFilter}
           onValueChange={(v) => onVisChange(v)}
         >
-          <SelectTrigger size="sm" className="w-28">
+          <SelectTrigger className="h-10 w-28">
             <SelectValue placeholder="전체" />
           </SelectTrigger>
           <SelectContent>
