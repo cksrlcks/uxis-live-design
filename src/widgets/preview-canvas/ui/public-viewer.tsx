@@ -8,6 +8,7 @@ import { ProposalPreview } from "./proposal-preview";
 import { CompareView } from "./compare-view";
 import { ViewerDock } from "./viewer-dock";
 import { VariantList } from "./variant-list";
+import { ViewerHelpModal } from "./viewer-help-modal";
 import { usePrefetchImages } from "../lib/use-prefetch-images";
 
 // The whole public viewer runs client-side. The server renders this once with
@@ -108,6 +109,7 @@ export function PublicViewer({
 
     return (
       <div className="relative h-screen w-screen">
+        <ViewerHelpModal />
         {/* key resets per-version view state (slide index, canvas zoom); the
             fullscreen/canvas choice lives in ?view so it survives the remount. */}
         <div className="absolute inset-0">
