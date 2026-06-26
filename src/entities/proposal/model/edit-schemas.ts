@@ -15,6 +15,8 @@ export const updateSettingsSchema = z
     participants: z.union([z.string().trim(), z.null()]).optional(),
     // Figma 링크. URL로 설정/변경, null로 해제. Absent = unchanged.
     figmaUrl: z.union([figmaUrlSchema, z.null()]).optional(),
+    // workYear를 정수로 설정/변경, null로 해제. Absent = unchanged.
+    workYear: z.union([z.number().int().min(2000).max(2100), z.null()]).optional(),
   })
   .refine(
     (v) =>
@@ -25,7 +27,8 @@ export const updateSettingsSchema = z
       v.whiteboardEnabled !== undefined ||
       v.exposedToUxisworks !== undefined ||
       v.participants !== undefined ||
-      v.figmaUrl !== undefined,
+      v.figmaUrl !== undefined ||
+      v.workYear !== undefined,
     { message: "변경할 항목이 없습니다" },
   );
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;

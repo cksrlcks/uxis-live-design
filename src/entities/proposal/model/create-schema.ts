@@ -42,6 +42,7 @@ export const createProposalSchema = z.object({
   // 이름만으로 생성 가능 — 이미지는 생성 후 '새 버전'에서 추가한다.
   // 공개 도메인은 생성 후 상세 설정에서 지정한다(domainSchema 재사용).
   files: z.array(fileMetaSchema).default([]),
+  workYear: z.number().int().min(2000).max(2100).optional(),
 });
 
 export type CreateProposalInput = z.infer<typeof createProposalSchema>;
