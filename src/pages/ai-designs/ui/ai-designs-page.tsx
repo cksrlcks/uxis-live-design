@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
-import { ArrowUpRight, MoreVertical, Plus, RotateCw, Trash2 } from "lucide-react";
+import { ArrowUpRight, MoreVertical, Plus, RotateCw, Settings, Trash2 } from "lucide-react";
 import { PageHeader } from "@/widgets/studio-shell";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
@@ -102,10 +102,19 @@ export function AiDesignsPage() {
         title="AI 시안 생성"
         description="요구사항을 입력하면 AI가 참고 시안을 바탕으로 HTML 시안을 생성합니다."
         actions={
-          <Button type="button" onClick={() => setCreateOpen(true)}>
-            <Plus />
-            생성하기
-          </Button>
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              render={<Link href="/studio/ai-designs/settings" aria-label="AI 생성 설정" />}
+            >
+              <Settings />
+            </Button>
+            <Button type="button" onClick={() => setCreateOpen(true)}>
+              <Plus />
+              생성하기
+            </Button>
+          </>
         }
       />
 
