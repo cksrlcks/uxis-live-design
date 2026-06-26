@@ -145,7 +145,7 @@ export function ProposalsListPage() {
           value={yearFilter}
           onValueChange={(v) => onYearChange(v)}
         >
-          <SelectTrigger className="h-10 w-32">
+          <SelectTrigger size="lg" className="w-32">
             <SelectValue placeholder="전체 연도" />
           </SelectTrigger>
           <SelectContent>
@@ -163,7 +163,7 @@ export function ProposalsListPage() {
           value={visFilter}
           onValueChange={(v) => onVisChange(v)}
         >
-          <SelectTrigger className="h-10 w-28">
+          <SelectTrigger size="lg" className="w-28">
             <SelectValue placeholder="전체" />
           </SelectTrigger>
           <SelectContent>

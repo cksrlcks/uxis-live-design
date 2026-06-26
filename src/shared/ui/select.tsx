@@ -23,13 +23,13 @@ function SelectTrigger({
   size = "default",
   children,
   ...props
-}: SelectPrimitive.Trigger.Props & { size?: "sm" | "default" }) {
+}: SelectPrimitive.Trigger.Props & { size?: "sm" | "default" | "lg" }) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "border-input bg-background ring-foreground/10 flex w-fit items-center justify-between gap-2 rounded-md border px-3 text-sm whitespace-nowrap shadow-xs transition-colors outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg]:text-muted-foreground",
+        "border-input bg-background ring-foreground/10 flex w-fit items-center justify-between gap-2 rounded-md border px-3 text-sm whitespace-nowrap shadow-xs transition-colors outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 data-[size=lg]:h-10 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg]:text-muted-foreground",
         className
       )}
       {...props}
