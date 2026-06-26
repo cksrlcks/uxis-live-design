@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
@@ -17,10 +17,23 @@ import {
   CardContent,
   CardFooter,
 } from "@/shared/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 import { createProposalSchema } from "@/entities/proposal/model/create-schema";
 import { useCreateProposal } from "../api/use-create-proposal";
 
-const formSchema = createProposalSchema.pick({ title: true });
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from(
+  { length: CURRENT_YEAR - 2000 + 1 },
+  (_, i) => CURRENT_YEAR - i,
+);
+
+const formSchema = createProposalSchema.pick({ title: true, workYear: true });
 type FormValues = z.infer<typeof formSchema>;
 
 export function ProposalCreateForm() {
@@ -30,14 +43,15 @@ export function ProposalCreateForm() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(formSchema) });
 
-  async function onSubmit({ title }: FormValues) {
+  async function onSubmit({ title, workYear }: FormValues) {
     setFormError(null);
     try {
-      const { proposalId } = await createProposal.mutateAsync({ title });
+      const { proposalId } = await createProposal.mutateAsync({ title, workYear });
       toast.success("시안을 만들었습니다");
       router.push(`/studio/proposals/${proposalId}`);
     } catch (err) {
@@ -62,6 +76,31 @@ export function ProposalCreateForm() {
               {...register("title")}
             />
             {errors.title && <p className="text-destructive text-sm">{errors.title.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="workYear">작업연도</Label>
+            <Controller
+              control={control}
+              name="workYear"
+              render={({ field }) => (
+                <Select<number | undefined>
+                  value={field.value}
+                  onValueChange={(v) => field.onChange(v)}
+                >
+                  <SelectTrigger id="workYear" className="w-40">
+                    <SelectValue placeholder="연도 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {YEAR_OPTIONS.map((y) => (
+                      <SelectItem key={y} value={y}>
+                        {y}년
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
           {formError && <p className="text-destructive text-sm">{formError}</p>}
