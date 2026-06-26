@@ -140,38 +140,40 @@ export function ProposalsListPage() {
           className="w-full max-w-xs"
         />
 
-        {/* 연도 필터 */}
-        <Select<number | null>
-          value={yearFilter}
-          onValueChange={(v) => onYearChange(v)}
-        >
-          <SelectTrigger size="lg" className="w-32 shadow-none">
-            <SelectValue placeholder="전체 연도" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={null}>전체 연도</SelectItem>
-            {YEAR_OPTIONS.map((y) => (
-              <SelectItem key={y} value={y}>
-                {y}년
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-1.5">
+          {/* 연도 필터 */}
+          <Select<number | null>
+            value={yearFilter}
+            onValueChange={(v) => onYearChange(v)}
+          >
+            <SelectTrigger size="lg" className="w-32 shadow-none">
+              <SelectValue placeholder="전체 연도" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={null}>전체 연도</SelectItem>
+              {YEAR_OPTIONS.map((y) => (
+                <SelectItem key={y} value={y}>
+                  {y}년
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        {/* 공개상태 필터 */}
-        <Select<string | null>
-          value={visFilter}
-          onValueChange={(v) => onVisChange(v)}
-        >
-          <SelectTrigger size="lg" className="w-28 shadow-none">
-            <SelectValue placeholder="전체" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={null}>전체</SelectItem>
-            <SelectItem value="public">공개</SelectItem>
-            <SelectItem value="private">비공개</SelectItem>
-          </SelectContent>
-        </Select>
+          {/* 공개상태 필터 */}
+          <Select<string | null>
+            value={visFilter}
+            onValueChange={(v) => onVisChange(v)}
+          >
+            <SelectTrigger size="lg" className="w-28 shadow-none">
+              <SelectValue placeholder="전체" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={null}>전체</SelectItem>
+              <SelectItem value="public">공개</SelectItem>
+              <SelectItem value="private">비공개</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {total > 0 && (
           <p className="text-muted-foreground ml-auto shrink-0 text-sm">전체 {total}개</p>
