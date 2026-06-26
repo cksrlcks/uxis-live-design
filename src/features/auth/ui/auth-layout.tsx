@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
-import DarkVeil from "@/shared/DarkVeil";
+import DarkVeil from "@/shared/darkveil-lazy";
 
 type AuthLayoutProps = {
   title: string;
@@ -12,8 +12,8 @@ type AuthLayoutProps = {
 export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProps) {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-12">
-      {/* 전체 배경 — DarkVeil 애니메이션 */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
+      {/* 전체 배경 — DarkVeil 애니메이션 (로드 전 빈 화면 방지용 기본색 깔아둠) */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-black">
         <DarkVeil
           hueShift={25}
           noiseIntensity={0}
@@ -24,9 +24,6 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
           resolutionScale={1}
         />
       </div>
-      {/* 가독성용 어두운 오버레이 */}
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-black/40" />
-
       {/* 상단: 로고 + 설명 (가운데) */}
       <div className="mb-16 max-w-md break-keep text-center">
         <Image
