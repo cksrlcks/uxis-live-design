@@ -21,8 +21,21 @@ import {
   CardContent,
   CardFooter,
 } from "@/shared/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 import { checkDomain } from "../api/check-domain";
 import { useUpdateSettings, useDeleteProposal } from "../api/use-edit-settings";
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from(
+  { length: CURRENT_YEAR - 2000 + 1 },
+  (_, i) => CURRENT_YEAR - i,
+);
 
 const passwordSchema = z.object({
   password: z.string().min(4, "비밀번호는 4자 이상이어야 합니다"),
@@ -47,6 +60,7 @@ export function ProposalSettings({
   proposalId,
   title,
   participants,
+  workYear,
   domain,
   figmaUrl,
   visibility,
@@ -57,6 +71,7 @@ export function ProposalSettings({
   proposalId: string;
   title: string;
   participants: string | null;
+  workYear: number | null;
   domain: string | null;
   figmaUrl: string | null;
   visibility: string;
@@ -283,6 +298,48 @@ export function ProposalSettings({
           </CardFooter>
         </Card>
       </form>
+
+      {/* 작업연도 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>작업연도</CardTitle>
+          <CardDescription>이 시안이 제작된 연도를 선택합니다. 목록 표시와 필터에 사용됩니다.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select<number | null>
+            value={workYear}
+            onValueChange={(v) =>
+              change({ workYear: v ?? null })
+            }
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="연도 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {YEAR_OPTIONS.map((y) => (
+                <SelectItem key={y} value={y}>
+                  {y}년
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+        {workYear && (
+          <CardFooter>
+            <p className="text-muted-foreground text-sm">{workYear}년으로 설정됨</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="ml-auto"
+              disabled={pending}
+              onClick={() => change({ workYear: null })}
+            >
+              해제
+            </Button>
+          </CardFooter>
+        )}
+      </Card>
 
       {/* 공개 상태 */}
       <Card>

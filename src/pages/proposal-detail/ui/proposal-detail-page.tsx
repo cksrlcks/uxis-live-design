@@ -163,6 +163,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
                 proposalId={proposal.id}
                 title={proposal.title}
                 participants={proposal.participants}
+                workYear={proposal.workYear}
                 domain={proposal.domain}
                 figmaUrl={proposal.figmaUrl}
                 visibility={proposal.visibility}

@@ -83,6 +83,7 @@ export async function getProposalDetail(id: string): Promise<ProposalDetail> {
       id: proposal.id,
       title: proposal.title,
       participants: proposal.participants,
+      workYear: proposal.workYear,
       figmaUrl: proposal.figmaUrl,
       publicId: proposal.publicId,
       domain: proposal.domain,

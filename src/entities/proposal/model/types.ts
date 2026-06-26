@@ -52,6 +52,7 @@ export type ProposalDetailHeader = {
   id: string;
   title: string;
   participants: string | null;
+  workYear: number | null;
   figmaUrl: string | null;
   publicId: string;
   domain: string | null;
