@@ -176,6 +176,13 @@
       "when": 1783900000000,
       "tag": "0024_proposal_work_year",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1784000000000,
+      "tag": "0025_ai_settings",
+      "breakpoints": true
     }
   ]
 }

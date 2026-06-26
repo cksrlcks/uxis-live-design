@@ -243,3 +243,10 @@ export const aiDesignReferenceProposals = pgTable(
 );
 
 export type AiDesignReferenceProposal = typeof aiDesignReferenceProposals.$inferSelect;
+
+// === AI 설정 (AI Settings) ===
+export const aiSettings = pgTable("ai_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
