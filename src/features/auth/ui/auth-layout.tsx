@@ -1,53 +1,61 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import DarkVeil from "@/shared/DarkVeil";
 
 type AuthLayoutProps = {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   children: ReactNode;
   footer: ReactNode;
 };
 
 export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProps) {
   return (
-    <div className="flex min-h-screen">
-      {/* 왼쪽: 폼 영역 — 모바일은 전체 폭, lg 이상에서 절반 */}
-      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-12">
-        <div className="text-card-foreground mx-auto w-full max-w-sm">
-          <div className="space-y-1.5">
-            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-            <div className="text-muted-foreground text-sm">{subtitle}</div>
-          </div>
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-12">
+      {/* 전체 배경 — DarkVeil 애니메이션 */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <DarkVeil
+          hueShift={25}
+          noiseIntensity={0}
+          scanlineIntensity={0.45}
+          speed={1}
+          scanlineFrequency={0}
+          warpAmount={0}
+          resolutionScale={1}
+        />
+      </div>
+      {/* 가독성용 어두운 오버레이 */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-black/40" />
 
-          <div className="mt-8">{children}</div>
-
-          <div className="text-muted-foreground mt-6 text-sm text-center">{footer}</div>
-        </div>
+      {/* 상단: 로고 + 설명 (가운데) */}
+      <div className="mb-16 max-w-md break-keep text-center">
+        <Image
+          src="/logo.svg"
+          alt="cova"
+          width={140}
+          height={30}
+          draggable={false}
+          className="mx-auto select-none brightness-0 invert"
+        />
+        <p className="mt-6 text-base text-white/50">
+          시안을 함께 확인하고 
+          의견을 주고받는 프리뷰 협업 공간
+        </p>
       </div>
 
-      {/* 오른쪽: 블루 그라디언트 브랜드 패널 — 모바일에서는 숨김 */}
-      <div
-        className="relative hidden overflow-hidden lg:flex lg:w-1/2 lg:items-center lg:px-16"
-        style={{
-          backgroundColor: "#0a3aa8",
-          backgroundImage:
-            "radial-gradient(at 22% 20%, #3b89ff 0, transparent 55%), radial-gradient(at 80% 82%, #082567 0, transparent 55%)",
-        }}
-      >
-        <div className="max-w-md break-keep">
-          <Image
-            src="/logo.svg"
-            alt="cova"
-            width={120}
-            height={30}
-            className="brightness-0 invert"
-          />
-          <p className="mt-3 text-xs font-medium tracking-wide text-white/60">UXIS Co-view Area</p>
-          <p className="mt-6 text-base leading-relaxed text-white/85">
-            COVA는 디자이너와 클라이언트가 시안을 한곳에서 함께 확인하고 의견을 주고받는 프리뷰 협업
-            공간입니다.
-          </p>
+      {/* 폼 영역 — 카드 배경 없이 다크 테마 */}
+      <div className="dark text-foreground relative w-full max-w-md">
+        <div className="space-y-1.5 text-center">
+          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          {subtitle && <div className="text-muted-foreground text-sm">{subtitle}</div>}
         </div>
+
+        <div className="mt-8">{children}</div>
+
+        <div className="text-muted-foreground mt-6 text-center text-sm">{footer}</div>
+
+        {/* 폼 하단 copyright */}
+        <p className="mt-10 text-center text-xs text-white/40">© 2026 UXIS Co.</p>
       </div>
     </div>
   );

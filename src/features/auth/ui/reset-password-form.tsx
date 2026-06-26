@@ -77,7 +77,7 @@ export function ResetPasswordForm() {
       {formError && <p className="text-destructive text-sm">{formError}</p>}
       <Button
         type="submit"
-        className="h-12 w-full rounded-lg text-base font-semibold"
+        className="h-12 w-full rounded-lg bg-blue-600 text-base font-semibold text-white hover:bg-blue-700"
         disabled={resetMutation.isPending}
       >
         {resetMutation.isPending ? "변경 중…" : "비밀번호 변경"}

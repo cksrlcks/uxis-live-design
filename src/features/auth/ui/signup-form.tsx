@@ -8,7 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { isSafeInternalPath } from "@/shared/lib/safe-redirect";
-import { signupSchema, type SignupInput } from "../model/schema";
+import { signupFormSchema, type SignupFormValues } from "../model/schema";
 import { useSignup } from "../api/use-auth";
 
 function signupErrorMessage(err: unknown): string {
@@ -30,12 +30,12 @@ export function SignupForm({ returnTo }: { returnTo?: string }) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignupInput>({ resolver: zodResolver(signupSchema) });
+  } = useForm<SignupFormValues>({ resolver: zodResolver(signupFormSchema) });
 
-  async function onSubmit(values: SignupInput) {
+  async function onSubmit({ confirmPassword: _confirmPassword, ...payload }: SignupFormValues) {
     setFormError(null);
     try {
-      await signupMutation.mutateAsync(values);
+      await signupMutation.mutateAsync(payload);
       // Full-document load so any stale client router cache is discarded before the new session renders.
       window.location.replace(isSafeInternalPath(returnTo) ? returnTo : "/pending");
     } catch (err) {
@@ -78,10 +78,25 @@ export function SignupForm({ returnTo }: { returnTo?: string }) {
         />
         {errors.password && <p className="text-destructive text-sm">{errors.password.message}</p>}
       </div>
+      <div className="space-y-3">
+        <Label htmlFor="confirmPassword" className="text-muted-foreground font-normal">
+          비밀번호 확인
+        </Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          placeholder="비밀번호를 다시 입력하세요"
+          className="h-12 rounded-lg px-4"
+          {...register("confirmPassword")}
+        />
+        {errors.confirmPassword && (
+          <p className="text-destructive text-sm">{errors.confirmPassword.message}</p>
+        )}
+      </div>
       {formError && <p className="text-destructive text-sm">{formError}</p>}
       <Button
         type="submit"
-        className="h-12 w-full rounded-lg text-base font-semibold"
+        className="h-12 w-full rounded-lg bg-blue-600 text-base font-semibold text-white hover:bg-blue-700"
         disabled={signupMutation.isPending}
       >
         {signupMutation.isPending ? "가입 중…" : "가입하기"}

@@ -53,7 +53,8 @@ export function ForgotPasswordForm() {
         <Link
           href="/login"
           className={buttonVariants({
-            className: "h-12 w-full rounded-lg text-base font-semibold",
+            className:
+              "h-12 w-full rounded-lg bg-blue-600 text-base font-semibold text-white hover:bg-blue-700",
           })}
         >
           로그인으로 돌아가기
@@ -80,7 +81,7 @@ export function ForgotPasswordForm() {
       {formError && <p className="text-destructive text-sm">{formError}</p>}
       <Button
         type="submit"
-        className="h-12 w-full rounded-lg text-base font-semibold"
+        className="h-12 w-full rounded-lg bg-blue-600 text-base font-semibold text-white hover:bg-blue-700"
         disabled={requestMutation.isPending}
       >
         {requestMutation.isPending ? "전송 중…" : "재설정 링크 보내기"}

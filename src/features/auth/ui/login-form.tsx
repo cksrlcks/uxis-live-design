@@ -87,7 +87,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
       {formError && <p className="text-destructive text-sm">{formError}</p>}
       <Button
         type="submit"
-        className="h-12 w-full rounded-lg text-base font-semibold"
+        className="h-12 w-full rounded-lg bg-blue-600 text-base font-semibold text-white hover:bg-blue-700"
         disabled={loginMutation.isPending}
       >
         {loginMutation.isPending ? "로그인 중…" : "로그인"}

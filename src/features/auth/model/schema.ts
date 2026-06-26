@@ -22,6 +22,17 @@ export const signupSchema = z.object({
 });
 export type SignupInput = z.infer<typeof signupSchema>;
 
+// 폼 전용 — 비밀번호 확인 필드 포함. 제출 시 confirmPassword를 제거하고 SignupInput으로 전송한다.
+export const signupFormSchema = signupSchema
+  .extend({
+    confirmPassword: z.string().min(1, "비밀번호 확인을 입력하세요"),
+  })
+  .refine((v) => v.password === v.confirmPassword, {
+    message: "비밀번호가 일치하지 않습니다",
+    path: ["confirmPassword"],
+  });
+export type SignupFormValues = z.infer<typeof signupFormSchema>;
+
 export const changePasswordSchema = z.object({
   currentPassword: z.string().optional(),
   newPassword,

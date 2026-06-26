@@ -147,6 +147,22 @@
   }
 }
 
+/* 브라우저 자동완성이 강제하는 흰/노랑 배경 제거(다크 폼 한정).
+   box-shadow inset로 불투명한 어두운 배경을 덮어 흰 글자와 대비를 확보하고,
+   글자색·커서는 다크 토큰을 따르도록 강제한다.
+   반드시 레이어 밖(unlayered)에 둔다 — @layer base에 두면 포커스 시
+   utilities 레이어의 focus-visible:ring(box-shadow)이 우선해 inset이 덮여
+   클릭하는 순간 다시 흰 글자가 묻힌다. unlayered가 모든 @layer보다 우선. */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
+  -webkit-box-shadow: 0 0 0 1000px var(--card) inset;
+  box-shadow: 0 0 0 1000px var(--card) inset;
+}
+
 /* Sonner는 런타임에 __insertCSS로 "레이어 없는" <style>을 head에 주입하며
    [data-sonner-toaster]에 자체 font-family를 지정한다. CSS 캐스케이드 규칙상
    unlayered 스타일이 @layer보다 우선하므로, 이 override도 반드시 레이어 밖에

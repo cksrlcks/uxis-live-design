@@ -6,7 +6,6 @@ export function SignupPage({ returnTo }: { returnTo?: string }) {
   return (
     <AuthLayout
       title="회원가입"
-      subtitle="정보를 입력하고 가입을 완료해주세요"
       footer={
         <>
           이미 계정이 있으신가요?{" "}

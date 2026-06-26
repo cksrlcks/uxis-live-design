@@ -14,7 +14,6 @@ export function LoginPage({
   return (
     <AuthLayout
       title="로그인"
-      subtitle="가입하신 이메일로 로그인해주세요"
       footer={
         <>
           계정이 없으신가요?{" "}
