@@ -11,7 +11,7 @@ import { createProposalSchema } from "../model/create-schema";
 
 export async function createProposal(input: unknown) {
   const editor = await requireEditor();
-  const { title, files } = createProposalSchema.parse(input);
+  const { title, files, workYear } = createProposalSchema.parse(input);
 
   let publicId = "";
   for (let i = 0; i < 5; i++) {
@@ -31,7 +31,13 @@ export async function createProposal(input: unknown) {
   const proposalId = randomUUID();
   const variantId = randomUUID();
   const versionId = randomUUID();
-  await db.insert(proposals).values({ id: proposalId, publicId, title, ownerId: editor.id });
+  await db.insert(proposals).values({
+    id: proposalId,
+    publicId,
+    title,
+    ownerId: editor.id,
+    ...(workYear !== undefined && { workYear }),
+  });
   await db.insert(proposalVariants).values({
     id: variantId,
     proposalId,

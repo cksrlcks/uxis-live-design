@@ -18,6 +18,7 @@ export async function updateProposalSettings(id: string, input: unknown): Promis
     exposedToUxisworks,
     participants,
     figmaUrl,
+    workYear,
   } = updateSettingsSchema.parse(input);
 
   const updates: Partial<typeof proposals.$inferInsert> = {};
@@ -43,6 +44,7 @@ export async function updateProposalSettings(id: string, input: unknown): Promis
   }
   if (whiteboardEnabled !== undefined) updates.whiteboardEnabled = whiteboardEnabled;
   if (exposedToUxisworks !== undefined) updates.exposedToUxisworks = exposedToUxisworks;
+  if (workYear !== undefined) updates.workYear = workYear;
   updates.updatedAt = new Date();
 
   await db.update(proposals).set(updates).where(eq(proposals.id, id));
