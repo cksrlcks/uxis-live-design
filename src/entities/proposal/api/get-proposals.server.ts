@@ -1,5 +1,5 @@
 import "server-only";
-import { desc, eq, getTableColumns, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { proposals, proposalTags, tagGroups, tagOptions } from "@drizzle/schema";
 import { requireEditor } from "@/shared/auth/guards.server";
@@ -10,6 +10,8 @@ export async function getProposals(
   page = 1,
   pageSize = PROPOSALS_PAGE_SIZE,
   search = "",
+  year?: number,
+  visibility?: "public" | "private",
 ): Promise<Paginated<ProposalListItem>> {
   await requireEditor();
 
@@ -19,13 +21,18 @@ export async function getProposals(
   // 제목·참여자·공개 도메인을 대소문자 무시(ILIKE)로 부분 검색. 값은 바인딩되어
   // 안전하며, LIKE 메타문자(% _ \)만 이스케이프해 와일드카드 주입을 막는다.
   const term = search.trim();
-  const where = term
+  const searchWhere = term
     ? or(
         ilike(proposals.title, `%${escapeLike(term)}%`),
         ilike(proposals.participants, `%${escapeLike(term)}%`),
         ilike(proposals.domain, `%${escapeLike(term)}%`),
       )
     : undefined;
+
+  const yearWhere = year !== undefined ? eq(proposals.workYear, year) : undefined;
+  const visWhere = visibility !== undefined ? eq(proposals.visibility, visibility) : undefined;
+
+  const where = and(searchWhere, yearWhere, visWhere);
 
   const [{ total }] = await db
     .select({ total: sql<number>`count(*)::int` })
