@@ -2,6 +2,12 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **구현 완료 (2026-06-26)** — 세 Task 모두 코드 구현·커밋 완료. 자동 검증(tsc·eslint·vitest 267건·next build) 통과, 마이그레이션 0025 라이브 DB 적용 확인. 남은 것은 아래 "수동 검증 체크리스트"뿐.
+> - Task 1 (마이그레이션·스키마·시드): `4813e65`
+> - Task 2 (서버 액션·generate-html DB 조회): `4cb1c0c`
+> - Task 3 (설정 페이지·라우트·진입 버튼): `64d3515`
+> - **계획 대비 적용된 보정**: 마이그레이션 번호 `0024`→`0025`(0024는 proposal_work_year가 선점); 진입 버튼은 shadcn `asChild`가 아니라 Base UI Button의 `render` prop으로 Link 렌더; 설정 페이지는 detail 슬라이스 컨벤션(ArrowLeft·max-w-2xl·공유 Label)에 맞춤; 슬라이스 배럴(`index.ts`) 추가.
+
 **Goal:** 하드코딩된 AI 시스템 프롬프트를 DB로 이전하고, 스튜디오에서 관리자가 편집할 수 있는 설정 페이지를 제공한다.
 
 **Architecture:** `ai_settings` 테이블(key-value)에 시스템 프롬프트를 저장. `getAiSystemPrompt()`가 DB를 읽어 `generate-html.server.ts`에 주입. Next.js 서버 컴포넌트가 초기값을 읽어 클라이언트 UI에 전달하고, Server Action으로 저장.

@@ -16,7 +16,7 @@
 ## 1. DB 스키마
 
 ```sql
--- 마이그레이션: 0024_ai_settings.sql
+-- 마이그레이션: 0025_ai_settings.sql (구현 시 0024는 proposal_work_year가 선점하여 0025로 적용됨)
 CREATE TABLE ai_settings (
   key        TEXT PRIMARY KEY,
   value      TEXT NOT NULL,
@@ -137,7 +137,7 @@ src/pages/ai-design-settings/
 
 ## 5. 마이그레이션 번호
 
-기존 마이그레이션 중 최신이 `0023`이므로 → `0024_ai_settings.sql`
+구현 시점 최신이 `0024_proposal_work_year`였으므로 → `0025_ai_settings.sql` (적용 완료)
 
 ---
 
