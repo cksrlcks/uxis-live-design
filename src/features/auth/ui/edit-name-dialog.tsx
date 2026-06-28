@@ -83,36 +83,23 @@ export function EditNameDialog({ displayName }: { displayName: string | null }) 
         {name}
         <Settings className="text-muted-foreground size-4" aria-hidden="true" />
       </DialogTrigger>
-      <DialogContent showCloseButton={false} className="gap-5 p-6">
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>이름 변경</DialogTitle>
           <DialogDescription>표시할 이름을 입력하세요.</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2.5">
-            <Label htmlFor="display-name" className="text-muted-foreground font-normal">
-              이름
-            </Label>
-            <Input
-              id="display-name"
-              autoFocus
-              maxLength={50}
-              className="h-11 rounded-lg px-4"
-              {...register("name")}
-            />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-3">
+            <Label htmlFor="display-name">이름</Label>
+            <Input id="display-name" autoFocus maxLength={50} {...register("name")} />
             {errors.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
+            {formError && <p className="text-destructive text-sm">{formError}</p>}
           </div>
 
-          {formError && <p className="text-destructive text-sm">{formError}</p>}
-
           <DialogFooter showCloseButton={false}>
-            <DialogClose
-              render={<Button type="button" variant="outline" className="h-10 rounded-lg" />}
-            >
-              취소
-            </DialogClose>
-            <Button type="submit" className="h-10 rounded-lg" disabled={updateNameMutation.isPending}>
+            <DialogClose render={<Button type="button" variant="outline" />}>취소</DialogClose>
+            <Button type="submit" disabled={updateNameMutation.isPending}>
               {updateNameMutation.isPending ? "변경 중…" : "변경"}
             </Button>
           </DialogFooter>

@@ -78,9 +78,9 @@ export function GroupDialog({
         <DialogHeader>
           <DialogTitle>{isEdit ? "구분 수정" : "구분 추가"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+        <div className="space-y-5">
           {!isEdit && (
-            <div className="space-y-1.5">
+            <div className="space-y-3">
               <Label htmlFor="group-code">코드(고정키)</Label>
               <Input
                 id="group-code"
@@ -90,7 +90,7 @@ export function GroupDialog({
               />
             </div>
           )}
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <Label htmlFor="group-label">이름</Label>
             <Input
               id="group-label"
@@ -99,7 +99,7 @@ export function GroupDialog({
               placeholder="목적"
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <Label htmlFor="group-desc">설명(선택)</Label>
             <Input
               id="group-desc"

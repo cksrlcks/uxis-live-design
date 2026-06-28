@@ -80,9 +80,9 @@ export function OptionDialog({
         <DialogHeader>
           <DialogTitle>{isEdit ? "항목 수정" : "항목 추가"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+        <div className="space-y-5">
           {!isEdit && (
-            <div className="space-y-1.5">
+            <div className="space-y-3">
               <Label htmlFor="opt-code">코드(고정키)</Label>
               <Input
                 id="opt-code"
@@ -92,7 +92,7 @@ export function OptionDialog({
               />
             </div>
           )}
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <Label htmlFor="opt-label">이름</Label>
             <Input
               id="opt-label"
@@ -101,7 +101,7 @@ export function OptionDialog({
               placeholder="제안"
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <Label htmlFor="opt-desc">설명(선택)</Label>
             <Input
               id="opt-desc"

@@ -355,7 +355,7 @@ export function ProposalsListPage() {
       </div>
 
       <Dialog open={!!shareTarget} onOpenChange={(open) => !open && setShareTarget(null)}>
-        <DialogContent className="sm:max-w-md p-6">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader className="mb-1">
             <DialogTitle>시안 공유</DialogTitle>
             {shareTarget && (

@@ -749,7 +749,7 @@ export function WhiteboardLayer({
           document.body,
         )}
       <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-        <DialogContent className="pointer-events-auto gap-6 p-6">
+        <DialogContent className="pointer-events-auto">
           <DialogHeader className="gap-3">
             <DialogTitle>로그인이 필요합니다</DialogTitle>
             <DialogDescription>

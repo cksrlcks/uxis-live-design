@@ -83,7 +83,7 @@ export function CreateAiDesignModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-5 p-6 sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>AI 시안 생성</DialogTitle>
           <DialogDescription>
@@ -92,24 +92,24 @@ export function CreateAiDesignModal({
         </DialogHeader>
 
         <div className="-mr-2 max-h-[60vh] space-y-6 overflow-y-auto pr-2">
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <Label htmlFor="ai-title">제목(회사명)</Label>
             <Input id="ai-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ACME Inc." />
           </div>
 
           {/* 회사명 필드 비활성화(필요 시 주석 해제하여 복구)
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <Label htmlFor="ai-company">회사명(선택, 제목과 다를 때)</Label>
             <Input id="ai-company" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
           */}
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>페이지 유형</Label>
             <PageTypeCards value={pageType} onChange={setPageType} />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <Label>생성 모델</Label>
             <Select items={MODEL_ITEMS} value={model} onValueChange={(v) => setModel(v as string)}>
               <SelectTrigger className="w-full" aria-label="생성 모델 선택">
@@ -130,7 +130,7 @@ export function CreateAiDesignModal({
               <Label>참고 태그(선택)</Label>
               <div className="space-y-3">
                 {shownGroups.map((g) => (
-                  <div key={g.id} className="space-y-1.5">
+                  <div key={g.id} className="space-y-3">
                     <p className="text-muted-foreground text-xs">{g.label}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {g.options.map((o) => {
@@ -158,7 +158,7 @@ export function CreateAiDesignModal({
             </div>
           )}
 
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <Label htmlFor="ai-notes">추가 요청사항(선택)</Label>
             <textarea
               id="ai-notes"

@@ -103,7 +103,7 @@ export function ChangePasswordDialog({ isOAuthUser = false }: { isOAuthUser?: bo
       <DialogTrigger render={<Button variant="outline" className="h-11 w-full rounded-lg" />}>
         비밀번호 변경
       </DialogTrigger>
-      <DialogContent showCloseButton={false} className="gap-5 p-6">
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>비밀번호 변경</DialogTitle>
           <DialogDescription>
@@ -119,22 +119,19 @@ export function ChangePasswordDialog({ isOAuthUser = false }: { isOAuthUser?: bo
               비밀번호가 변경되었습니다.
             </p>
             <DialogFooter showCloseButton={false}>
-              <DialogClose render={<Button className="h-10 rounded-lg" />}>닫기</DialogClose>
+              <DialogClose render={<Button />}>닫기</DialogClose>
             </DialogFooter>
           </>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {!isOAuthUser && (
-              <div className="space-y-2.5">
-                <Label htmlFor="current-password" className="text-muted-foreground font-normal">
-                  현재 비밀번호
-                </Label>
+              <div className="space-y-3">
+                <Label htmlFor="current-password">현재 비밀번호</Label>
                 <Input
                   id="current-password"
                   type="password"
                   autoComplete="current-password"
                   autoFocus
-                  className="h-11 rounded-lg px-4"
                   {...register("currentPassword")}
                 />
                 {errors.currentPassword && (
@@ -143,17 +140,14 @@ export function ChangePasswordDialog({ isOAuthUser = false }: { isOAuthUser?: bo
               </div>
             )}
 
-            <div className="space-y-2.5">
-              <Label htmlFor="new-password" className="text-muted-foreground font-normal">
-                새 비밀번호
-              </Label>
+            <div className="space-y-3">
+              <Label htmlFor="new-password">새 비밀번호</Label>
               <Input
                 id="new-password"
                 type="password"
                 autoComplete="new-password"
                 autoFocus={isOAuthUser}
                 placeholder="영문·숫자·특수문자 포함 8자 이상"
-                className="h-11 rounded-lg px-4"
                 {...register("newPassword")}
               />
               {errors.newPassword && (
@@ -161,15 +155,12 @@ export function ChangePasswordDialog({ isOAuthUser = false }: { isOAuthUser?: bo
               )}
             </div>
 
-            <div className="space-y-2.5">
-              <Label htmlFor="confirm-password" className="text-muted-foreground font-normal">
-                새 비밀번호 확인
-              </Label>
+            <div className="space-y-3">
+              <Label htmlFor="confirm-password">새 비밀번호 확인</Label>
               <Input
                 id="confirm-password"
                 type="password"
                 autoComplete="new-password"
-                className="h-11 rounded-lg px-4"
                 {...register("confirmPassword")}
               />
               {errors.confirmPassword && (
@@ -180,16 +171,8 @@ export function ChangePasswordDialog({ isOAuthUser = false }: { isOAuthUser?: bo
             {formError && <p className="text-destructive text-sm">{formError}</p>}
 
             <DialogFooter showCloseButton={false}>
-              <DialogClose
-                render={<Button type="button" variant="outline" className="h-10 rounded-lg" />}
-              >
-                취소
-              </DialogClose>
-              <Button
-                type="submit"
-                className="h-10 rounded-lg"
-                disabled={changePasswordMutation.isPending}
-              >
+              <DialogClose render={<Button type="button" variant="outline" />}>취소</DialogClose>
+              <Button type="submit" disabled={changePasswordMutation.isPending}>
                 {changePasswordMutation.isPending ? "변경 중…" : "변경"}
               </Button>
             </DialogFooter>

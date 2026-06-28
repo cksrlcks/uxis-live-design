@@ -64,24 +64,19 @@ export function NewProposalDialog() {
       <DialogTrigger render={<Button className="h-9 gap-1.5 rounded-lg px-3.5" />}>
         <Plus className="size-4" />새 시안
       </DialogTrigger>
-      <DialogContent showCloseButton={false} className="gap-5 p-6">
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>새 시안 만들기</DialogTitle>
-          <DialogDescription>
-            이름을 입력하세요.
-          </DialogDescription>
+          <DialogDescription>이름을 입력하세요.</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2.5">
-            <Label htmlFor="new-proposal-title" className="text-muted-foreground font-normal">
-              시안 이름
-            </Label>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-3">
+            <Label htmlFor="new-proposal-title">시안 이름</Label>
             <Input
               id="new-proposal-title"
               autoFocus
               placeholder="예: 메인 페이지 리뉴얼"
-              className="h-11 rounded-lg px-4"
               {...register("title")}
             />
             {errors.title && <p className="text-destructive text-sm">{errors.title.message}</p>}
@@ -89,10 +84,8 @@ export function NewProposalDialog() {
           </div>
 
           <DialogFooter showCloseButton={false}>
-            <DialogClose render={<Button type="button" variant="outline" className="h-10 rounded-lg" />}>
-              취소
-            </DialogClose>
-            <Button type="submit" className="h-10 rounded-lg" disabled={createProposal.isPending}>
+            <DialogClose render={<Button type="button" variant="outline" />}>취소</DialogClose>
+            <Button type="submit" disabled={createProposal.isPending}>
               {createProposal.isPending ? "만드는 중…" : "만들기"}
             </Button>
           </DialogFooter>

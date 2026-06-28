@@ -4,6 +4,7 @@ import { Maximize2, Frame } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
@@ -67,20 +68,18 @@ export function ViewerHelpModal() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-1">
-          <label className="flex cursor-pointer select-none items-center gap-2">
+        <DialogFooter className="sm:items-center sm:justify-between">
+          <label className="flex cursor-pointer items-center gap-2 select-none">
             <input
               type="checkbox"
               checked={noShowWeek}
               onChange={(e) => setNoShowWeek(e.target.checked)}
               className="size-4 cursor-pointer accent-foreground"
             />
-            <span className="text-xs text-muted-foreground">일주일 동안 보지 않기</span>
+            <span className="text-muted-foreground text-xs">일주일 동안 보지 않기</span>
           </label>
-          <Button size="sm" onClick={close}>
-            확인
-          </Button>
-        </div>
+          <Button onClick={close}>확인</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
