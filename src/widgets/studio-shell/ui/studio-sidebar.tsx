@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, LogOut } from "lucide-react";
+import { BookOpen, Home, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -56,6 +56,17 @@ export function StudioSidebar({ displayName, email, role }: StudioSidebarProps) 
       </nav>
 
       <div className="flex-1" />
+
+      {/* 매뉴얼 바로가기 — 외부 사용 가이드. 새 탭으로 이동. */}
+      <a
+        href="https://cova-manual.vercel.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-foreground/80 hover:bg-muted rounded-control flex items-center gap-2.5 px-2.5 py-2 text-sm transition-colors"
+      >
+        <BookOpen className="size-4" />
+        매뉴얼
+      </a>
 
       {/* 홈으로 — 스튜디오 밖 랜딩(/)으로 이동. 스튜디오 섹션 네비와 분리. */}
       <Link

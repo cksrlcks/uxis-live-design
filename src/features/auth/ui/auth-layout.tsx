@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
-import DarkVeil from "@/shared/darkveil-lazy";
+import Aurora from "@/shared/aurora-lazy";
 
 // 검은 배경 위에서 입력창·구글 버튼 보더(둘 다 --input 토큰 사용)가 너무 흐려
 // 인증 폼에 한해 밝은 값으로 덮는다. .dark 토큰은 unlayered 라 Tailwind 유틸리티
@@ -20,35 +20,25 @@ type AuthLayoutProps = {
 
 export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProps) {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-12">
-      {/* 전체 배경 — DarkVeil 애니메이션 (로드 전 빈 화면 방지용 기본색 깔아둠) */}
+    <div className="relative flex min-h-screen flex-col items-center justify-start overflow-hidden px-6 py-[12vh]">
+      {/* 전체 배경 — Aurora 애니메이션 (로드 전 빈 화면 방지용 기본색 깔아둠) */}
       <div className="pointer-events-none absolute inset-0 -z-10 bg-black">
-        {/* 해상도 무관하게 베일이 화면 중간까지만 내려온 느낌이 나도록 아래로 갈수록 검정으로 페이드 */}
-        <div className="absolute inset-0 mask-[linear-gradient(to_bottom,#000_0%,#000_25%,transparent_60%)]">
-          <DarkVeil
-            hueShift={25}
-            noiseIntensity={0}
-            scanlineIntensity={0.45}
-            speed={1}
-            scanlineFrequency={0}
-            warpAmount={0}
-            resolutionScale={1}
-          />
+        <div className="absolute inset-0">
+          <Aurora colorStops={["#1e40af", "#020b80", "#0277a8"]} amplitude={0.4} blend={1} />
         </div>
       </div>
       {/* 상단: 로고 + 설명 (가운데) */}
-      <div className="mb-16 max-w-md break-keep text-center">
+      <div className="mb-12 max-w-md text-center break-keep">
         <Image
           src="/logo.svg"
           alt="cova"
-          width={140}
+          width={120}
           height={30}
           draggable={false}
-          className="mx-auto select-none brightness-0 invert"
+          className="mx-auto brightness-0 invert select-none"
         />
-        <p className="mt-6 text-base text-white/50">
-          시안을 함께 확인하고
-          의견을 주고받는 프리뷰 협업 공간
+        <p className="mt-6 text-sm text-white/70 tracking-tight">
+          시안을 함께 확인하고 의견을 주고받는 프리뷰 협업 공간
         </p>
       </div>
 
@@ -59,7 +49,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
           {subtitle && <div className="text-muted-foreground text-sm">{subtitle}</div>}
         </div>
 
-        <div className="mt-8">{children}</div>
+        <div className="mt-6">{children}</div>
 
         <div className="text-muted-foreground mt-6 text-center text-sm">{footer}</div>
 
