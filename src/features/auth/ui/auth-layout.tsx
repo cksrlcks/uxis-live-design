@@ -1,6 +1,15 @@
 import Image from "next/image";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import DarkVeil from "@/shared/darkveil-lazy";
+
+// 검은 배경 위에서 입력창·구글 버튼 보더(둘 다 --input 토큰 사용)가 너무 흐려
+// 인증 폼에 한해 밝은 값으로 덮는다. .dark 토큰은 unlayered 라 Tailwind 유틸리티
+// (layered)로는 못 이기므로 인라인 스타일로 확실히 우선시킨다. 전역 .dark 를
+// 바꾸지 않아 /me·/pending·뷰어 다이얼로그 등 다른 다크 표면에는 영향이 없다.
+const authFormVars = {
+  "--input": "oklch(1 0 0 / 30%)",
+  "--border": "oklch(1 0 0 / 20%)",
+} as CSSProperties;
 
 type AuthLayoutProps = {
   title: string;
@@ -38,13 +47,13 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
           className="mx-auto select-none brightness-0 invert"
         />
         <p className="mt-6 text-base text-white/50">
-          시안을 함께 확인하고 
+          시안을 함께 확인하고
           의견을 주고받는 프리뷰 협업 공간
         </p>
       </div>
 
       {/* 폼 영역 — 카드 배경 없이 다크 테마 */}
-      <div className="dark text-foreground relative w-full max-w-md">
+      <div className="dark text-foreground relative w-full max-w-md" style={authFormVars}>
         <div className="space-y-1.5 text-center">
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           {subtitle && <div className="text-muted-foreground text-sm">{subtitle}</div>}
