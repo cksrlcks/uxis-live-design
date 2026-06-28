@@ -3,9 +3,15 @@ import { cn } from "@/shared/lib/utils";
 import { TableCell, TableRow } from "@/shared/ui/table";
 
 /** 테이블을 감싸는 카드 표면(흰 면 + 헤어라인 + 8px). */
-export function DataTableShell({ className, children }: { className?: string; children: ReactNode }) {
+export function DataTableShell({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
   return (
-    <div className={cn("bg-card overflow-hidden rounded-card border", className)}>{children}</div>
+    <div className={cn("bg-card rounded-card overflow-hidden border", className)}>{children}</div>
   );
 }
 

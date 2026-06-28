@@ -29,8 +29,8 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "border-input bg-background ring-foreground/10 flex w-fit items-center justify-between gap-2 rounded-control border px-3 text-sm whitespace-nowrap shadow-xs transition-colors outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-8 data-[size=sm]:h-8 data-[size=lg]:h-10 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg]:text-muted-foreground",
-        className
+        "border-input bg-background ring-foreground/10 rounded-control [&_svg]:text-muted-foreground flex w-fit items-center justify-between gap-2 border px-3 text-sm whitespace-nowrap shadow-xs transition-colors outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-8 data-[size=lg]:h-10 data-[size=sm]:h-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className,
       )}
       {...props}
     >
@@ -50,15 +50,12 @@ function SelectContent({
 }: SelectPrimitive.Popup.Props & { sideOffset?: number }) {
   return (
     <SelectPrimitive.Portal>
-      <SelectPrimitive.Positioner
-        className="isolate z-50 outline-none"
-        sideOffset={sideOffset}
-      >
+      <SelectPrimitive.Positioner className="isolate z-50 outline-none" sideOffset={sideOffset}>
         <SelectPrimitive.Popup
           data-slot="select-content"
           className={cn(
-            "bg-popover text-popover-foreground ring-foreground/10 z-50 max-h-(--available-height) min-w-(--anchor-width) origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-card p-1 shadow-md ring-1 duration-100 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-            className
+            "bg-popover text-popover-foreground ring-foreground/10 rounded-card data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 z-50 max-h-(--available-height) min-w-(--anchor-width) origin-(--transform-origin) overflow-x-hidden overflow-y-auto p-1 shadow-md ring-1 duration-100 outline-none",
+            className,
           )}
           {...props}
         >
@@ -74,8 +71,8 @@ function SelectItem({ className, children, ...props }: SelectPrimitive.Item.Prop
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex w-full cursor-default items-center gap-2 rounded-control py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50",
-        className
+        "focus:bg-accent focus:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground rounded-control relative flex w-full cursor-default items-center gap-2 py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50",
+        className,
       )}
       {...props}
     >
