@@ -26,6 +26,9 @@ export const proposals = pgTable("proposals", {
   visibility: text("visibility").notNull().default("private"), // 'private' | 'public'
   accessPasswordHash: text("access_password_hash"), // 'salt:hash' (scrypt), public+password only
   whiteboardEnabled: boolean("whiteboard_enabled").notNull().default(false),
+  // 라이브 모드. 끄면 뷰어에서 협업(접속자/채팅/핀코멘트/화이트보드)을 서버 차원에서 전부 차단한다.
+  // 기존 시안 동작 보존을 위해 기본 켜짐(true).
+  liveMode: boolean("live_mode").notNull().default(true),
   // 유시스웍스(포트폴리오/갤러리) 노출 여부. visibility(공개 링크 접근)와 독립된 축.
   exposedToUxisworks: boolean("exposed_to_uxisworks").notNull().default(false),
   workYear: integer("work_year"), // 작업 연도(선택, nullable)

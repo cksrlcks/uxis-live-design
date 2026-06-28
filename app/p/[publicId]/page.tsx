@@ -105,6 +105,7 @@ export default async function PublicViewerPage({
       viewer={viewer ? { id: viewer.id } : null}
       proposalTitle={proposal.title}
       whiteboardEnabled={proposal.whiteboardEnabled}
+      liveMode={proposal.liveMode}
     />
   );
 }

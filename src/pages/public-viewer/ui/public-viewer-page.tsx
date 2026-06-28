@@ -12,12 +12,15 @@ export function PublicViewerPage({
   viewer,
   proposalTitle,
   whiteboardEnabled = false,
+  liveMode = true,
 }: {
   publicId: string;
   viewer: { id: string } | null;
   proposalTitle: string;
   // 시안별 화이트보드 on/off 설정. 기본 꺼짐.
   whiteboardEnabled?: boolean;
+  // 시안별 라이브 모드. 꺼지면 캔버스 협업(핀/화이트보드/코멘트)을 숨긴다. 서버에서도 데이터 거부.
+  liveMode?: boolean;
 }) {
   useEffect(() => {
     addRecent({ publicId, title: proposalTitle, viewedAt: Date.now() });
@@ -42,6 +45,7 @@ export function PublicViewerPage({
       viewer={viewer}
       proposalTitle={proposalTitle}
       whiteboardEnabled={whiteboardEnabled}
+      liveMode={liveMode}
     />
   );
 }

@@ -11,6 +11,8 @@ export async function getRecentChat(publicId: string): Promise<ChatMessageDTO[]>
   const { proposal, decision } = await resolveViewerGate(publicId);
   if (!proposal) throw new Error("NOT_FOUND");
   if (decision !== "allow") throw new Error("FORBIDDEN");
+  // 라이브 모드 OFF → 협업 데이터를 일절 제공하지 않는다(클라이언트 우회 차단).
+  if (!proposal.liveMode) return [];
 
   const rows = await db
     .select()

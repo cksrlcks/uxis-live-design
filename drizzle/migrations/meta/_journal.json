@@ -183,6 +183,13 @@
       "when": 1784000000000,
       "tag": "0025_ai_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1784100000000,
+      "tag": "0026_proposal_live_mode",
+      "breakpoints": true
     }
   ]
 }

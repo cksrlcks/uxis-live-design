@@ -67,6 +67,7 @@ export function ProposalSettings({
   visibility,
   hasPassword,
   whiteboardEnabled,
+  liveMode,
   exposedToUxisworks,
 }: {
   proposalId: string;
@@ -78,6 +79,7 @@ export function ProposalSettings({
   visibility: string;
   hasPassword: boolean;
   whiteboardEnabled: boolean;
+  liveMode: boolean;
   exposedToUxisworks: boolean;
 }) {
   const router = useRouter();
@@ -372,12 +374,33 @@ export function ProposalSettings({
         </CardContent>
       </Card>
 
+      {/* 라이브 모드 — 협업 마스터 스위치 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>라이브 모드</CardTitle>
+          <CardDescription>
+            접속자·채팅·핀코멘트·화이트보드 등 실시간 협업이 동작합니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <label className="flex w-fit cursor-pointer items-center gap-3">
+            <Switch
+              checked={liveMode}
+              disabled={pending}
+              onCheckedChange={(checked) => change({ liveMode: checked })}
+            />
+            <span className="text-sm font-medium">{liveMode ? "사용" : "사용 안 함"}</span>
+          </label>
+        </CardContent>
+      </Card>
+
       {/* 화이트보드 */}
       <Card>
         <CardHeader>
           <CardTitle>화이트보드</CardTitle>
           <CardDescription>
-            뷰어 캔버스에서 로그인 사용자가 시안 위에 자유롭게 그릴 수 있게 합니다.
+            뷰어 캔버스에서 로그인 사용자가 시안 위에 자유롭게 그릴 수 있게 합니다. 라이브 모드가
+            꺼져 있으면 이 설정과 무관하게 동작하지 않습니다.
           </CardDescription>
         </CardHeader>
         <CardContent>

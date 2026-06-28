@@ -90,6 +90,7 @@ export async function getProposalDetail(id: string): Promise<ProposalDetail> {
       visibility: proposal.visibility,
       hasPassword: !!proposal.accessPasswordHash,
       whiteboardEnabled: proposal.whiteboardEnabled,
+      liveMode: proposal.liveMode,
       exposedToUxisworks: proposal.exposedToUxisworks,
     },
     variants: editorVariants,

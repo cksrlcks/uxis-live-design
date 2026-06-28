@@ -23,6 +23,7 @@ export function PublicViewer({
   viewer,
   proposalTitle,
   whiteboardEnabled = false,
+  liveMode = true,
 }: {
   variants: ViewerVariant[];
   publicId: string;
@@ -30,6 +31,10 @@ export function PublicViewer({
   proposalTitle: string;
   // 시안별 화이트보드 on/off 설정. 기본 꺼짐.
   whiteboardEnabled?: boolean;
+  // 시안별 라이브 모드. 꺼지면 캔버스 협업(핀코멘트/화이트보드/코멘트 목록)을 숨긴다.
+  // pin 컨텍스트를 통째로 비워(undefined) 핀/화이트보드/코멘트 컨트롤러를 모두 끈다.
+  // 표시 차단일 뿐이며, 실제 데이터 거부는 서버(layout/서비스 함수)가 강제한다.
+  liveMode?: boolean;
 }) {
   const [{ v, compare, ver, view }, setQuery] = useQueryStates(
     {
@@ -98,14 +103,17 @@ export function PublicViewer({
       active.versions.find((vv) => vv.id === active.currentVersionId) ??
       active.versions[active.versions.length - 1];
     const pages = selectedVer?.pages ?? active.pages;
-    const pin: PinContext | undefined = selectedVer?.id
-      ? {
-          publicId,
-          variantId: active.id,
-          versionId: selectedVer.id,
-          viewerId: viewer?.id ?? null,
-        }
-      : undefined;
+    // 라이브 모드가 꺼지면 pin 컨텍스트를 만들지 않는다 → 캔버스의 핀코멘트/화이트보드/코멘트
+    // 컨트롤러가 전부 사라지고 순수 보기(팬/줌)만 남는다.
+    const pin: PinContext | undefined =
+      liveMode && selectedVer?.id
+        ? {
+            publicId,
+            variantId: active.id,
+            versionId: selectedVer.id,
+            viewerId: viewer?.id ?? null,
+          }
+        : undefined;
 
     return (
       <div className="relative h-screen w-screen">

@@ -178,6 +178,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
                 visibility={proposal.visibility}
                 hasPassword={proposal.hasPassword}
                 whiteboardEnabled={proposal.whiteboardEnabled}
+                liveMode={proposal.liveMode}
                 exposedToUxisworks={proposal.exposedToUxisworks}
               />
             </section>

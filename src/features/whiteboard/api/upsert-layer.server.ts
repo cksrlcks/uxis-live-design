@@ -12,6 +12,8 @@ export async function upsertLayer(publicId: string, raw: unknown): Promise<{ ok:
   const { proposal, decision } = await resolveViewerGate(publicId);
   if (!proposal) throw new Error("NOT_FOUND");
   if (decision !== "allow") throw new Error("FORBIDDEN");
+  // 라이브 모드 OFF → 협업 쓰기를 서버에서 거부(클라이언트 우회 차단).
+  if (!proposal.liveMode) throw new Error("FORBIDDEN");
   const profile = await getProfile();
   if (!profile) throw new Error("LOGIN_REQUIRED");
 

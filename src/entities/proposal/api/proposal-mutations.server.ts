@@ -15,6 +15,7 @@ export async function updateProposalSettings(id: string, input: unknown): Promis
     password,
     domain,
     whiteboardEnabled,
+    liveMode,
     exposedToUxisworks,
     participants,
     figmaUrl,
@@ -43,6 +44,7 @@ export async function updateProposalSettings(id: string, input: unknown): Promis
     updates.domain = domain;
   }
   if (whiteboardEnabled !== undefined) updates.whiteboardEnabled = whiteboardEnabled;
+  if (liveMode !== undefined) updates.liveMode = liveMode;
   if (exposedToUxisworks !== undefined) updates.exposedToUxisworks = exposedToUxisworks;
   if (workYear !== undefined) updates.workYear = workYear;
   updates.updatedAt = new Date();

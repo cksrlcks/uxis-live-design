@@ -66,6 +66,7 @@ export type ProposalDetailHeader = {
   visibility: string;
   hasPassword: boolean;
   whiteboardEnabled: boolean;
+  liveMode: boolean;
   exposedToUxisworks: boolean;
 };
 

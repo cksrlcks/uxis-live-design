@@ -10,6 +10,7 @@ export const updateSettingsSchema = z
     // 슬러그 to set/change, or null to clear. Absent = unchanged.
     domain: z.union([domainSchema, z.null()]).optional(),
     whiteboardEnabled: z.boolean().optional(),
+    liveMode: z.boolean().optional(),
     exposedToUxisworks: z.boolean().optional(),
     // 참여자 명단(자유 문자열). 문자열로 설정/변경, null로 해제. Absent = unchanged.
     participants: z.union([z.string().trim(), z.null()]).optional(),
@@ -25,6 +26,7 @@ export const updateSettingsSchema = z
       v.password !== undefined ||
       v.domain !== undefined ||
       v.whiteboardEnabled !== undefined ||
+      v.liveMode !== undefined ||
       v.exposedToUxisworks !== undefined ||
       v.participants !== undefined ||
       v.figmaUrl !== undefined ||
