@@ -42,8 +42,8 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
           {/* 좌측 탭 메뉴(SectionNav) 자리 — 버튼 2개 */}
           <aside className="w-full shrink-0 lg:w-48">
             <div className="flex flex-col gap-1 lg:sticky lg:top-7">
-              <Skeleton className="h-11 w-full rounded-lg" />
-              <Skeleton className="h-11 w-full rounded-lg" />
+              <Skeleton className="rounded-control h-11 w-full" />
+              <Skeleton className="rounded-control h-11 w-full" />
             </div>
           </aside>
 
@@ -72,7 +72,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
     );
   if (isError || !data)
     return (
-      <div className="bg-card text-destructive mx-auto max-w-3xl rounded-2xl border px-6 py-12 text-center text-sm">
+      <div className="bg-card text-destructive text-body rounded-card mx-auto max-w-3xl border px-6 py-12 text-center">
         시안을 불러오지 못했습니다.
       </div>
     );
@@ -143,7 +143,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
           description={headerDescription}
           actions={headerActions}
         />
-        <p className="text-muted-foreground text-sm">표시할 안이 없습니다.</p>
+        <p className="text-muted-foreground text-body">표시할 안이 없습니다.</p>
       </div>
     );
   }
@@ -190,7 +190,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
               <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
                 <aside className="self-start lg:sticky lg:top-7">
                   {/* 사이트설정 카드와 동일한 표면 — 회색 셸 배경 위에서 또렷하게 보이도록 */}
-                  <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl p-3 ring-1">
+                  <div className="bg-card rounded-card overflow-hidden border p-3">
                     <VariantTabs
                       proposalId={proposal.id}
                       variants={variants.map((v) => ({ id: v.id, label: v.label, slug: v.slug }))}
@@ -199,7 +199,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
                 </aside>
 
                 <div className="min-w-0">
-                  <div className="bg-card ring-foreground/10 rounded-xl p-4 ring-1 sm:p-5">
+                  <div className="bg-card rounded-card border p-4 sm:p-5">
                     <ProposalEditorPreview proposalId={proposal.id} variants={variants} />
                   </div>
                 </div>

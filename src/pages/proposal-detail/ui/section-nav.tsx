@@ -30,13 +30,13 @@ export function SectionNav({
           aria-selected={value === s.id}
           onClick={() => onChange(s.id)}
           className={cn(
-            "flex h-11 cursor-pointer items-center gap-3 rounded-lg px-3.5 text-left text-[15px] transition-colors",
+            "rounded-control flex h-11 cursor-pointer items-center gap-3 px-3.5 text-left text-sm transition-colors",
             value === s.id
               ? "bg-foreground/10 text-foreground font-medium"
               : "text-foreground/80 hover:bg-foreground/5",
           )}
         >
-          <s.icon className="size-4.5 shrink-0" aria-hidden />
+          <s.icon className="size-4 shrink-0" aria-hidden />
           {s.label}
         </button>
       ))}

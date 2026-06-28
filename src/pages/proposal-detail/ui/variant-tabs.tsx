@@ -160,9 +160,14 @@ export function VariantTabs({
                     e.preventDefault();
                     rename(v.id, e.currentTarget);
                   }}
-                  className="border-foreground flex items-center gap-1 rounded-lg border px-1.5 py-1"
+                  className="border-foreground rounded-control flex items-center gap-1 border px-1.5 py-1"
                 >
-                  <Input name="label" defaultValue={v.label} className="h-7 border-0 px-1.5 focus-visible:ring-0" autoFocus />
+                  <Input
+                    name="label"
+                    defaultValue={v.label}
+                    className="h-7 border-0 px-1.5 focus-visible:ring-0"
+                    autoFocus
+                  />
                   <Button size="icon-sm" type="submit" disabled={pending} aria-label="저장">
                     <Check />
                   </Button>
@@ -179,7 +184,7 @@ export function VariantTabs({
               ) : (
                 <div
                   className={cn(
-                    "group flex items-center gap-1 rounded-lg border pr-1.5 transition-colors",
+                    "group rounded-control flex items-center gap-1 border pr-1.5 transition-colors",
                     isActive
                       ? "border-foreground bg-foreground text-background"
                       : "border-border hover:border-foreground/40 hover:bg-foreground/3",
@@ -207,7 +212,7 @@ export function VariantTabs({
                     disabled={pending || variants.length <= 1}
                     aria-label="순서 변경 — 끌어서 이동하거나 화살표 키 사용"
                     className={cn(
-                      "text-muted-foreground/70 group-hover:text-foreground focus-visible:text-foreground flex h-9 shrink-0 cursor-grab touch-none items-center rounded-l-lg pr-0.5 pl-1.5 outline-none active:cursor-grabbing disabled:cursor-default disabled:opacity-0",
+                      "text-muted-foreground/70 group-hover:text-foreground focus-visible:text-foreground rounded-l-control flex h-9 shrink-0 cursor-grab touch-none items-center pr-0.5 pl-1.5 outline-none active:cursor-grabbing disabled:cursor-default disabled:opacity-0",
                       isActive && "text-background/60 group-hover:text-background",
                     )}
                   >
