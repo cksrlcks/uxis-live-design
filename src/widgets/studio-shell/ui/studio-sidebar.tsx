@@ -27,7 +27,7 @@ export function StudioSidebar({ displayName, email, role }: StudioSidebarProps) 
       {/* 워크스페이스 마크 — /studio 로 이동. */}
       <Link
         href="/studio"
-        className="flex items-center rounded-lg p-2 transition-opacity hover:opacity-70"
+        className="flex items-center rounded-control p-2 transition-opacity hover:opacity-70"
       >
         <Image src="/logo.svg" alt="COVA" width={62} height={16} className="h-4 w-auto" priority />
       </Link>
@@ -42,7 +42,7 @@ export function StudioSidebar({ displayName, email, role }: StudioSidebarProps) 
               key={item.href}
               href={item.href}
               className={cn(
-                "relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+                "relative flex items-center gap-2.5 rounded-control px-2.5 py-2 text-sm transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary font-medium before:absolute before:top-1.5 before:bottom-1.5 before:-left-3 before:w-0.75 before:rounded-r before:bg-primary before:content-['']"
                   : "text-foreground/80 hover:bg-muted",
@@ -60,7 +60,7 @@ export function StudioSidebar({ displayName, email, role }: StudioSidebarProps) 
       {/* 홈으로 — 스튜디오 밖 랜딩(/)으로 이동. 스튜디오 섹션 네비와 분리. */}
       <Link
         href="/"
-        className="text-foreground/80 hover:bg-muted flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors"
+        className="text-foreground/80 hover:bg-muted flex items-center gap-2.5 rounded-control px-2.5 py-2 text-sm transition-colors"
       >
         <Home className="size-4" />
         홈으로
@@ -68,10 +68,10 @@ export function StudioSidebar({ displayName, email, role }: StudioSidebarProps) 
 
       {/* 유저 푸터 — 정보 카드 + 아이콘 로그아웃. 계정 드롭다운은 후속. */}
       <div className="mt-3 border-t pt-3">
-        <div className="flex items-center gap-2.5 rounded-xl p-2">
+        <div className="flex items-center gap-2.5 rounded-card p-2">
           <Link
             href="/me"
-            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg transition-opacity hover:opacity-70"
+            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-control transition-opacity hover:opacity-70"
           >
             <span
               className="bg-foreground text-background flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-medium"
