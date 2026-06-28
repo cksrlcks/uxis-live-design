@@ -166,7 +166,7 @@ export function ProposalsListPage() {
 
         {/* 연도 필터 */}
         <Select<number | null> value={yearFilter} onValueChange={(v) => onYearChange(v)}>
-          <SelectTrigger size="default" className="w-32 shadow-none">
+          <SelectTrigger size="lg" className="w-32 shadow-none">
             <SelectValue>{(v) => (v == null ? "전체 연도" : `${v}년`)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -181,7 +181,7 @@ export function ProposalsListPage() {
 
         {/* 공개상태 필터 */}
         <Select<string | null> value={visFilter} onValueChange={(v) => onVisChange(v)}>
-          <SelectTrigger size="default" className="w-32 shadow-none">
+          <SelectTrigger size="lg" className="w-32 shadow-none">
             <SelectValue>
               {(v) => (v === "public" ? "공개" : v === "private" ? "비공개" : "공개+비공개")}
             </SelectValue>

@@ -17,11 +17,11 @@ export function SegmentedControl<T extends string>({
 }) {
   return (
     <Tabs value={value} onValueChange={(v) => onValueChange(v as T)}>
-      <TabsList>
+      <TabsList className="rounded-control h-10">
         {options.map((opt) => {
           const Icon = opt.icon;
           return (
-            <TabsTab key={opt.value} value={opt.value}>
+            <TabsTab key={opt.value} value={opt.value} className="h-9">
               {Icon && <Icon aria-hidden />}
               {opt.label}
             </TabsTab>

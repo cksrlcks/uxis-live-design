@@ -62,7 +62,7 @@ export function SearchInput({
         onChange={(e) => handleChange(e.target.value)}
         placeholder={placeholder}
         aria-label={ariaLabel ?? placeholder}
-        className="bg-background h-10 rounded-lg pr-10 pl-10 text-sm transition-colors [&::-webkit-search-cancel-button]:hidden"
+        className="bg-background rounded-control h-10 pr-10 pl-10 text-sm transition-colors [&::-webkit-search-cancel-button]:hidden"
       />
       {inputValue && (
         <button
