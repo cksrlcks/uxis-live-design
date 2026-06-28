@@ -18,14 +18,17 @@ export function OptionRow({ option }: { option: TagOption }) {
     <div className="group/row hover:bg-muted/40 flex items-start justify-between gap-3 py-3 pr-3 pl-5 transition-colors">
       <div className="flex min-w-0 gap-2.5">
         {/* dot 마커 — 항목이 구분의 하위 목록임을 시각적으로 표시 */}
-        <span className="bg-muted-foreground/40 mt-1.5 size-1.5 shrink-0 rounded-full" aria-hidden />
+        <span
+          className="bg-muted-foreground/40 mt-1.5 size-1.5 shrink-0 rounded-full"
+          aria-hidden
+        />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm">{option.label}</span>
+            <span className="text-body">{option.label}</span>
             <span className="text-muted-foreground font-mono text-xs">{option.code}</span>
           </div>
           {option.description && (
-            <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
+            <p className="text-muted-foreground text-body mt-0.5 leading-relaxed">
               {option.description}
             </p>
           )}
@@ -53,7 +56,12 @@ export function OptionRow({ option }: { option: TagOption }) {
         </Button>
       </div>
 
-      <OptionDialog open={editOpen} onOpenChange={setEditOpen} groupId={option.groupId} option={option} />
+      <OptionDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        groupId={option.groupId}
+        option={option}
+      />
       <ConfirmDialog
         open={delOpen}
         onOpenChange={setDelOpen}

@@ -4,14 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";
 import { ProviderIcons, userQueries } from "@/entities/user";
 import { UserRowActions } from "@/features/manage-users";
-import { PageHeader } from "@/widgets/studio-shell";
+import { PageHeader, Toolbar } from "@/widgets/studio-shell";
 import { cn } from "@/shared/lib/utils";
 import { SearchInput } from "@/shared/ui/search-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { DataTableShell, DataTableState, dataHeadCell, dataBodyCell } from "@/shared/ui/data-table";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { Skeleton } from "@/shared/ui/skeleton";
 
-const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-wide";
-const bodyCell = "px-5 py-3.5 align-middle";
+const COL_COUNT = 5;
 
 // BFF JSON으로 넘어온 날짜는 문자열 — Date로 감싸 안전하게 포맷한다.
 function formatDate(value: string) {
@@ -38,27 +39,30 @@ export function AdminUsersPage() {
     <div>
       <PageHeader title="사용자 관리" description="가입한 사용자를 조회하고 권한을 관리합니다." />
 
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <Toolbar
+        trailing={
+          filtered && filtered.length > 0 ? (
+            <span className="text-caption text-muted-foreground">전체 {filtered.length}개</span>
+          ) : undefined
+        }
+      >
         <SearchInput
           value={q}
           onChange={(next) => setQ(next || null)}
           placeholder="이름·이메일 검색"
           className="w-full max-w-xs"
         />
-        {filtered && filtered.length > 0 && (
-          <p className="text-muted-foreground shrink-0 text-sm">전체 {filtered.length}개</p>
-        )}
-      </div>
+      </Toolbar>
 
-      <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
+      <DataTableShell>
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 border-border/60 border-b">
-              <TableHead className={headCell}>이름</TableHead>
-              <TableHead className={headCell}>이메일</TableHead>
-              <TableHead className={headCell}>가입수단</TableHead>
-              <TableHead className={headCell}>가입일</TableHead>
-              <TableHead className={headCell}>작업</TableHead>
+              <TableHead className={dataHeadCell}>이름</TableHead>
+              <TableHead className={dataHeadCell}>이메일</TableHead>
+              <TableHead className={dataHeadCell}>가입수단</TableHead>
+              <TableHead className={cn(dataHeadCell, "whitespace-nowrap")}>가입일</TableHead>
+              <TableHead className={dataHeadCell}>권한</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -68,63 +72,65 @@ export function AdminUsersPage() {
                   key={`skeleton-${i}`}
                   className="border-border/60 border-b last:border-0 hover:bg-transparent"
                 >
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="h-4 w-24" />
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="h-4 w-44" />
                   </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="h-4 w-28" />
-                  </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="h-4 w-20" />
                   </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Skeleton className="ml-auto size-7 rounded-md" />
+                  <TableCell className={dataBodyCell}>
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className={dataBodyCell}>
+                    <Skeleton className="rounded-control h-8 w-28" />
                   </TableCell>
                 </TableRow>
               ))}
 
             {isError && (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={5} className="text-destructive px-5 py-16 text-center">
-                  사용자 목록을 불러오지 못했습니다.
-                </TableCell>
-              </TableRow>
+              <DataTableState colSpan={COL_COUNT}>
+                <p className="text-body text-destructive">사용자 목록을 불러오지 못했습니다.</p>
+              </DataTableState>
             )}
 
             {filtered?.length === 0 && (
-              <TableRow className="hover:bg-transparent">
-                <TableCell
-                  colSpan={5}
-                  className="text-muted-foreground px-5 py-16 text-center text-sm"
-                >
-                  {q ? "검색 결과가 없습니다." : "아직 사용자가 없습니다."}
-                </TableCell>
-              </TableRow>
+              <DataTableState colSpan={COL_COUNT}>
+                {q ? (
+                  <p className="text-body text-muted-foreground">검색 결과가 없습니다.</p>
+                ) : (
+                  <EmptyState title="아직 사용자가 없습니다" />
+                )}
+              </DataTableState>
             )}
 
             {filtered?.map((u) => (
               <TableRow key={u.id} className="border-border/60 border-b last:border-0">
-                <TableCell className={cn(bodyCell, "font-medium")}>
-                  {u.name ?? <span className="text-muted-foreground">—</span>}
+                <TableCell className={cn(dataBodyCell, "text-foreground font-medium")}>
+                  {u.name ?? <span className="text-muted-foreground/50">—</span>}
                 </TableCell>
-                <TableCell className={bodyCell}>{u.email}</TableCell>
-                <TableCell className={bodyCell}>
+                <TableCell className={dataBodyCell}>{u.email}</TableCell>
+                <TableCell className={dataBodyCell}>
                   <ProviderIcons providers={u.providers} />
                 </TableCell>
-                <TableCell className={cn(bodyCell, "text-muted-foreground tabular-nums")}>
+                <TableCell
+                  className={cn(
+                    dataBodyCell,
+                    "text-muted-foreground whitespace-nowrap tabular-nums",
+                  )}
+                >
                   {formatDate(u.createdAt)}
                 </TableCell>
-                <TableCell className={bodyCell}>
+                <TableCell className={dataBodyCell}>
                   <UserRowActions id={u.id} role={u.role} />
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </div>
+      </DataTableShell>
     </div>
   );
 }

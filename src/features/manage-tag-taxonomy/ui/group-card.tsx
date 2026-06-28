@@ -20,21 +20,21 @@ export function GroupCard({ group }: { group: TagGroupWithOptions }) {
   const del = useDeleteGroup();
 
   return (
-    <div className="bg-card ring-foreground/10 overflow-hidden rounded-xl ring-1">
+    <div className="bg-card rounded-card overflow-hidden border">
       {/* 구분 헤더 — 좌측 라벨 클릭/우측 chevron으로 펼침·접힘. 컨트롤은 세로 가운데 정렬 */}
       <div className="flex items-center gap-1 px-3 py-2">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="hover:bg-muted/50 flex min-w-0 flex-1 flex-col items-start rounded-lg px-2 py-1.5 text-left transition-colors"
+          className="hover:bg-muted/50 rounded-control flex min-w-0 flex-1 flex-col items-start px-2 py-1.5 text-left transition-colors"
         >
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-base font-semibold">{group.label}</h3>
             <span className="text-muted-foreground/80 font-mono text-xs">{group.code}</span>
           </div>
           {group.description && (
-            <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+            <p className="text-muted-foreground text-body mt-1 leading-relaxed">
               {group.description}
             </p>
           )}
@@ -81,7 +81,7 @@ export function GroupCard({ group }: { group: TagGroupWithOptions }) {
               <OptionRow key={opt.id} option={opt} />
             ))}
             {group.options.length === 0 && (
-              <p className="text-muted-foreground py-3 pr-3 pl-10 text-sm">항목이 없습니다.</p>
+              <p className="text-muted-foreground text-body py-3 pr-3 pl-10">항목이 없습니다.</p>
             )}
           </div>
 
