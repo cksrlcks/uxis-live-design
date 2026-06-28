@@ -18,7 +18,6 @@ import { proposalQueries } from "@/entities/proposal";
 import { PROPOSALS_PAGE_SIZE } from "@/entities/proposal/model/types";
 import { NewProposalDialog } from "@/features/create-proposal";
 import { cn } from "@/shared/lib/utils";
-import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -52,15 +51,21 @@ import {
 } from "@/shared/ui/select";
 import { SearchInput } from "@/shared/ui/search-input";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { Tabs, TabsList, TabsTab } from "@/shared/ui/tabs";
+import { SegmentedControl } from "@/shared/ui/segmented-control";
+import { EmptyState } from "@/shared/ui/empty-state";
+import { StatusPill } from "@/shared/ui/status-pill";
+import {
+  DataTableShell,
+  DataTableState,
+  dataHeadCell,
+  dataBodyCell,
+} from "@/shared/ui/data-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
-import { PageHeader } from "@/widgets/studio-shell";
+import { PageHeader, Toolbar } from "@/widgets/studio-shell";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 10 }, (_, i) => CURRENT_YEAR - i);
 
-const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-wide";
-const bodyCell = "px-5 py-3.5 align-middle";
 const menuItem = "gap-2.5 px-2.5 py-2";
 
 function formatDate(value: string | Date) {
@@ -101,37 +106,6 @@ type ShareTarget = {
 // 목록에 새로 진입하면 ?view 가 없어 항상 기본 리스트로 보인다. 썸네일에서 상세로
 // 들어갈 때만 상세 URL에 ?view=thumb 를 실어 보내, 돌아올 때 그 뷰를 복원한다.
 const VIEW_MODES = ["list", "thumb"] as const;
-type ViewMode = (typeof VIEW_MODES)[number];
-
-// 활성 효과는 시안 상세 페이지의 좌측 네비(SectionNav)와 동일하게 —
-// 트랙/그림자 없이 foreground 틴트 + 굵게.
-const viewTabClass = cn(
-  "text-foreground/80 hover:bg-foreground/5 h-10 gap-2 px-3.5 text-sm [&_svg]:size-4",
-  "data-[active]:bg-foreground/10 data-[active]:text-foreground data-[active]:font-medium data-[active]:shadow-none",
-);
-
-function ViewToggle({
-  value,
-  onChange,
-}: {
-  value: ViewMode;
-  onChange: (v: ViewMode) => void;
-}) {
-  return (
-    <Tabs value={value} onValueChange={(v) => onChange(v as ViewMode)}>
-      <TabsList className="h-auto gap-1 bg-transparent p-0">
-        <TabsTab value="list" className={viewTabClass}>
-          <List aria-hidden />
-          리스트
-        </TabsTab>
-        <TabsTab value="thumb" className={viewTabClass}>
-          <LayoutGrid aria-hidden />
-          썸네일
-        </TabsTab>
-      </TabsList>
-    </Tabs>
-  );
-}
 
 // nuqs parseAs helpers for filter params
 const parseAsYear = parseAsInteger;
@@ -185,10 +159,23 @@ export function ProposalsListPage() {
         actions={<NewProposalDialog />}
       />
 
-      <div className="mb-3 flex items-center gap-3">
-        <ViewToggle value={view} onChange={(v) => setView(v)} />
+      <Toolbar
+        trailing={
+          total > 0 ? (
+            <span className="text-caption text-muted-foreground">전체 {total}개</span>
+          ) : undefined
+        }
+      >
+        <SegmentedControl
+          value={view}
+          onValueChange={(v) => setView(v)}
+          options={[
+            { value: "list", label: "리스트", icon: List },
+            { value: "thumb", label: "썸네일", icon: LayoutGrid },
+          ]}
+        />
 
-        <div className="bg-border h-6 w-px shrink-0" aria-hidden />
+        <div className="bg-border h-5 w-px shrink-0" aria-hidden />
 
         <SearchInput
           value={q}
@@ -197,63 +184,51 @@ export function ProposalsListPage() {
           className="w-full max-w-xs"
         />
 
-        <div className="flex items-center gap-1.5">
-          {/* 연도 필터 */}
-          <Select<number | null>
-            value={yearFilter}
-            onValueChange={(v) => onYearChange(v)}
-          >
-            <SelectTrigger size="lg" className="w-32 shadow-none">
-              <SelectValue>{(v) => (v == null ? "전체 연도" : `${v}년`)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={null}>전체 연도</SelectItem>
-              {YEAR_OPTIONS.map((y) => (
-                <SelectItem key={y} value={y}>
-                  {y}년
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* 연도 필터 */}
+        <Select<number | null> value={yearFilter} onValueChange={(v) => onYearChange(v)}>
+          <SelectTrigger size="default" className="w-32 shadow-none">
+            <SelectValue>{(v) => (v == null ? "전체 연도" : `${v}년`)}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>전체 연도</SelectItem>
+            {YEAR_OPTIONS.map((y) => (
+              <SelectItem key={y} value={y}>
+                {y}년
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          {/* 공개상태 필터 */}
-          <Select<string | null>
-            value={visFilter}
-            onValueChange={(v) => onVisChange(v)}
-          >
-            <SelectTrigger size="lg" className="w-32 shadow-none">
-              <SelectValue>
-                {(v) => (v === "public" ? "공개" : v === "private" ? "비공개" : "공개+비공개")}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={null}>공개+비공개</SelectItem>
-              <SelectItem value="public">공개</SelectItem>
-              <SelectItem value="private">비공개</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {total > 0 && (
-          <p className="text-muted-foreground ml-auto shrink-0 text-sm">전체 {total}개</p>
-        )}
-      </div>
+        {/* 공개상태 필터 */}
+        <Select<string | null> value={visFilter} onValueChange={(v) => onVisChange(v)}>
+          <SelectTrigger size="default" className="w-32 shadow-none">
+            <SelectValue>
+              {(v) => (v === "public" ? "공개" : v === "private" ? "비공개" : "공개+비공개")}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>공개+비공개</SelectItem>
+            <SelectItem value="public">공개</SelectItem>
+            <SelectItem value="private">비공개</SelectItem>
+          </SelectContent>
+        </Select>
+      </Toolbar>
 
       {view === "list" && (
-      <div className="bg-card overflow-hidden rounded-xl border">
+      <DataTableShell>
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 border-border/60 border-b">
-              <TableHead className={headCell}>제목</TableHead>
-              <TableHead className={headCell}>참여자</TableHead>
-              <TableHead className={cn(headCell, "whitespace-nowrap")}>연도</TableHead>
-              <TableHead className={headCell}>공개 ID</TableHead>
-              <TableHead className={headCell}>공개 도메인</TableHead>
-              <TableHead className={headCell}>상태</TableHead>
-              <TableHead className={headCell}>태깅</TableHead>
-              <TableHead className={cn(headCell, "whitespace-nowrap")}>작성일</TableHead>
-              <TableHead className={cn(headCell, "whitespace-nowrap")}>최근수정일</TableHead>
-              <TableHead className={cn(headCell, "w-0")}>
+              <TableHead className={dataHeadCell}>제목</TableHead>
+              <TableHead className={dataHeadCell}>참여자</TableHead>
+              <TableHead className={cn(dataHeadCell, "whitespace-nowrap")}>연도</TableHead>
+              <TableHead className={dataHeadCell}>공개 ID</TableHead>
+              <TableHead className={dataHeadCell}>공개 도메인</TableHead>
+              <TableHead className={dataHeadCell}>상태</TableHead>
+              <TableHead className={dataHeadCell}>태깅</TableHead>
+              <TableHead className={cn(dataHeadCell, "whitespace-nowrap")}>작성일</TableHead>
+              <TableHead className={cn(dataHeadCell, "whitespace-nowrap")}>최근수정일</TableHead>
+              <TableHead className={cn(dataHeadCell, "w-0")}>
                 <span className="sr-only">작업</span>
               </TableHead>
             </TableRow>
@@ -265,40 +240,33 @@ export function ProposalsListPage() {
                   key={`skeleton-${i}`}
                   className="border-border/60 border-b last:border-0 hover:bg-transparent"
                 >
-                  <TableCell className={bodyCell}><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell className={bodyCell}><Skeleton className="h-3.5 w-24" /></TableCell>
-                  <TableCell className={bodyCell}><Skeleton className="h-3.5 w-10" /></TableCell>
-                  <TableCell className={bodyCell}><Skeleton className="h-3.5 w-16" /></TableCell>
-                  <TableCell className={bodyCell}><Skeleton className="h-3.5 w-24" /></TableCell>
-                  <TableCell className={bodyCell}><Skeleton className="h-5 w-12 rounded-full" /></TableCell>
-                  <TableCell className={bodyCell}><Skeleton className="size-6 rounded-full" /></TableCell>
-                  <TableCell className={bodyCell}><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell className={bodyCell}><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell className={bodyCell}><Skeleton className="ml-auto size-7 rounded-full" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="h-3.5 w-24" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="h-3.5 w-10" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="h-3.5 w-16" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="h-3.5 w-24" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="h-5 w-12 rounded-full" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="size-6 rounded-full" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="h-4 w-20" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="h-4 w-20" /></TableCell>
+                  <TableCell className={dataBodyCell}><Skeleton className="ml-auto size-7 rounded-full" /></TableCell>
                 </TableRow>
               ))}
 
             {isError && (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={COL_COUNT} className="text-destructive px-5 py-16 text-center">
-                  목록을 불러오지 못했습니다.
-                </TableCell>
-              </TableRow>
+              <DataTableState colSpan={COL_COUNT}>
+                <p className="text-body text-destructive">목록을 불러오지 못했습니다.</p>
+              </DataTableState>
             )}
 
             {rows?.length === 0 && (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={COL_COUNT} className="px-5 py-16 text-center">
-                  {q || yearFilter || visFilter ? (
-                    <p className="text-muted-foreground text-sm">검색 결과가 없습니다.</p>
-                  ) : (
-                    <>
-                      <p className="text-muted-foreground mb-4 text-sm">아직 시안이 없습니다.</p>
-                      <NewProposalDialog />
-                    </>
-                  )}
-                </TableCell>
-              </TableRow>
+              <DataTableState colSpan={COL_COUNT}>
+                {q || yearFilter || visFilter ? (
+                  <p className="text-body text-muted-foreground">검색 결과가 없습니다.</p>
+                ) : (
+                  <EmptyState title="아직 시안이 없습니다" action={<NewProposalDialog />} />
+                )}
+              </DataTableState>
             )}
 
             {rows?.map((p) => {
@@ -314,7 +282,7 @@ export function ProposalsListPage() {
               const shortcutPath = p.domain ? `/p/${p.domain}` : `/p/${p.publicId}`;
               return (
                 <TableRow key={p.id} className="border-border/60 border-b last:border-0">
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Link
                       href={`/studio/proposals/${p.id}`}
                       className="hover:text-primary font-medium underline underline-offset-4 transition-colors"
@@ -322,53 +290,53 @@ export function ProposalsListPage() {
                       {p.title}
                     </Link>
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     {p.participants ? (
                       <span className="text-foreground">{p.participants}</span>
                     ) : (
                       <span className="text-muted-foreground/50">—</span>
                     )}
                   </TableCell>
-                  <TableCell className={cn(bodyCell, "tabular-nums")}>
+                  <TableCell className={cn(dataBodyCell, "tabular-nums")}>
                     {p.workYear ? (
                       <span className="text-foreground">{p.workYear}</span>
                     ) : (
                       <span className="text-muted-foreground/50">—</span>
                     )}
                   </TableCell>
-                  <TableCell className={cn(bodyCell, "text-muted-foreground font-mono")}>
+                  <TableCell className={cn(dataBodyCell, "text-muted-foreground font-mono")}>
                     {p.publicId}
                   </TableCell>
-                  <TableCell className={cn(bodyCell, "font-mono")}>
+                  <TableCell className={cn(dataBodyCell, "font-mono")}>
                     {p.domain ? (
                       <span className="text-foreground">{p.domain}</span>
                     ) : (
                       <span className="text-muted-foreground/50">—</span>
                     )}
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <Badge variant={isPublic ? "info" : "neutral"}>
+                      <StatusPill tone={isPublic ? "info" : "neutral"}>
                         {isPublic ? "공개" : "비공개"}
-                      </Badge>
-                      {hasPassword && <Badge variant="purple">비번</Badge>}
-                      {p.exposedToUxisworks && <Badge variant="success">노출</Badge>}
+                      </StatusPill>
+                      {hasPassword && <StatusPill tone="warning">비번</StatusPill>}
+                      {p.exposedToUxisworks && <StatusPill tone="success">노출</StatusPill>}
                     </div>
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <ProgressRing value={p.taggingProgress} />
                   </TableCell>
                   <TableCell
-                    className={cn(bodyCell, "text-muted-foreground text-sm whitespace-nowrap tabular-nums")}
+                    className={cn(dataBodyCell, "text-muted-foreground whitespace-nowrap tabular-nums")}
                   >
                     {formatDate(p.createdAt)}
                   </TableCell>
                   <TableCell
-                    className={cn(bodyCell, "text-muted-foreground text-sm whitespace-nowrap tabular-nums")}
+                    className={cn(dataBodyCell, "text-muted-foreground whitespace-nowrap tabular-nums")}
                   >
                     {formatDate(p.updatedAt)}
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <div className="flex items-center justify-end gap-0.5">
                       <a
                         href={shortcutPath}
@@ -420,39 +388,36 @@ export function ProposalsListPage() {
             })}
           </TableBody>
         </Table>
-      </div>
+      </DataTableShell>
       )}
 
       {view === "thumb" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {isPending &&
             Array.from({ length: 8 }).map((_, i) => (
-              <div key={`thumb-skeleton-${i}`} className="bg-card flex flex-col gap-3 rounded-xl border p-3">
-                <Skeleton className="aspect-16/10 w-full rounded-lg" />
+              <div key={`thumb-skeleton-${i}`} className="bg-card flex flex-col gap-3 rounded-card border p-3">
+                <Skeleton className="aspect-16/10 w-full rounded-card" />
                 <div className="flex flex-col gap-2.5">
                   <Skeleton className="h-4 w-2/3" />
                   <Skeleton className="h-3.5 w-1/2" />
                   <Skeleton className="h-3.5 w-2/5" />
                 </div>
-                <Skeleton className="h-9 w-full rounded-lg" />
+                <Skeleton className="h-9 w-full rounded-control" />
               </div>
             ))}
 
           {isError && (
-            <div className="text-destructive col-span-full py-16 text-center">
+            <div className="text-body text-destructive col-span-full py-16 text-center">
               목록을 불러오지 못했습니다.
             </div>
           )}
 
           {rows?.length === 0 && (
-            <div className="col-span-full py-16 text-center">
+            <div className="col-span-full">
               {q || yearFilter || visFilter ? (
-                <p className="text-muted-foreground text-sm">검색 결과가 없습니다.</p>
+                <p className="text-body text-muted-foreground py-16 text-center">검색 결과가 없습니다.</p>
               ) : (
-                <>
-                  <p className="text-muted-foreground mb-4 text-sm">아직 시안이 없습니다.</p>
-                  <NewProposalDialog />
-                </>
+                <EmptyState title="아직 시안이 없습니다" action={<NewProposalDialog />} />
               )}
             </div>
           )}
@@ -467,13 +432,13 @@ export function ProposalsListPage() {
             return (
               <div
                 key={p.id}
-                className="group bg-card hover:border-foreground/20 relative flex flex-col gap-3 rounded-xl border p-3 transition hover:shadow-md"
+                className="group bg-card hover:border-foreground/20 relative flex flex-col gap-3 rounded-card border p-3 transition hover:shadow-md"
               >
                 {/* 이미지 — 카드 안쪽 여백을 두고 둥근 모서리로 본문과 분리한다.
                     16:9 고정 박스에 가로를 꽉 채우고(object-cover) 위에서부터 보여줘
                     (object-top) 세로로 긴 시안도 카드마다 비율이 통일된다. */}
                 {p.cover ? (
-                  <div className="bg-muted border-border/60 aspect-16/10 overflow-hidden rounded-lg border">
+                  <div className="bg-muted border-border/60 aspect-16/10 overflow-hidden rounded-card border">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={p.cover.url}
@@ -484,7 +449,7 @@ export function ProposalsListPage() {
                     />
                   </div>
                 ) : (
-                  <div className="bg-muted text-muted-foreground/50 border-border/60 flex aspect-16/10 items-center justify-center rounded-lg border text-xs">
+                  <div className="bg-muted text-muted-foreground/50 border-border/60 flex aspect-16/10 items-center justify-center rounded-card border text-xs">
                     미리보기 없음
                   </div>
                 )}
@@ -500,9 +465,9 @@ export function ProposalsListPage() {
                     >
                       {p.title}
                     </Link>
-                    <Badge variant={isPublic ? "info" : "neutral"} className="shrink-0">
+                    <StatusPill tone={isPublic ? "info" : "neutral"}>
                       {isPublic ? "공개" : "비공개"}
-                    </Badge>
+                    </StatusPill>
                   </div>
 
                   {/* 리스트 칼럼: 참여자 / 연도 (가로 배치) */}
@@ -524,8 +489,8 @@ export function ProposalsListPage() {
                   {/* 부가 배지: 비번 · 노출 (있을 때만) */}
                   {(hasPassword || p.exposedToUxisworks) && (
                     <div className="flex flex-wrap items-center gap-1.5">
-                      {hasPassword && <Badge variant="purple">비번</Badge>}
-                      {p.exposedToUxisworks && <Badge variant="success">노출</Badge>}
+                      {hasPassword && <StatusPill tone="warning">비번</StatusPill>}
+                      {p.exposedToUxisworks && <StatusPill tone="success">노출</StatusPill>}
                     </div>
                   )}
                 </div>
@@ -535,7 +500,7 @@ export function ProposalsListPage() {
                   href={shortcutPath}
                   target="_blank"
                   rel="noreferrer"
-                  className="border-input bg-background hover:bg-accent hover:text-accent-foreground relative z-10 flex w-full items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-medium transition-colors"
+                  className="border-input bg-background hover:bg-accent hover:text-accent-foreground relative z-10 flex w-full items-center justify-center gap-1.5 rounded-control border py-2 text-xs font-medium transition-colors"
                 >
                   <ArrowUpRight className="size-3.5" aria-hidden />
                   바로가기
@@ -560,12 +525,12 @@ export function ProposalsListPage() {
                 const fullUrl = `${typeof window !== "undefined" ? window.location.origin : ""}${l.path}`;
                 return (
                   <div key={l.key} className="flex flex-col gap-2">
-                    <span className="text-muted-foreground text-xs font-medium">{l.label} 링크</span>
+                    <span className="text-caption text-muted-foreground font-medium">{l.label} 링크</span>
                     <div className="flex gap-2">
                       <input
                         readOnly
                         value={fullUrl}
-                        className="bg-muted text-foreground border-input flex-1 rounded-md border px-3 py-1.5 font-mono text-xs outline-none"
+                        className="bg-muted text-foreground border-input flex-1 rounded-control border px-3 py-1.5 font-mono text-xs outline-none"
                         onFocus={(e) => e.target.select()}
                       />
                       <Button
@@ -584,7 +549,7 @@ export function ProposalsListPage() {
                 href={(shareTarget.links.find((l) => l.key === "domain") ?? shareTarget.links[0]).path}
                 target="_blank"
                 rel="noreferrer"
-                className="border-input bg-background hover:bg-accent hover:text-accent-foreground mt-2 flex w-full items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+                className="border-input bg-background hover:bg-accent hover:text-accent-foreground mt-2 flex w-full items-center justify-center gap-2 rounded-control border px-3 py-2 text-sm font-medium transition-colors"
               >
                 <ArrowUpRight className="size-4" />
                 바로가기
