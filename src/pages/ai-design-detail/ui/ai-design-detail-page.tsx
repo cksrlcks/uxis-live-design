@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, ExternalLink, RotateCw } from "lucide-react";
+import { ExternalLink, RotateCw } from "lucide-react";
 import {
   aiDesignQueries,
   AiDesignStatusBadge,
@@ -55,20 +54,9 @@ export function AiDesignDetailPage({ id }: { id: string }) {
   const { data, isPending, isError } = useQuery(aiDesignQueries.detail(id));
   const retry = useRetryAiDesign();
 
-  const backLink = (
-    <Link
-      href="/studio/ai-designs"
-      className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-sm transition-colors"
-    >
-      <ArrowLeft className="size-4" />
-      AI 시안 목록
-    </Link>
-  );
-
   if (isPending) {
     return (
       <div className="mx-auto max-w-2xl">
-        {backLink}
         <Skeleton className="h-8 w-60" />
         <Skeleton className="mt-2 h-4 w-40" />
         <Skeleton className="mt-6 h-[28rem] w-full rounded-xl" />
@@ -79,7 +67,6 @@ export function AiDesignDetailPage({ id }: { id: string }) {
   if (isError || !data) {
     return (
       <div className="mx-auto max-w-2xl">
-        {backLink}
         <div className="bg-card text-destructive rounded-2xl border px-6 py-12 text-center text-sm">
           시안을 불러오지 못했습니다.
         </div>
@@ -93,13 +80,12 @@ export function AiDesignDetailPage({ id }: { id: string }) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      {backLink}
-
       <PageHeader
         title={design.title}
+        backHref="/studio/ai-designs"
         description={
           <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-            <AiDesignStatusBadge status={design.status} errorMessage={design.errorMessage} size="sm" />
+            <AiDesignStatusBadge status={design.status} errorMessage={design.errorMessage} />
             {design.requestedBy && (
               <>
                 <span className="text-muted-foreground/60">·</span>

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";
-import { ProviderBadges, userQueries } from "@/entities/user";
+import { ProviderIcons, userQueries } from "@/entities/user";
 import { UserRowActions } from "@/features/manage-users";
 import { PageHeader } from "@/widgets/studio-shell";
 import { cn } from "@/shared/lib/utils";
@@ -36,7 +36,7 @@ export function AdminUsersPage() {
 
   return (
     <div>
-      <PageHeader title="사용자 관리" />
+      <PageHeader title="사용자 관리" description="가입한 사용자를 조회하고 권한을 관리합니다." />
 
       <div className="mb-3 flex items-center justify-between gap-3">
         <SearchInput
@@ -112,7 +112,7 @@ export function AdminUsersPage() {
                 </TableCell>
                 <TableCell className={bodyCell}>{u.email}</TableCell>
                 <TableCell className={bodyCell}>
-                  <ProviderBadges providers={u.providers} />
+                  <ProviderIcons providers={u.providers} />
                 </TableCell>
                 <TableCell className={cn(bodyCell, "text-muted-foreground tabular-nums")}>
                   {formatDate(u.createdAt)}

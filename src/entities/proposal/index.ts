@@ -8,4 +8,5 @@ export type {
   ProposalDetailHeader,
   ProposalDetail,
   ProposalListItem,
+  ProposalCover,
 } from "./model/types";

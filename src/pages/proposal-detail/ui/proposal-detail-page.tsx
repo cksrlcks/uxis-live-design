@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { parseAsStringEnum, useQueryState } from "nuqs";
+import { parseAsString, parseAsStringEnum, useQueryState } from "nuqs";
 import { ArrowUpRight } from "lucide-react";
 import { proposalQueries } from "@/entities/proposal";
 import { ProposalSettings } from "@/features/edit-proposal-settings";
@@ -23,6 +23,11 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
       .withDefault("settings")
       .withOptions({ history: "push" }),
   );
+
+  // 시안 목록에서 썸네일 뷰로 들어왔으면(?view=thumb) 목록으로 돌아갈 때 그 뷰를 복원한다.
+  // 목록에 새로 진입한 경우엔 ?view 가 없어 기본 리스트로 보인다.
+  const [fromView] = useQueryState("view", parseAsString);
+  const backHref = fromView === "thumb" ? "/studio/proposals?view=thumb" : "/studio/proposals";
 
   if (isPending)
     return (
@@ -108,7 +113,6 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
     <>
       <Button
         variant="outline"
-        size="sm"
         nativeButton={false}
         render={<a href={`/p/${proposal.publicId}`} target="_blank" rel="noopener noreferrer" />}
       >
@@ -118,7 +122,6 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
       {proposal.domain && (
         <Button
           variant="outline"
-          size="sm"
           nativeButton={false}
           render={<a href={`/p/${proposal.domain}`} target="_blank" rel="noopener noreferrer" />}
         >
@@ -136,6 +139,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
       <div className="mx-auto max-w-3xl">
         <PageHeader
           title={proposal.title}
+          backHref={backHref}
           description={headerDescription}
           actions={headerActions}
         />
@@ -146,7 +150,12 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title={proposal.title} description={headerDescription} actions={headerActions} />
+      <PageHeader
+        title={proposal.title}
+        backHref={backHref}
+        description={headerDescription}
+        actions={headerActions}
+      />
 
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* 좌측 탭 메뉴 — 활성 탭만 본문에 표시(?tab) */}

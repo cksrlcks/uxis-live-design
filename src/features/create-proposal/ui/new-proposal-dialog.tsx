@@ -61,8 +61,8 @@ export function NewProposalDialog() {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger render={<Button className="h-9 gap-1.5 rounded-lg px-3.5" />}>
-        <Plus className="size-4" />새 시안
+      <DialogTrigger render={<Button />}>
+        <Plus />새 시안
       </DialogTrigger>
       <DialogContent showCloseButton={false}>
         <DialogHeader>

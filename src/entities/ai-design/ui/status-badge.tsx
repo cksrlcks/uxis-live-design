@@ -7,15 +7,13 @@ import { AI_DESIGN_STATUS_LABELS, type AiDesignStatus } from "../model/constants
 export function AiDesignStatusBadge({
   status,
   errorMessage,
-  size = "md",
 }: {
   status: AiDesignStatus;
   errorMessage?: string | null;
-  size?: "sm" | "md";
 }) {
   if (status === "working") {
     return (
-      <Badge variant="neutral" size={size}>
+      <Badge variant="neutral">
         <Loader2 className="animate-spin" />
         {AI_DESIGN_STATUS_LABELS.working}
       </Badge>
@@ -23,14 +21,10 @@ export function AiDesignStatusBadge({
   }
   if (status === "failed") {
     return (
-      <Badge variant="error" size={size} title={errorMessage ?? undefined}>
+      <Badge variant="error" title={errorMessage ?? undefined}>
         {AI_DESIGN_STATUS_LABELS.failed}
       </Badge>
     );
   }
-  return (
-    <Badge variant="success" size={size}>
-      {AI_DESIGN_STATUS_LABELS.done}
-    </Badge>
-  );
+  return <Badge variant="success">{AI_DESIGN_STATUS_LABELS.done}</Badge>;
 }

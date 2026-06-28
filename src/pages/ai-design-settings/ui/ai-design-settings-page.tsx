@@ -53,7 +53,7 @@ export function AiDesignSettingsPage({ initialPrompt, updatePrompt }: Props) {
           disabled={isPending}
           spellCheck={false}
           style={{ minHeight: "420px" }}
-          className="border-input focus-visible:border-ring focus-visible:ring-ring/50 w-full resize-y rounded-lg border bg-transparent px-3 py-2.5 font-mono text-sm leading-relaxed outline-none focus-visible:ring-3 disabled:opacity-50"
+          className="border-input focus-visible:border-ring focus-visible:ring-ring/50 bg-muted/50 w-full resize-y rounded-lg border px-3 py-2.5 font-mono text-sm leading-relaxed outline-none focus-visible:ring-3 disabled:opacity-50"
         />
         <div className="flex justify-end">
           <Button type="button" onClick={handleSave} disabled={isPending}>

@@ -6,6 +6,7 @@ import type { EditorVariant } from "@/entities/proposal";
 import { PageGrid } from "@/features/manage-pages";
 import { useAddVersion, useDeleteVersion } from "@/features/manage-versions";
 import { Button } from "@/shared/ui/button";
+import { useConfirm } from "@/shared/ui/confirm";
 import { cn } from "@/shared/lib/utils";
 
 // 활성 안(variant)의 버전 히스토리를 다루는 편집 영역. ?variant는 VariantTabs와,
@@ -32,6 +33,7 @@ export function ProposalEditorPreview({
 
   const addVersion = useAddVersion(proposalId, active?.id ?? "");
   const deleteVersion = useDeleteVersion(proposalId, active?.id ?? "");
+  const confirm = useConfirm();
 
   if (!active) return null;
 
@@ -58,8 +60,12 @@ export function ProposalEditorPreview({
 
   async function removeSelected() {
     if (busy || active.versions.length <= 1) return;
-    if (!confirm(`v${selected.versionNo} 버전을 삭제할까요? 이 버전의 이미지가 모두 삭제됩니다.`))
-      return;
+    const ok = await confirm({
+      title: `v${selected.versionNo} 버전을 삭제할까요?`,
+      description: "이 버전의 이미지가 모두 삭제됩니다.",
+      confirmLabel: "삭제",
+    });
+    if (!ok) return;
     try {
       await deleteVersion.mutateAsync(selected.id);
       setVersionId(null); // 서버가 옮긴 최신 current로 복귀

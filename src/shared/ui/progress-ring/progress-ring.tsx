@@ -23,7 +23,7 @@ export function ProgressRing({ value, size = 24 }: { value: number; size?: numbe
           cy={center}
           r={r}
           fill="none"
-          style={{ stroke: "var(--color-muted)" }}
+          style={{ stroke: "var(--color-border)" }}
           strokeWidth={stroke}
         />
         <circle

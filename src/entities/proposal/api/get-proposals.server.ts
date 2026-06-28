@@ -1,10 +1,23 @@
 import "server-only";
-import { and, desc, eq, getTableColumns, ilike, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { proposals, proposalTags, tagGroups, tagOptions } from "@drizzle/schema";
+import {
+  proposals,
+  proposalPages,
+  proposalTags,
+  proposalVariants,
+  tagGroups,
+  tagOptions,
+} from "@drizzle/schema";
 import { requireEditor } from "@/shared/auth/guards.server";
+import { thumbnailUrl } from "@/shared/lib/proposals/constants";
 import { taggingPercent } from "../lib/tagging-progress";
-import { PROPOSALS_PAGE_SIZE, type Paginated, type ProposalListItem } from "../model/types";
+import {
+  PROPOSALS_PAGE_SIZE,
+  type Paginated,
+  type ProposalCover,
+  type ProposalListItem,
+} from "../model/types";
 
 export async function getProposals(
   page = 1,
@@ -61,12 +74,80 @@ export async function getProposals(
     .limit(safeSize)
     .offset((safePage - 1) * safeSize);
 
+  const coverByProposal = await getCoversByProposal(rows.map((r) => r.id));
+
   const items: ProposalListItem[] = rows.map(({ taggedGroups, ...p }) => ({
     ...p,
     taggingProgress: taggingPercent(taggedGroups, totalGroups),
+    cover: coverByProposal.get(p.id) ?? null,
   }));
 
   return { items, total, page: safePage, pageSize: safeSize };
+}
+
+// 시안별 대표 이미지(커버) 1장: sortOrder 순으로 currentVersion이 있는 첫 안의 첫 페이지.
+// 공개 갤러리(getPublicProposals)와 동일한 선택 규칙. url은 리사이즈 썸네일.
+async function getCoversByProposal(
+  proposalIds: string[],
+): Promise<Map<string, ProposalCover>> {
+  if (proposalIds.length === 0) return new Map();
+
+  const variants = await db
+    .select({
+      proposalId: proposalVariants.proposalId,
+      currentVersionId: proposalVariants.currentVersionId,
+    })
+    .from(proposalVariants)
+    .where(inArray(proposalVariants.proposalId, proposalIds))
+    .orderBy(asc(proposalVariants.proposalId), asc(proposalVariants.sortOrder));
+
+  // 시안 → 커버 후보 버전들(sortOrder 순, currentVersion 있는 것만).
+  const candidateVersionsByProposal = new Map<string, string[]>();
+  for (const v of variants) {
+    if (!v.currentVersionId) continue;
+    const list = candidateVersionsByProposal.get(v.proposalId) ?? [];
+    list.push(v.currentVersionId);
+    candidateVersionsByProposal.set(v.proposalId, list);
+  }
+
+  const candidateVersionIds = [...candidateVersionsByProposal.values()].flat();
+  if (candidateVersionIds.length === 0) return new Map();
+
+  const coverRows = await db
+    .select({
+      versionId: proposalPages.versionId,
+      storagePath: proposalPages.storagePath,
+      width: proposalPages.width,
+      height: proposalPages.height,
+    })
+    .from(proposalPages)
+    .where(inArray(proposalPages.versionId, candidateVersionIds))
+    .orderBy(asc(proposalPages.pageOrder));
+
+  // 버전별 첫 페이지(정렬상 첫 행 = pageOrder 최소).
+  const firstPageByVersion = new Map<string, ProposalCover>();
+  for (const pg of coverRows) {
+    if (firstPageByVersion.has(pg.versionId)) continue;
+    firstPageByVersion.set(pg.versionId, {
+      // resize:"contain" — 가로폭(640)만 제한하고 비율을 유지해 좌우가 잘리지 않게 한다.
+      // (기본 "cover"는 변환 단계에서 원본을 잘라 가져오므로 너비가 보존되지 않음)
+      url: thumbnailUrl(pg.storagePath, { width: 640, quality: 70, resize: "contain" }),
+      width: pg.width,
+      height: pg.height,
+    });
+  }
+
+  const covers = new Map<string, ProposalCover>();
+  for (const [proposalId, versionIds] of candidateVersionsByProposal) {
+    for (const versionId of versionIds) {
+      const cover = firstPageByVersion.get(versionId);
+      if (cover) {
+        covers.set(proposalId, cover);
+        break;
+      }
+    }
+  }
+  return covers;
 }
 
 // ILIKE 패턴에서 와일드카드(%/_)와 이스케이프 문자(\)를 리터럴로 처리한다.

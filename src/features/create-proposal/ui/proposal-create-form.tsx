@@ -89,7 +89,7 @@ export function ProposalCreateForm() {
                   onValueChange={(v) => field.onChange(v)}
                 >
                   <SelectTrigger id="workYear" className="w-40">
-                    <SelectValue placeholder="연도 선택" />
+                    <SelectValue>{(v) => (v == null ? "연도 선택" : `${v}년`)}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {YEAR_OPTIONS.map((y) => (

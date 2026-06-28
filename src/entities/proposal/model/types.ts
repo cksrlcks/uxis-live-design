@@ -2,8 +2,15 @@ import type { Proposal } from "@drizzle/schema";
 
 export type { Proposal };
 
-// 목록 행 = 시안 + 태깅 완성도(0~100). 서버에서 구분 커버리지로 계산해 내려준다.
-export type ProposalListItem = Proposal & { taggingProgress: number };
+// 목록 썸네일용 대표 이미지 1장. url은 리사이즈된 썸네일(render) URL, width/height는 원본 픽셀.
+export type ProposalCover = { url: string; width: number; height: number };
+
+// 목록 행 = 시안 + 태깅 완성도(0~100) + 대표 이미지(없으면 null).
+// 서버에서 구분 커버리지를 계산하고, 첫 안의 첫 페이지를 커버로 골라 내려준다.
+export type ProposalListItem = Proposal & {
+  taggingProgress: number;
+  cover: ProposalCover | null;
+};
 
 // 목록 페이징 공통 형태.
 export type Paginated<T> = {
@@ -13,7 +20,7 @@ export type Paginated<T> = {
   pageSize: number;
 };
 
-export const PROPOSALS_PAGE_SIZE = 20;
+export const PROPOSALS_PAGE_SIZE = 16;
 
 // A single rendered page: public read URL + native pixel dimensions + page order.
 export type ProposalPage = {

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useAddVariant } from "@/features/add-variant";
 import { useDeleteVariant, useReorderVariants, useUpdateVariant } from "@/features/manage-variants";
 import { Button } from "@/shared/ui/button";
+import { useConfirm } from "@/shared/ui/confirm";
 import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/lib/utils";
 
@@ -36,6 +37,7 @@ export function VariantTabs({
   const updateVariant = useUpdateVariant(proposalId);
   const deleteVariant = useDeleteVariant(proposalId);
   const reorderVariants = useReorderVariants(proposalId);
+  const confirm = useConfirm();
 
   const pending = updateVariant.isPending || deleteVariant.isPending || reorderVariants.isPending;
   const active = variants.find((v) => v.id === variantId) ?? variants[0];
@@ -68,9 +70,14 @@ export function VariantTabs({
     );
   }
 
-  function remove(target: VariantTab) {
+  async function remove(target: VariantTab) {
     if (pending || variants.length <= 1) return;
-    if (!confirm(`"${target.label}" 안을 삭제할까요? 이 안의 모든 버전이 삭제됩니다.`)) return;
+    const ok = await confirm({
+      title: `"${target.label}" 안을 삭제할까요?`,
+      description: "이 안의 모든 버전이 삭제됩니다.",
+      confirmLabel: "삭제",
+    });
+    if (!ok) return;
     deleteVariant.mutate(target.id, {
       onSuccess: () => {
         if (target.id === active.id) {

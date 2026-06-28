@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { HttpError } from "@/shared/api/http";
 import { titleSchema, domainSchema, figmaUrlSchema } from "@/entities/proposal/model/create-schema";
 import { Button } from "@/shared/ui/button";
+import { useConfirm } from "@/shared/ui/confirm";
 import { Input } from "@/shared/ui/input";
 import { Badge } from "@/shared/ui/badge";
 import { Switch } from "@/shared/ui/switch";
@@ -82,6 +83,7 @@ export function ProposalSettings({
   const router = useRouter();
   const updateSettings = useUpdateSettings(proposalId);
   const deleteProposal = useDeleteProposal(proposalId);
+  const confirm = useConfirm();
   const [error, setError] = useState<string | null>(null);
   const [domainCheck, setDomainCheck] = useState<DomainCheck | null>(null);
   const [checking, setChecking] = useState(false);
@@ -226,8 +228,13 @@ export function ProposalSettings({
     );
   }
 
-  function onDelete() {
-    if (!confirm("이 시안을 삭제할까요? 모든 버전과 이미지가 사라집니다.")) return;
+  async function onDelete() {
+    const ok = await confirm({
+      title: "이 시안을 삭제할까요?",
+      description: "모든 버전과 이미지가 사라집니다.",
+      confirmLabel: "삭제",
+    });
+    if (!ok) return;
     deleteProposal.mutate(undefined, {
       onSuccess: () => {
         toast.success("삭제했습니다");
@@ -313,7 +320,7 @@ export function ProposalSettings({
             }
           >
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="연도 선택" />
+              <SelectValue>{(v) => (v == null ? "연도 선택" : `${v}년`)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {YEAR_OPTIONS.map((y) => (
@@ -412,9 +419,7 @@ export function ProposalSettings({
             <CardTitle className="flex items-center gap-2">
               공개 도메인
               {domain && (
-                <Badge variant="neutral" size="sm">
-                  설정됨
-                </Badge>
+                <Badge variant="neutral">설정됨</Badge>
               )}
             </CardTitle>
             <CardDescription>공개 URL에 쓰이는 식별자 · 소문자·숫자·하이픈</CardDescription>
@@ -486,9 +491,7 @@ export function ProposalSettings({
             <CardTitle className="flex items-center gap-2">
               피그마 링크
               {figmaUrl && (
-                <Badge variant="neutral" size="sm">
-                  설정됨
-                </Badge>
+                <Badge variant="neutral">설정됨</Badge>
               )}
             </CardTitle>
             <CardDescription>원본 Figma 파일 링크를 연결합니다.</CardDescription>
@@ -553,9 +556,7 @@ export function ProposalSettings({
             <CardTitle className="flex items-center gap-2">
               접근 비밀번호
               {hasPassword && (
-                <Badge variant="neutral" size="sm">
-                  설정됨
-                </Badge>
+                <Badge variant="neutral">설정됨</Badge>
               )}
             </CardTitle>
             <CardDescription>비밀번호는 공개 시안에만 적용됩니다.</CardDescription>

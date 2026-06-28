@@ -1,3 +1,3 @@
 export { userQueries } from "./api/user.query";
-export { ProviderBadges } from "./ui/provider-badges";
+export { ProviderIcons } from "./ui/provider-icons";
 export type { AdminUser, AuthProvider } from "./model/types";

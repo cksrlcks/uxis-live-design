@@ -1,6 +1,7 @@
 "use client";
 import { ArrowUpRight } from "lucide-react";
 import type { ProposalPage } from "@/entities/proposal";
+import { thumbnailFromPublicUrl } from "@/shared/lib/proposals/constants";
 import { PoweredBy } from "@/shared/ui/powered-by";
 
 export type VariantCard = {
@@ -40,12 +41,16 @@ export function VariantList({
               onClick={() => onOpen(it.slug)}
               className="group block w-full grow-0 cursor-pointer overflow-hidden rounded-2xl border border-black/3 bg-card text-left shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.12)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_2px_4px_rgba(0,0,0,0.04),0_18px_40px_-16px_rgba(0,0,0,0.22)] sm:basis-[calc(50%-14px)] lg:basis-[calc(33.333%-18.667px)]"
             >
-              <div className="bg-muted aspect-video overflow-hidden">
+              <div className="bg-muted aspect-16/10 overflow-hidden">
                 {it.thumb ? (
+                  /* 카드 썸네일은 원본(수 MB) 대신 가로 640px로 리사이즈한 변환 URL을 쓴다.
+                     원본 url은 뷰어에서 풀해상도로 그대로 쓰이므로 여기서만 변환한다. */
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
-                    src={it.thumb.url}
+                    src={thumbnailFromPublicUrl(it.thumb.url, { width: 640, quality: 70 })}
                     alt={it.label}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-[1.03]"
                   />
                 ) : (
@@ -54,7 +59,7 @@ export function VariantList({
                   </div>
                 )}
               </div>
-              <div className="flex items-center justify-between px-5 py-4">
+              <div className="flex items-center justify-between border-t border-black/5 px-5 py-4">
                 <div className="flex flex-col">
                   <span className="font-medium tracking-tight">{it.label}</span>
                   <span className="text-muted-foreground mt-0.5 text-xs">{it.pageCount} pages</span>

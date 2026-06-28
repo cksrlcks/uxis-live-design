@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { pretendard } from "@/shared/config/fonts";
 import { QueryProvider } from "@/app/providers/query-provider";
+import { ConfirmProvider } from "@/shared/ui/confirm";
 import { Toaster } from "@/shared/ui/sonner";
 import "@/app/styles/globals.css";
 
@@ -12,7 +13,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko" className={pretendard.variable}>
       <body className={`${pretendard.className} antialiased`}>
         <NuqsAdapter>
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <ConfirmProvider>{children}</ConfirmProvider>
+          </QueryProvider>
         </NuqsAdapter>
         <Toaster />
       </body>

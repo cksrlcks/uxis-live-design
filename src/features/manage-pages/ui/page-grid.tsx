@@ -4,6 +4,7 @@ import { GripVertical } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import type { ProposalPage } from "@/entities/proposal";
+import { useConfirm } from "@/shared/ui/confirm";
 import { cn } from "@/shared/lib/utils";
 import { ALLOWED_IMAGE_TYPES } from "@/shared/lib/proposals/constants";
 import {
@@ -31,6 +32,7 @@ export function PageGrid({
   const replace = useReplacePage(proposalId, variantId, versionId);
   const remove = useDeletePage(proposalId, variantId, versionId);
   const reorder = useReorderPages(proposalId, variantId, versionId);
+  const confirm = useConfirm();
   // 드래그 정렬 — 잡은 카드(dragId)와 드롭 후보(dropTo: 어느 카드의 좌/우).
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTo, setDropTo] = useState<{ id: string; after: boolean } | null>(null);
@@ -64,8 +66,12 @@ export function PageGrid({
     );
   }
 
-  function onDelete(pageId: string) {
-    if (!confirm("이 이미지를 삭제할까요?")) return;
+  async function onDelete(pageId: string) {
+    const ok = await confirm({
+      title: "이 이미지를 삭제할까요?",
+      confirmLabel: "삭제",
+    });
+    if (!ok) return;
     remove.mutate(pageId, {
       onSuccess: () => toast.success("삭제했습니다"),
       onError: (e) => toast.error(e instanceof Error ? e.message : "삭제에 실패했습니다."),

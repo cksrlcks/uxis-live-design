@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowUpRight, MoreVertical, Plus, RotateCw, Settings, Trash2 } from "lucide-react";
 import { PageHeader } from "@/widgets/studio-shell";
 import { Button } from "@/shared/ui/button";
+import { useConfirm } from "@/shared/ui/confirm";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { SearchInput } from "@/shared/ui/search-input";
@@ -79,6 +80,7 @@ export function AiDesignsPage() {
   const del = useDeleteAiDesign();
   const retry = useRetryAiDesign();
   const [createOpen, setCreateOpen] = useState(false);
+  const confirm = useConfirm();
 
   // 검색어 변경 시 1페이지로 — 빈 값은 URL에서 q 파라미터를 제거(null)한다.
   function onSearch(next: string) {
@@ -222,7 +224,7 @@ export function AiDesignsPage() {
                     */}
                   </TableCell>
                   <TableCell className={bodyCell}>
-                    <Badge variant="outline">{PAGE_TYPE_LABELS[d.pageType] ?? d.pageType}</Badge>
+                    <Badge variant="neutral">{PAGE_TYPE_LABELS[d.pageType] ?? d.pageType}</Badge>
                   </TableCell>
                   <TableCell className={cn(bodyCell, "text-muted-foreground text-sm")}>
                     {d.model ? (MODEL_LABELS[d.model] ?? d.model) : <span className="text-muted-foreground/50">—</span>}
@@ -246,11 +248,23 @@ export function AiDesignsPage() {
                     {formatDate(d.createdAt)}
                   </TableCell>
                   <TableCell className={bodyCell}>
-                    <div className="flex justify-end">
+                    <div className="flex items-center justify-end gap-0.5">
+                      {canOpen && (
+                        <a
+                          href={viewerHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="바로가기"
+                          title="바로가기"
+                          className="text-muted-foreground hover:bg-muted-foreground/20 hover:text-foreground flex size-7 items-center justify-center rounded-full transition-colors"
+                        >
+                          <ArrowUpRight className="size-4" aria-hidden />
+                        </a>
+                      )}
                       <DropdownMenu>
                         <DropdownMenuTrigger
                           aria-label="작업 메뉴"
-                          className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-7 items-center justify-center rounded-full transition-colors"
+                          className="text-muted-foreground hover:bg-muted-foreground/20 hover:text-foreground flex size-7 items-center justify-center rounded-full transition-colors"
                         >
                           <MoreVertical className="size-4" aria-hidden />
                         </DropdownMenuTrigger>
@@ -284,8 +298,12 @@ export function AiDesignsPage() {
                             variant="destructive"
                             className={menuItem}
                             disabled={del.isPending}
-                            onClick={() => {
-                              if (!confirm("이 시안을 삭제할까요?")) return;
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: "이 시안을 삭제할까요?",
+                                confirmLabel: "삭제",
+                              });
+                              if (!ok) return;
                               del.mutate(d.id, {
                                 onSuccess: () => toast.success("삭제했습니다"),
                                 onError: () => toast.error("삭제에 실패했습니다"),
