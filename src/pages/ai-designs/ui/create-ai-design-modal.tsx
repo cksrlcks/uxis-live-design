@@ -94,7 +94,12 @@ export function CreateAiDesignModal({
         <div className="-mr-2 max-h-[60vh] space-y-6 overflow-y-auto pr-2">
           <div className="space-y-3">
             <Label htmlFor="ai-title">제목(회사명)</Label>
-            <Input id="ai-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ACME Inc." />
+            <Input
+              id="ai-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="ACME Inc."
+            />
           </div>
 
           {/* 회사명 필드 비활성화(필요 시 주석 해제하여 복구)
@@ -131,7 +136,7 @@ export function CreateAiDesignModal({
               <div className="space-y-3">
                 {shownGroups.map((g) => (
                   <div key={g.id} className="space-y-3">
-                    <p className="text-muted-foreground text-xs">{g.label}</p>
+                    <p className="text-muted-foreground text-caption">{g.label}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {g.options.map((o) => {
                         const active = optionIds.includes(o.id);
@@ -166,7 +171,7 @@ export function CreateAiDesignModal({
               onChange={(e) => setExtraNotes(e.target.value)}
               rows={3}
               placeholder="예: 모던하고 미니멀하게, 파란 계열 톤"
-              className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-3"
+              className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 rounded-control w-full border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-3"
             />
           </div>
         </div>

@@ -40,7 +40,7 @@ function ReadonlyField({
   return (
     <div
       className={cn(
-        "border-input bg-muted/30 w-full rounded-lg border px-3 py-2 text-sm",
+        "border-input bg-muted/30 rounded-control w-full border px-3 py-2 text-sm",
         multiline ? "min-h-16 whitespace-pre-wrap" : "min-h-9",
         empty && "text-muted-foreground/60",
       )}
@@ -59,7 +59,7 @@ export function AiDesignDetailPage({ id }: { id: string }) {
       <div className="mx-auto max-w-2xl">
         <Skeleton className="h-8 w-60" />
         <Skeleton className="mt-2 h-4 w-40" />
-        <Skeleton className="mt-6 h-[28rem] w-full rounded-xl" />
+        <Skeleton className="rounded-card mt-6 h-[28rem] w-full" />
       </div>
     );
   }
@@ -67,7 +67,7 @@ export function AiDesignDetailPage({ id }: { id: string }) {
   if (isError || !data) {
     return (
       <div className="mx-auto max-w-2xl">
-        <div className="bg-card text-destructive rounded-2xl border px-6 py-12 text-center text-sm">
+        <div className="bg-card text-destructive text-body rounded-card border px-6 py-12 text-center">
           시안을 불러오지 못했습니다.
         </div>
       </div>
@@ -130,18 +130,18 @@ export function AiDesignDetailPage({ id }: { id: string }) {
       />
 
       {design.status === "failed" && design.errorMessage && (
-        <div className="border-destructive/30 bg-destructive/5 text-destructive mb-4 rounded-xl border px-4 py-3 text-sm">
+        <div className="border-destructive/30 bg-destructive/5 text-destructive text-body rounded-card mb-4 border px-4 py-3">
           생성 실패: {design.errorMessage}
         </div>
       )}
 
       {/* AI가 참고 시안을 분석하고 어떻게 반영했는지 설명. 생성 완료 시 채워진다. */}
       {(design.analysis || design.approach) && (
-        <div className="bg-card mb-4 space-y-4 rounded-xl border p-6">
+        <div className="bg-card rounded-card mb-4 space-y-4 border p-6">
           {design.analysis && (
             <div className="space-y-1.5">
               <Label>AI 분석</Label>
-              <p className="text-foreground/90 text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="text-foreground/90 text-body leading-relaxed whitespace-pre-wrap">
                 {design.analysis}
               </p>
             </div>
@@ -149,7 +149,7 @@ export function AiDesignDetailPage({ id }: { id: string }) {
           {design.approach && (
             <div className="space-y-1.5">
               <Label>참고 시안 도입</Label>
-              <p className="text-foreground/90 text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="text-foreground/90 text-body leading-relaxed whitespace-pre-wrap">
                 {design.approach}
               </p>
             </div>
@@ -158,7 +158,7 @@ export function AiDesignDetailPage({ id }: { id: string }) {
       )}
 
       {/* 생성 모달과 동일한 폼 레이아웃을 읽기전용으로 재현한다. */}
-      <div className="bg-card space-y-6 rounded-xl border p-6">
+      <div className="bg-card rounded-card space-y-6 border p-6">
         <div className="space-y-1.5">
           <Label>제목(회사명)</Label>
           <ReadonlyField>{design.title}</ReadonlyField>
@@ -184,7 +184,7 @@ export function AiDesignDetailPage({ id }: { id: string }) {
             <div className="space-y-3">
               {design.tagGroups.map((g) => (
                 <div key={g.groupLabel} className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs">{g.groupLabel}</p>
+                  <p className="text-muted-foreground text-caption">{g.groupLabel}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {g.options.map((o) => (
                       <span
@@ -209,7 +209,7 @@ export function AiDesignDetailPage({ id }: { id: string }) {
         </div>
 
         {design.model && (
-          <p className="text-muted-foreground/70 text-xs">
+          <p className="text-muted-foreground/70 text-caption">
             생성 모델 <span className="font-mono">{design.model}</span>
           </p>
         )}
@@ -224,12 +224,12 @@ export function AiDesignDetailPage({ id }: { id: string }) {
 
 function ReferenceProposalsSection({ refs }: { refs: AiDesignReferenceProposal[] }) {
   return (
-    <div className="bg-card mt-4 space-y-3 rounded-xl border p-6">
+    <div className="bg-card rounded-card mt-4 space-y-3 border p-6">
       <Label>참고한 시안 ({refs.length}개)</Label>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {refs.map((ref) => (
           <div key={ref.sortOrder} className="group flex flex-col gap-1.5">
-            <div className="bg-muted relative aspect-[3/4] overflow-hidden rounded-lg border">
+            <div className="bg-muted rounded-card relative aspect-[3/4] overflow-hidden border">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={ref.imageUrl}
@@ -237,7 +237,7 @@ function ReferenceProposalsSection({ refs }: { refs: AiDesignReferenceProposal[]
                 className="h-full w-full object-cover object-top"
               />
             </div>
-            <p className="text-muted-foreground line-clamp-1 text-xs">{ref.proposalTitle}</p>
+            <p className="text-muted-foreground text-caption line-clamp-1">{ref.proposalTitle}</p>
           </div>
         ))}
       </div>
