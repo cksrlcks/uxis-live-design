@@ -7,6 +7,8 @@ type PageHeaderProps = {
   title: string;
   /** 제목 왼쪽에 붙는 뒤로 가기 화살표 링크의 목적지. */
   backHref?: string;
+  /** 뒤로 가기 링크 라벨(기본 "목록으로"). */
+  backLabel?: string;
   /** 타이틀 바로 옆에 인라인으로 붙는 컨트롤(예: 보기 전환 토글). */
   titleAside?: ReactNode;
   description?: ReactNode;
@@ -17,6 +19,7 @@ export function PageHeader({
   eyebrow,
   title,
   backHref,
+  backLabel = "목록으로",
   titleAside,
   description,
   actions,
@@ -29,7 +32,7 @@ export function PageHeader({
           className="text-muted-foreground hover:text-foreground text-body mb-4 -ml-1 inline-flex items-center gap-1.5 transition-colors"
         >
           <ArrowLeft className="size-4" />
-          목록으로
+          {backLabel}
         </Link>
       )}
       <div className="flex flex-wrap items-start justify-between gap-3">
