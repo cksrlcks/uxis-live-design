@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/shared/lib/utils";
 
 const badgeVariants = cva(
-  "group/badge inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-4xl border border-transparent px-2.5 py-1.5 text-xs leading-none font-medium whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3!",
+  "group/badge inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2 py-0.5 text-[11.5px] leading-none font-semibold whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3!",
   {
     variants: {
       variant: {
@@ -18,12 +18,12 @@ const badgeVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         // Semantic status/severity pills — soft tint background + same-hue dark
         // text (연한 배경 + 진한 글씨). Tailwind 100/200 fill, 700 ink.
-        info: "bg-[#dbeafe] text-[#1d4ed8]",
-        success: "bg-[#dcfce7] text-[#15803d]",
-        warning: "bg-[#ffedd5] text-[#c2410c]",
-        error: "bg-[#fee2e2] text-[#b91c1c]",
-        purple: "bg-[#ede9fe] text-[#6d28d9]",
-        neutral: "bg-[#e2e8f0] text-[#334155]",
+        info: "bg-[#eaf1ff] text-[#0b54c4]",
+        success: "bg-[#e7f6ec] text-[#1a7f43]",
+        warning: "bg-[#fdf0d9] text-[#9a6a12]",
+        error: "bg-[#fdeaec] text-[#c0334a]",
+        purple: "bg-[#efe9fd] text-[#6d3fcf]",
+        neutral: "bg-[#eef0f2] text-[#4a525e]",
       },
     },
     defaultVariants: {
