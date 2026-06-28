@@ -48,6 +48,34 @@
 
 ---
 
+## v3 — Studio Linear-라이트 (2026-06-28, 스튜디오 한정으로 v2 표면 규칙 갱신)
+
+> 스튜디오(`/studio`) 전용. 홈/뷰어/인증은 v1/v2 유지. 스튜디오는 **다크→라이트** 전환.
+> Linear 의 구조적 특성(밀도·차분함·작은 라운드·절제 타이포)을 **라이트 + 블루 포인트**로 가져온다.
+
+- **테마:** `/studio` 라이트. `--*` 토큰을 `.studio-shell` 에 스코프(globals.css)해 비스튜디오
+  면 무영향. `/me`·`/pending`·`/plugin-auth` 는 다크 유지(theme-routes.ts), 로그인 자체 다크 유지.
+- **포인트색:** 블루 `#146ef5` 유지(Linear 보라 아님). `--primary`/`--ring`.
+- **표면 2계층(플랫):** 캔버스 `#f7f8f9` + 흰 카드 `#ffffff` + 헤어라인 `#e7e8ea`(내부 디바이더는
+  `border-border/60`). hover 표면 `#f1f3f5`. 그림자는 팝오버/모달/드롭다운/토스트만.
+- **라운드 3단:** control 6px(`rounded-control`) · card 8px(`rounded-card`) · pill `rounded-full`
+  (상태칩·아바타·원형 아이콘 버튼만). 스튜디오 면에 `rounded-xl~4xl` 임의 사용 금지.
+- **타이포 7단(상한 600):** display 21/600 · section 16/600 · subtitle 14/600 · body 13/400 ·
+  body-strong 13/600 · caption 12 · eyebrow 11/UP. Tailwind 유틸 `text-display`/`text-section`/
+  `text-subtitle`/`text-body`/`text-caption`/`text-eyebrow`(globals.css `@theme`). 임의 `text-[..px]` 금지.
+- **status pill:** `StatusPill tone=…` — info=블루 · success=그린 · warning=앰버 · danger=레드 ·
+  neutral=그레이 · role=퍼플. 연한 틴트 + 동색 진한 글씨.
+- **레시피(재사용 빌딩블록):** `PageHeader` · `Toolbar`(좌 슬롯+우 trailing) ·
+  `SegmentedControl`(뷰 토글) · `DataTableShell`(+`dataHeadCell`/`dataBodyCell`/`DataTableState`) ·
+  `EmptyState` · `StatusPill`. 페이지는 이들을 조립한다.
+- **필터:** 별도 컴포넌트 없이 `Select`(기본 32px) 표준 사용.
+- **검증 화면:** 시안 목록(`/studio/proposals`) = Refined Table + 썸네일 토글. 나머지 스튜디오
+  화면 재구상은 후속 작업(각 화면별 spec).
+- **알려진 사소 항목:** body 로 portal 되는 팝오버는 `:root` 헤어라인(`#d8d8d8`)을 써 스튜디오
+  헤어라인(`#e7e8ea`)과 미세 차이(체감 무시).
+
+---
+
 ## 0. 원본 대비 조정 사항 (중요)
 
 | 항목 | Webflow 원본 | 본 프로젝트 |
