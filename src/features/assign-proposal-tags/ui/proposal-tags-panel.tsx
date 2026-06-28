@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { tagQueries } from "@/entities/tag";
 import { Button } from "@/shared/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/lib/utils";
 import { useSaveProposalTags } from "../api/use-save-proposal-tags";
@@ -73,39 +74,39 @@ export function ProposalTagsPanel({ proposalId }: { proposalId: string }) {
   return (
     <div className="space-y-5">
       {taxonomy.data.map((group) => (
-        <div key={group.id} className="bg-card rounded-card border p-4 sm:p-5">
-          <div className="mb-3">
-            <h3 className="text-subtitle">{group.label}</h3>
-            {group.description && (
-              <p className="text-muted-foreground text-caption mt-0.5">{group.description}</p>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {group.options.map((opt) => {
-              const on = selected.has(opt.id);
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  title={opt.description ?? undefined}
-                  aria-pressed={on}
-                  onClick={() => toggle(opt.id)}
-                  className={cn(
-                    "cursor-pointer rounded-full border px-3 py-1.5 text-sm transition-colors",
-                    on
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border hover:bg-muted",
-                  )}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-            {group.options.length === 0 && (
-              <span className="text-muted-foreground text-caption">항목 없음</span>
-            )}
-          </div>
-        </div>
+        <Card key={group.id}>
+          <CardHeader>
+            <CardTitle>{group.label}</CardTitle>
+            {group.description && <CardDescription>{group.description}</CardDescription>}
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {group.options.map((opt) => {
+                const on = selected.has(opt.id);
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    title={opt.description ?? undefined}
+                    aria-pressed={on}
+                    onClick={() => toggle(opt.id)}
+                    className={cn(
+                      "cursor-pointer rounded-full border px-3 py-1.5 text-sm transition-colors",
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border hover:bg-muted",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+              {group.options.length === 0 && (
+                <span className="text-muted-foreground text-caption">항목 없음</span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       ))}
 
       <div className="flex items-center justify-end gap-3">
