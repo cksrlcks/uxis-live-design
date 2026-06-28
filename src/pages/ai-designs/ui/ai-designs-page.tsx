@@ -6,10 +6,10 @@ import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { ArrowUpRight, MoreVertical, Plus, RotateCw, Settings, Trash2 } from "lucide-react";
-import { PageHeader } from "@/widgets/studio-shell";
+import { PageHeader, Toolbar } from "@/widgets/studio-shell";
 import { Button } from "@/shared/ui/button";
 import { useConfirm } from "@/shared/ui/confirm";
-import { Badge } from "@/shared/ui/badge";
+import { StatusPill } from "@/shared/ui/status-pill";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { SearchInput } from "@/shared/ui/search-input";
 import {
@@ -29,6 +29,8 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { DataTableShell, DataTableState, dataHeadCell, dataBodyCell } from "@/shared/ui/data-table";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { cn } from "@/shared/lib/utils";
 import {
   aiDesignQueries,
@@ -37,11 +39,12 @@ import {
   AiDesignStatusBadge,
   PAGE_TYPE_LABELS,
 } from "@/entities/ai-design";
-import { useDeleteAiDesign, useRetryAiDesign } from "@/entities/ai-design/api/use-ai-design-mutations";
+import {
+  useDeleteAiDesign,
+  useRetryAiDesign,
+} from "@/entities/ai-design/api/use-ai-design-mutations";
 import { CreateAiDesignModal } from "./create-ai-design-modal";
 
-const headCell = "text-muted-foreground h-10 px-5 text-xs font-medium tracking-wide";
-const bodyCell = "px-5 py-3.5 align-middle";
 const menuItem = "gap-2.5 px-2.5 py-2";
 
 const COL_COUNT = 7;
@@ -121,27 +124,32 @@ export function AiDesignsPage() {
         }
       />
 
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <Toolbar
+        trailing={
+          total > 0 ? (
+            <span className="text-caption text-muted-foreground">전체 {total}개</span>
+          ) : undefined
+        }
+      >
         <SearchInput
           value={q}
           onChange={onSearch}
           placeholder="제목·회사명·요청자 검색"
           className="w-full max-w-xs"
         />
-        {total > 0 && <p className="text-muted-foreground shrink-0 text-sm">전체 {total}개</p>}
-      </div>
+      </Toolbar>
 
-      <div className="bg-card overflow-hidden rounded-xl border">
+      <DataTableShell>
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 border-border/60 border-b">
-              <TableHead className={headCell}>제목</TableHead>
-              <TableHead className={headCell}>유형</TableHead>
-              <TableHead className={headCell}>모델</TableHead>
-              <TableHead className={headCell}>요청자</TableHead>
-              <TableHead className={headCell}>상태</TableHead>
-              <TableHead className={cn(headCell, "whitespace-nowrap")}>작성일</TableHead>
-              <TableHead className={cn(headCell, "w-0")}>
+              <TableHead className={dataHeadCell}>제목</TableHead>
+              <TableHead className={dataHeadCell}>유형</TableHead>
+              <TableHead className={dataHeadCell}>모델</TableHead>
+              <TableHead className={dataHeadCell}>요청자</TableHead>
+              <TableHead className={dataHeadCell}>상태</TableHead>
+              <TableHead className={cn(dataHeadCell, "whitespace-nowrap")}>작성일</TableHead>
+              <TableHead className={cn(dataHeadCell, "w-0")}>
                 <span className="sr-only">작업</span>
               </TableHead>
             </TableRow>
@@ -153,56 +161,53 @@ export function AiDesignsPage() {
                   key={`skeleton-${i}`}
                   className="border-border/60 border-b last:border-0 hover:bg-transparent"
                 >
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="h-4 w-40" />
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="h-5 w-16 rounded-full" />
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="h-3.5 w-28" />
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="h-3.5 w-20" />
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="h-5 w-12 rounded-full" />
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="h-4 w-20" />
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Skeleton className="ml-auto size-7 rounded-full" />
                   </TableCell>
                 </TableRow>
               ))}
 
             {isError && (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={COL_COUNT} className="text-destructive px-5 py-16 text-center">
-                  목록을 불러오지 못했습니다.
-                </TableCell>
-              </TableRow>
+              <DataTableState colSpan={COL_COUNT}>
+                <p className="text-body text-destructive">목록을 불러오지 못했습니다.</p>
+              </DataTableState>
             )}
 
             {rows?.length === 0 && (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={COL_COUNT} className="px-5 py-16 text-center">
-                  {total === 0 && !q ? (
-                    <>
-                      <p className="text-muted-foreground mb-4 text-sm">
-                        아직 생성한 시안이 없습니다. &apos;생성하기&apos;로 시작하세요.
-                      </p>
+              <DataTableState colSpan={COL_COUNT}>
+                {total === 0 && !q ? (
+                  <EmptyState
+                    title="아직 생성한 시안이 없습니다"
+                    description="‘생성하기’로 첫 AI 시안을 만들어 보세요."
+                    action={
                       <Button type="button" onClick={() => setCreateOpen(true)}>
                         <Plus />
                         생성하기
                       </Button>
-                    </>
-                  ) : (
-                    <p className="text-muted-foreground text-sm">검색 결과가 없습니다.</p>
-                  )}
-                </TableCell>
-              </TableRow>
+                    }
+                  />
+                ) : (
+                  <p className="text-body text-muted-foreground">검색 결과가 없습니다.</p>
+                )}
+              </DataTableState>
             )}
 
             {rows?.map((d) => {
@@ -210,44 +215,45 @@ export function AiDesignsPage() {
               const canOpen = d.status === "done" && d.hasHtml;
               return (
                 <TableRow key={d.id} className="border-border/60 border-b last:border-0">
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <Link
                       href={`/studio/ai-designs/${d.id}`}
                       className="hover:text-primary font-medium underline underline-offset-4 transition-colors"
                     >
                       {d.title}
                     </Link>
-                    {/* 회사명 표시 비활성화(필요 시 주석 해제하여 복구)
-                    {d.company && (
-                      <span className="text-muted-foreground ml-2 text-xs">{d.company}</span>
+                  </TableCell>
+                  <TableCell className={dataBodyCell}>
+                    <StatusPill tone="neutral">
+                      {PAGE_TYPE_LABELS[d.pageType] ?? d.pageType}
+                    </StatusPill>
+                  </TableCell>
+                  <TableCell className={cn(dataBodyCell, "text-muted-foreground")}>
+                    {d.model ? (
+                      (MODEL_LABELS[d.model] ?? d.model)
+                    ) : (
+                      <span className="text-muted-foreground/50">—</span>
                     )}
-                    */}
                   </TableCell>
-                  <TableCell className={bodyCell}>
-                    <Badge variant="neutral">{PAGE_TYPE_LABELS[d.pageType] ?? d.pageType}</Badge>
-                  </TableCell>
-                  <TableCell className={cn(bodyCell, "text-muted-foreground text-sm")}>
-                    {d.model ? (MODEL_LABELS[d.model] ?? d.model) : <span className="text-muted-foreground/50">—</span>}
-                  </TableCell>
-                  <TableCell className={cn(bodyCell, "text-sm")}>
+                  <TableCell className={dataBodyCell}>
                     {d.requestedBy ? (
                       <span className="text-foreground">{d.requestedBy}</span>
                     ) : (
                       <span className="text-muted-foreground/50">—</span>
                     )}
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <AiDesignStatusBadge status={d.status} errorMessage={d.errorMessage} />
                   </TableCell>
                   <TableCell
                     className={cn(
-                      bodyCell,
-                      "text-muted-foreground text-sm whitespace-nowrap tabular-nums",
+                      dataBodyCell,
+                      "text-muted-foreground whitespace-nowrap tabular-nums",
                     )}
                   >
                     {formatDate(d.createdAt)}
                   </TableCell>
-                  <TableCell className={bodyCell}>
+                  <TableCell className={dataBodyCell}>
                     <div className="flex items-center justify-end gap-0.5">
                       {canOpen && (
                         <a
@@ -322,7 +328,7 @@ export function AiDesignsPage() {
             })}
           </TableBody>
         </Table>
-      </div>
+      </DataTableShell>
 
       {total > 0 && (
         <div className="mt-4">
