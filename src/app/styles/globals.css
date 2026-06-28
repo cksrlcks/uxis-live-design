@@ -56,6 +56,23 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Studio Linear-light — 라운드 3단 + 타이포 7단 (2026-06-28) */
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --text-display: 1.3125rem; /* 21px */
+  --text-display--line-height: 1.3;
+  --text-display--letter-spacing: -0.01em;
+  --text-section: 1rem; /* 16px */
+  --text-section--line-height: 1.4;
+  --text-subtitle: 0.875rem; /* 14px */
+  --text-subtitle--line-height: 1.4;
+  --text-body: 0.8125rem; /* 13px */
+  --text-body--line-height: 1.5;
+  --text-caption: 0.75rem; /* 12px */
+  --text-caption--line-height: 1.4;
+  --text-eyebrow: 0.6875rem; /* 11px */
+  --text-eyebrow--line-height: 1.3;
+  --text-eyebrow--letter-spacing: 0.06em;
 }
 
 :root {
@@ -93,6 +110,29 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* Studio surface — Linear-light. 스튜디오 셸에만 스코프해 홈/뷰어/인증(이번 비목표)은
+   :root 값을 유지한다. 스튜디오는 라이트로 렌더(theme-routes.ts)되므로 라이트 :root 를
+   덮어쓴다. 커스텀 프로퍼티는 상속되어 셸 하위 요소가 이 값을 따른다. */
+.studio-shell {
+  --background: #ffffff;
+  --foreground: #08090a;
+  --card: #ffffff;
+  --card-foreground: #08090a;
+  --popover: #ffffff;
+  --popover-foreground: #08090a;
+  --muted: #f7f8f9; /* 앱 캔버스 */
+  --muted-foreground: #6b7280;
+  --accent: #f1f3f5; /* hover 표면 — 캔버스보다 한 톤 진해 흰 카드 위에서도 보임 */
+  --accent-foreground: #08090a;
+  --secondary: #ffffff;
+  --secondary-foreground: #08090a;
+  --border: #e7e8ea; /* 헤어라인 */
+  --input: #e7e8ea;
+  --primary: #146ef5;
+  --primary-foreground: #ffffff;
+  --ring: #146ef5;
 }
 
 .dark {
