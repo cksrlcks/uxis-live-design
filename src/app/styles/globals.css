@@ -205,7 +205,7 @@
   -webkit-text-fill-color: var(--foreground) !important;
   caret-color: var(--foreground) !important;
   -webkit-box-shadow: 0 0 0 1000px var(--card) inset !important;
-  box-shadow: 0 0 0 1000px var(--card) inset !important;
+  box-shadow: 0 0 0 1000px #222 inset !important;
   transition: background-color 99999s ease-in-out 0s;
 }
 
@@ -261,4 +261,24 @@ html:has(.studio-shell) {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* WebKit */
+}
+
+/* 로그인 배경 — 타원 3개 세트가 한 덩어리로 천천히 원형 회전.
+   `rotate` 프로퍼티만 애니메이트하므로 Tailwind translate(중앙정렬)와 충돌하지 않는다.
+   transform-origin은 기본값(요소 중앙)이라 세트가 제자리에서 돈다. */
+@keyframes auth-orbit {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+.auth-orbit {
+  animation: auth-orbit 12s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-orbit {
+    animation: none;
+  }
 }
