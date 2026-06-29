@@ -1,5 +1,4 @@
-import { notFound } from "next/navigation";
-import { Lock } from "lucide-react";
+import { FileX, Lock } from "lucide-react";
 import { resolveViewerGate } from "@/shared/access/resolve-viewer-gate.server";
 import { PublicViewerPage as ClientViewerPage } from "@/pages/public-viewer";
 import { Button } from "@/shared/ui/button";
@@ -20,7 +19,24 @@ export default async function PublicViewerPage({
   const { error } = await searchParams;
 
   const { proposal, decision, viewer } = await resolveViewerGate(publicId);
-  if (!proposal) notFound();
+  if (!proposal) {
+    return (
+      <div className="bg-dot-grid flex min-h-screen flex-col items-center justify-center gap-8 px-6 py-10">
+        <Card className="w-full max-w-sm border-0 p-8 shadow-lg ring-0">
+          <div className="flex flex-col items-center text-center">
+            <div className="bg-muted text-muted-foreground flex size-12 items-center justify-center rounded-full">
+              <FileX className="size-5" aria-hidden="true" />
+            </div>
+            <h1 className="mt-4 text-lg font-bold tracking-tight">볼 수 없는 시안</h1>
+            <p className="text-muted-foreground mt-1.5 text-sm break-keep">
+              시안이 삭제되었거나, 볼 수 없는 상태입니다.
+            </p>
+          </div>
+        </Card>
+        <PoweredBy />
+      </div>
+    );
+  }
 
   if (decision === "forbidden") {
     return (
