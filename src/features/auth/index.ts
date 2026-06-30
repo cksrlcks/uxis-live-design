@@ -1,4 +1,5 @@
 export { AuthLayout } from "./ui/auth-layout";
+export { AuthAura } from "./ui/auth-aura";
 export { LoginForm } from "./ui/login-form";
 export { ForgotPasswordForm } from "./ui/forgot-password-form";
 export { ResetPasswordForm } from "./ui/reset-password-form";
