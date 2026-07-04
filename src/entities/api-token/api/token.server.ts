@@ -43,6 +43,28 @@ export async function revokeMyToken(): Promise<void> {
   await db.delete(apiTokens).where(eq(apiTokens.ownerId, me.id));
 }
 
+// CLI 승인용: 있으면 그대로, 없을 때만 생성. regenerate와 달리 기존 토큰을 무효화하지 않는다.
+export async function getOrCreateMyToken(): Promise<{ token: string }> {
+  const me = await requireEditor();
+  const [existing] = await db
+    .select({ token: apiTokens.token })
+    .from(apiTokens)
+    .where(eq(apiTokens.ownerId, me.id))
+    .limit(1);
+  if (existing) return { token: existing.token };
+  const token = generateToken();
+  // 동시 승인 경쟁 시 한쪽만 insert되도록 하고, 진 쪽은 재조회로 수렴.
+  await db.insert(apiTokens).values({ ownerId: me.id, token }).onConflictDoNothing({
+    target: apiTokens.ownerId,
+  });
+  const [row] = await db
+    .select({ token: apiTokens.token })
+    .from(apiTokens)
+    .where(eq(apiTokens.ownerId, me.id))
+    .limit(1);
+  return { token: row.token };
+}
+
 // 저장 API 인증: 토큰으로 소유자 조회 + last_used_at 갱신. 유효하면 owner_id, 아니면 null.
 // (guard 없음 — 이 함수 자체가 토큰으로 인증한다.)
 export async function validateApiToken(token: string | null | undefined): Promise<string | null> {
