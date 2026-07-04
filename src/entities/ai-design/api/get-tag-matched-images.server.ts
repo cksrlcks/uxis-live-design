@@ -1,7 +1,7 @@
 import "server-only";
-import { asc, desc, inArray, sql } from "drizzle-orm";
+import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { proposals, proposalTags, proposalVariants, proposalPages } from "@drizzle/schema";
+import { proposals, variantTags, proposalVariants, proposalPages } from "@drizzle/schema";
 import { publicUrl } from "@/shared/lib/proposals/constants";
 import { pickCoverPaths } from "../lib/pick-cover-paths";
 
@@ -15,11 +15,13 @@ export async function getTagMatchedImages(
 ): Promise<TagMatchedImage[]> {
   if (optionIds.length === 0) return [];
 
+  // 안(variant)별 태그를 시안 단위로 집계 — 한 시안의 어느 안이든 매칭되면 그 시안이 잡힌다.
   const matched = await db
-    .select({ proposalId: proposalTags.proposalId, matches: sql<number>`count(*)::int` })
-    .from(proposalTags)
-    .where(inArray(proposalTags.optionId, optionIds))
-    .groupBy(proposalTags.proposalId)
+    .select({ proposalId: proposalVariants.proposalId, matches: sql<number>`count(*)::int` })
+    .from(variantTags)
+    .innerJoin(proposalVariants, eq(variantTags.variantId, proposalVariants.id))
+    .where(inArray(variantTags.optionId, optionIds))
+    .groupBy(proposalVariants.proposalId)
     .orderBy(desc(sql`count(*)`))
     .limit(limit);
 

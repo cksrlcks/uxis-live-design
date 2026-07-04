@@ -8,47 +8,83 @@ import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/lib/utils";
-import { useSaveProposalTags } from "../api/use-save-proposal-tags";
+import { useSaveVariantTags } from "../api/use-save-variant-tags";
 import { shouldSyncSelection } from "../lib/sync-selection";
 
-export function ProposalTagsPanel({ proposalId }: { proposalId: string }) {
+type Variant = { id: string; label: string };
+
+// 안(variant)별 태깅 — 상단에서 안을 고르고, 그 안에 대해 태그를 지정한다.
+export function ProposalTagsPanel({ variants }: { variants: Variant[] }) {
+  const [variantId, setVariantId] = useState(variants[0]?.id ?? "");
   const taxonomy = useQuery(tagQueries.taxonomy());
-  const current = useQuery(tagQueries.proposal(proposalId));
-  const save = useSaveProposalTags(proposalId);
+  const current = useQuery({ ...tagQueries.variant(variantId), enabled: !!variantId });
+  const save = useSaveVariantTags(variantId);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  // 이 시안에 대해 서버값을 이미 반영했는지 추적. 최초 로드(새로고침 포함)에는
-  // 로컬이 빈 Set이라도 반드시 서버값으로 시드해야 하고, 이후 백그라운드 refetch는
-  // 사용자가 편집 중일 때 미저장 선택을 덮어쓰지 않아야 한다(shouldSyncSelection 참고).
-  const syncedProposalRef = useRef<string | null>(null);
+  // 안 전환/최초 로드 시 서버값으로 시드하되, 편집 중 백그라운드 refetch는 덮어쓰지 않는다.
+  const syncedVariantRef = useRef<string | null>(null);
   useEffect(() => {
     if (!current.data) return;
-    const isFirstSync = syncedProposalRef.current !== proposalId;
+    const isFirstSync = syncedVariantRef.current !== variantId;
     if (shouldSyncSelection(isFirstSync, selected, current.data.optionIds)) {
-      syncedProposalRef.current = proposalId;
+      syncedVariantRef.current = variantId;
       setSelected(new Set(current.data.optionIds));
     }
-    // selected는 의도적으로 dep에서 제외 — current.data/proposalId 변경 시에만 평가
+    // selected는 의도적으로 dep 제외 — current.data/variantId 변경 시에만 평가
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current.data, proposalId]);
+  }, [current.data, variantId]);
+
+  const variantBar =
+    variants.length > 1 ? (
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-caption text-muted-foreground mr-1">안</span>
+        {variants.map((v) => (
+          <button
+            key={v.id}
+            type="button"
+            onClick={() => setVariantId(v.id)}
+            aria-pressed={v.id === variantId}
+            className={cn(
+              "cursor-pointer rounded-full border px-3 py-1 text-sm transition-colors",
+              v.id === variantId
+                ? "border-foreground bg-foreground text-background"
+                : "border-border hover:bg-muted",
+            )}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+    ) : null;
 
   if (taxonomy.isPending || current.isPending) {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="rounded-card h-28 w-full" />
-        ))}
+      <div className="space-y-5">
+        {variantBar}
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="rounded-card h-28 w-full" />
+          ))}
+        </div>
       </div>
     );
   }
   if (taxonomy.isError || current.isError || !current.data) {
-    return <p className="text-destructive text-body">태그 정보를 불러오지 못했습니다.</p>;
+    return (
+      <div className="space-y-5">
+        {variantBar}
+        <p className="text-destructive text-body">태그 정보를 불러오지 못했습니다.</p>
+      </div>
+    );
   }
   if (taxonomy.data.length === 0) {
     return (
-      <p className="text-muted-foreground text-body">
-        등록된 태그 분류가 없습니다. 관리자에게 문의하세요.
-      </p>
+      <div className="space-y-5">
+        {variantBar}
+        <p className="text-muted-foreground text-body">
+          등록된 태그 분류가 없습니다. 관리자에게 문의하세요.
+        </p>
+      </div>
     );
   }
 
@@ -73,6 +109,7 @@ export function ProposalTagsPanel({ proposalId }: { proposalId: string }) {
 
   return (
     <div className="space-y-5">
+      {variantBar}
       {taxonomy.data.map((group) => (
         <Card key={group.id}>
           <CardHeader>
@@ -110,9 +147,7 @@ export function ProposalTagsPanel({ proposalId }: { proposalId: string }) {
       ))}
 
       <div className="flex items-center justify-end gap-3">
-        {dirty && (
-          <span className="text-muted-foreground text-caption">저장되지 않은 변경사항</span>
-        )}
+        {dirty && <span className="text-muted-foreground text-caption">저장되지 않은 변경사항</span>}
         <Button type="button" size="lg" onClick={handleSave} disabled={!dirty || save.isPending}>
           {save.isPending ? "저장 중…" : "저장"}
         </Button>

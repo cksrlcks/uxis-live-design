@@ -209,7 +209,7 @@ export function ProposalDetailPage({ proposalId }: { proposalId: string }) {
 
           {tab === "tags" && (
             <section>
-              <ProposalTagsPanel proposalId={proposal.id} />
+              <ProposalTagsPanel variants={variants.map((v) => ({ id: v.id, label: v.label }))} />
             </section>
           )}
         </div>

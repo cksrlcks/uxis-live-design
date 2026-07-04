@@ -4,7 +4,7 @@ import { db } from "@/shared/db";
 import {
   proposals,
   proposalPages,
-  proposalTags,
+  variantTags,
   proposalVariants,
   tagGroups,
   tagOptions,
@@ -57,15 +57,16 @@ export async function getProposals(
     .select({ totalGroups: sql<number>`count(*)::int` })
     .from(tagGroups);
 
-  // 시안별로 태그가 1개 이상 달린 구분 수를 집계(LEFT JOIN → 태그 없으면 0).
+  // 시안별로 태그가 1개 이상 달린 구분 수를 집계(안 중 하나라도 태깅되면 카운트). 태그 없으면 0.
   const rows = await db
     .select({
       ...getTableColumns(proposals),
       taggedGroups: sql<number>`count(distinct ${tagOptions.groupId})::int`,
     })
     .from(proposals)
-    .leftJoin(proposalTags, eq(proposalTags.proposalId, proposals.id))
-    .leftJoin(tagOptions, eq(tagOptions.id, proposalTags.optionId))
+    .leftJoin(proposalVariants, eq(proposalVariants.proposalId, proposals.id))
+    .leftJoin(variantTags, eq(variantTags.variantId, proposalVariants.id))
+    .leftJoin(tagOptions, eq(tagOptions.id, variantTags.optionId))
     .where(where)
     .groupBy(proposals.id)
     // 작성일(createdAt) 기준 고정 정렬. 태그 수정 등으로 updatedAt이 바뀌어도

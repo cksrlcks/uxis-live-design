@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getTaxonomy } from "./get-taxonomy";
-import { getProposalTags } from "./get-proposal-tags";
+import { getVariantTags } from "./get-variant-tags";
 
 export const tagQueries = {
   all: () => ["tags"] as const,
@@ -9,9 +9,9 @@ export const tagQueries = {
       queryKey: [...tagQueries.all(), "taxonomy"],
       queryFn: getTaxonomy,
     }),
-  proposal: (proposalId: string) =>
+  variant: (variantId: string) =>
     queryOptions({
-      queryKey: [...tagQueries.all(), "proposal", proposalId],
-      queryFn: () => getProposalTags(proposalId),
+      queryKey: [...tagQueries.all(), "variant", variantId],
+      queryFn: () => getVariantTags(variantId),
     }),
 };

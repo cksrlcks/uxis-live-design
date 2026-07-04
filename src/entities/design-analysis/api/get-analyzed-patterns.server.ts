@@ -2,7 +2,13 @@
 // "server-only"는 tsx에서 throw하므로 넣지 않는다(analyze-page.server.ts 참고). 서버 전용은 `.server.ts`로 표시.
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/shared/db";
-import { proposals, proposalTags, proposalPageAnalysis, proposalSectionAnalysis } from "@drizzle/schema";
+import {
+  proposals,
+  variantTags,
+  proposalVariants,
+  proposalPageAnalysis,
+  proposalSectionAnalysis,
+} from "@drizzle/schema";
 import { ANALYSIS_VERSION } from "../model/constants";
 import type { SectionType } from "../model/constants";
 import type { AnalyzedPatterns, RetrievedSection } from "../model/types";
@@ -17,12 +23,13 @@ export async function getAnalyzedPatterns(
   const { proposalLimit = 8, maxSections = 24, perProposal = 4 } = opts;
   if (optionIds.length === 0) return { patternSnippets: [], sections: [] };
 
-  // 1) 태그 매칭 개수 상위 시안(getTagMatchedImages와 동일 로직).
+  // 1) 안(variant)별 태그를 시안 단위로 집계(getTagMatchedImages와 동일 로직).
   const matched = await db
-    .select({ proposalId: proposalTags.proposalId, matches: sql<number>`count(*)::int` })
-    .from(proposalTags)
-    .where(inArray(proposalTags.optionId, optionIds))
-    .groupBy(proposalTags.proposalId)
+    .select({ proposalId: proposalVariants.proposalId, matches: sql<number>`count(*)::int` })
+    .from(variantTags)
+    .innerJoin(proposalVariants, eq(variantTags.variantId, proposalVariants.id))
+    .where(inArray(variantTags.optionId, optionIds))
+    .groupBy(proposalVariants.proposalId)
     .orderBy(desc(sql`count(*)`))
     .limit(proposalLimit);
 

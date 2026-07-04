@@ -176,6 +176,24 @@ export type TagGroup = typeof tagGroups.$inferSelect;
 export type TagOption = typeof tagOptions.$inferSelect;
 export type ProposalTag = typeof proposalTags.$inferSelect;
 
+// 안(variant)별 태그 — proposal_tags(시안 단위)를 대체. 시안 안에 추가안이 생겨도 안별로 따로 태깅한다.
+// 기존 proposal_tags는 각 시안의 첫 variant(sort_order 최소)로 이관(마이그레이션 0029). FK·CASCADE·RLS는 SQL.
+export const variantTags = pgTable(
+  "variant_tags",
+  {
+    variantId: uuid("variant_id").notNull(), // FK → proposal_variants (SQL, cascade)
+    optionId: uuid("option_id").notNull(), // FK → tag_options (SQL, cascade)
+    createdBy: uuid("created_by"), // FK → profiles (SQL, set null)
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.variantId, t.optionId] }),
+    index("variant_tags_option_idx").on(t.optionId),
+  ],
+);
+
+export type VariantTag = typeof variantTags.$inferSelect;
+
 // 플러그인 로그인 페어링 — 외부 브라우저 로그인 결과(토큰)를 플러그인이 폴링으로 회수할 때까지
 // 잠깐 보관하는 1회용 저장소. key = 플러그인이 만든 uuid. 최초 폴링 시 삭제, TTL 5분.
 export const pluginAuthPairings = pgTable("plugin_auth_pairings", {
