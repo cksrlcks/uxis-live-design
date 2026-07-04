@@ -1,5 +1,5 @@
 import { http } from "@/shared/api/http";
-import type { AnalysisOverviewPage } from "../model/types";
+import type { AnalysisOverview } from "../model/types";
 
-export const getAnalysisOverviewReq = (): Promise<AnalysisOverviewPage[]> =>
-  http<AnalysisOverviewPage[]>("/api/admin/design-analysis");
+export const getAnalysisOverviewReq = (): Promise<AnalysisOverview> =>
+  http<AnalysisOverview>("/api/admin/design-analysis");

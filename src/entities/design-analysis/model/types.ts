@@ -28,7 +28,7 @@ export type AnalyzedPatterns = {
   sections: RetrievedSection[];
 };
 
-// studio 분석 데이터 뷰어용 — 분석된 페이지 1건 + 그 섹션들(중첩).
+// studio 분석 데이터 뷰어용 — 시안(proposal) 단위로 묶고, 그 안에 분석된 페이지·섹션을 중첩한다.
 export type AnalysisOverviewSection = {
   sectionType: string;
   layoutType: string | null;
@@ -36,10 +36,11 @@ export type AnalysisOverviewSection = {
   promptSnippet: string | null;
 };
 
+// 분석된 페이지 1건(그 섹션들 포함). 섹션은 페이지 내 순서(order_index)대로 정렬돼 온다.
 export type AnalysisOverviewPage = {
-  id: string;
-  proposalId: string;
-  proposalTitle: string;
+  id: string; // proposal_page_analysis.id
+  pageId: string;
+  pageOrder: number;
   industry: string | null;
   tone: string | null;
   styleKeywords: string[];
@@ -47,4 +48,24 @@ export type AnalysisOverviewPage = {
   model: string | null;
   analyzedAt: string | null;
   sections: AnalysisOverviewSection[];
+};
+
+// 시안(proposal) 단위 묶음. pages는 page_order대로 정렬돼 온다.
+export type AnalysisOverviewProposal = {
+  proposalId: string;
+  proposalTitle: string;
+  pages: AnalysisOverviewPage[];
+};
+
+// 상단 표시용 분석 커버리지(현재 버전 기준). 시안·페이지 두 기준으로 준다.
+export type AnalysisCoverage = {
+  proposalsTotal: number; // 현재 버전 페이지를 가진 시안 수
+  proposalsAnalyzed: number; // 그중 1개 이상 페이지가 분석된 시안 수
+  pagesTotal: number; // 현재 버전 페이지 총수
+  pagesAnalyzed: number; // 그중 분석된 페이지 수
+};
+
+export type AnalysisOverview = {
+  coverage: AnalysisCoverage;
+  proposals: AnalysisOverviewProposal[];
 };

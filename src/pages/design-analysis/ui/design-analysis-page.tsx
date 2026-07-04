@@ -11,6 +11,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { Badge } from "@/shared/ui/badge";
 import { cn } from "@/shared/lib/utils";
 import { analysisQueries } from "@/entities/design-analysis";
+import type { AnalysisCoverage, AnalysisOverviewPage } from "@/entities/design-analysis";
 
 const COL_COUNT = 6;
 
@@ -19,8 +20,94 @@ function formatDate(value: string | null) {
   return new Date(value).toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" });
 }
 
+function pct(analyzed: number, total: number) {
+  if (total <= 0) return 0;
+  return Math.round((analyzed / total) * 100);
+}
+
+function CoverageStat({ label, analyzed, total }: { label: string; analyzed: number; total: number }) {
+  const p = pct(analyzed, total);
+  return (
+    <div className="min-w-40">
+      <div className="text-caption text-muted-foreground flex items-baseline justify-between gap-2">
+        <span>{label}</span>
+        <span>
+          <span className="text-foreground font-medium">
+            {analyzed}
+          </span>
+          {" / "}
+          {total} · {p}%
+        </span>
+      </div>
+      <div className="bg-muted mt-1 h-1.5 w-full overflow-hidden rounded-full">
+        <div className="bg-primary h-full rounded-full" style={{ width: `${p}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function latestAnalyzedAt(pages: AnalysisOverviewPage[]): string | null {
+  let latest: string | null = null;
+  for (const p of pages) {
+    if (p.analyzedAt && (!latest || p.analyzedAt > latest)) latest = p.analyzedAt;
+  }
+  return latest;
+}
+
+function PageBlock({ page, showLabel, index }: { page: AnalysisOverviewPage; showLabel: boolean; index: number }) {
+  return (
+    <div className="space-y-3">
+      {showLabel && (
+        <div className="text-caption text-muted-foreground flex items-center gap-2">
+          <Badge variant="neutral" className="shrink-0">
+            페이지 {index + 1}
+          </Badge>
+          {page.industry && <span>{page.industry}</span>}
+          {page.tone && <span className="truncate">· {page.tone}</span>}
+        </div>
+      )}
+      {page.styleKeywords.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {page.styleKeywords.map((k, i) => (
+            <Badge key={i} variant="neutral">
+              {k}
+            </Badge>
+          ))}
+        </div>
+      )}
+      {page.summary && <p className="text-body text-muted-foreground break-keep">{page.summary}</p>}
+      {page.sections.length > 0 ? (
+        <div className="divide-border/60 divide-y">
+          {page.sections.map((s, i) => (
+            <div key={i} className="flex gap-3 py-2 text-sm">
+              <Badge variant="outline" className="shrink-0 self-start">
+                {s.sectionType}
+              </Badge>
+              <div className="min-w-0">
+                {s.layoutType && <span className="text-muted-foreground text-xs">{s.layoutType}</span>}
+                <p className="break-keep">{s.promptSnippet ?? s.summary ?? "-"}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-caption text-muted-foreground">추출된 섹션이 없습니다.</p>
+      )}
+    </div>
+  );
+}
+
+function CoverageBar({ coverage }: { coverage: AnalysisCoverage }) {
+  return (
+    <div className="mb-4 flex flex-wrap gap-x-8 gap-y-3">
+      <CoverageStat label="분석된 시안" analyzed={coverage.proposalsAnalyzed} total={coverage.proposalsTotal} />
+      <CoverageStat label="분석된 페이지" analyzed={coverage.pagesAnalyzed} total={coverage.pagesTotal} />
+    </div>
+  );
+}
+
 export function DesignAnalysisPage() {
-  const { data: rows, isPending, isError } = useQuery(analysisQueries.overview());
+  const { data, isPending, isError } = useQuery(analysisQueries.overview());
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   function toggle(id: string) {
@@ -32,6 +119,8 @@ export function DesignAnalysisPage() {
     });
   }
 
+  const proposals = data?.proposals;
+
   return (
     <div>
       <PageHeader
@@ -39,9 +128,7 @@ export function DesignAnalysisPage() {
         description="cova-analyze-designs 스킬로 수집한 시안 분석(페이지·섹션 패턴)입니다."
       />
 
-      {rows && rows.length > 0 && (
-        <p className="text-caption text-muted-foreground mb-3">전체 {rows.length}개</p>
-      )}
+      {data && <CoverageBar coverage={data.coverage} />}
 
       <DataTableShell>
         <Table>
@@ -66,7 +153,7 @@ export function DesignAnalysisPage() {
                 <p className="text-body text-destructive">분석 데이터를 불러오지 못했습니다.</p>
               </DataTableState>
             )}
-            {rows?.length === 0 && (
+            {proposals?.length === 0 && (
               <DataTableState colSpan={COL_COUNT}>
                 <EmptyState
                   title="분석 데이터가 없습니다"
@@ -74,62 +161,44 @@ export function DesignAnalysisPage() {
                 />
               </DataTableState>
             )}
-            {rows?.map((p) => {
-              const open = expanded.has(p.id);
+            {proposals?.map((p) => {
+              const open = expanded.has(p.proposalId);
+              const first = p.pages[0];
+              const sectionTotal = p.pages.reduce((sum, pg) => sum + pg.sections.length, 0);
+              const multiPage = p.pages.length > 1;
               return (
-                <Fragment key={p.id}>
+                <Fragment key={p.proposalId}>
                   <TableRow
                     className="border-border/60 cursor-pointer border-b"
-                    onClick={() => toggle(p.id)}
+                    onClick={() => toggle(p.proposalId)}
                   >
                     <TableCell className={cn(dataBodyCell, "text-muted-foreground")}>
                       {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
                     </TableCell>
-                    <TableCell className={cn(dataBodyCell, "font-medium")}>{p.proposalTitle}</TableCell>
-                    <TableCell className={dataBodyCell}>{p.industry ?? "-"}</TableCell>
-                    <TableCell className={cn(dataBodyCell, "text-muted-foreground max-w-xs truncate")}>
-                      {p.tone ?? "-"}
+                    <TableCell className={cn(dataBodyCell, "font-medium")}>
+                      {p.proposalTitle}
+                      {multiPage && (
+                        <span className="text-muted-foreground ml-1.5 text-xs font-normal">
+                          · {p.pages.length}p
+                        </span>
+                      )}
                     </TableCell>
-                    <TableCell className={dataBodyCell}>{p.sections.length}</TableCell>
+                    <TableCell className={dataBodyCell}>{first?.industry ?? "-"}</TableCell>
+                    <TableCell className={cn(dataBodyCell, "text-muted-foreground max-w-xs truncate")}>
+                      {first?.tone ?? "-"}
+                    </TableCell>
+                    <TableCell className={dataBodyCell}>{sectionTotal}</TableCell>
                     <TableCell className={cn(dataBodyCell, "text-muted-foreground")}>
-                      {formatDate(p.analyzedAt)}
+                      {formatDate(latestAnalyzedAt(p.pages))}
                     </TableCell>
                   </TableRow>
                   {open && (
                     <TableRow className="border-border/60 border-b">
                       <TableCell className="bg-muted/30 p-4" colSpan={COL_COUNT}>
-                        <div className="space-y-3">
-                          {p.styleKeywords.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5">
-                              {p.styleKeywords.map((k, i) => (
-                                <Badge key={i} variant="neutral">
-                                  {k}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                          {p.summary && (
-                            <p className="text-body text-muted-foreground break-keep">{p.summary}</p>
-                          )}
-                          {p.sections.length > 0 ? (
-                            <div className="divide-border/60 divide-y">
-                              {p.sections.map((s, i) => (
-                                <div key={i} className="flex gap-3 py-2 text-sm">
-                                  <Badge variant="outline" className="shrink-0 self-start">
-                                    {s.sectionType}
-                                  </Badge>
-                                  <div className="min-w-0">
-                                    {s.layoutType && (
-                                      <span className="text-muted-foreground text-xs">{s.layoutType}</span>
-                                    )}
-                                    <p className="break-keep">{s.promptSnippet ?? s.summary ?? "-"}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-caption text-muted-foreground">추출된 섹션이 없습니다.</p>
-                          )}
+                        <div className="space-y-5">
+                          {p.pages.map((page, i) => (
+                            <PageBlock key={page.id} page={page} showLabel={multiPage} index={i} />
+                          ))}
                         </div>
                       </TableCell>
                     </TableRow>
