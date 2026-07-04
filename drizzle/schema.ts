@@ -367,3 +367,17 @@ export const apiTokens = pgTable(
 );
 
 export type ApiToken = typeof apiTokens.$inferSelect;
+
+// === CLI 인증 세션 (스킬 웹 로그인) ===
+// 디바이스 플로우: 스킬이 세션 생성(pending) → 사용자가 브라우저에서 승인(approved)/거부(denied)
+// → 스킬이 폴링으로 토큰을 1회 수령하면 세션 삭제. 토큰 문자열은 저장하지 않는다(api_tokens 참조).
+// FK·RLS는 SQL 마이그레이션에서 수동 추가.
+export const cliAuthSessions = pgTable("cli_auth_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(), // 곧 authId — 추측 불가 세션 식별자
+  status: text("status").notNull().default("pending"), // pending | approved | denied
+  ownerId: uuid("owner_id"), // 승인한 사용자. FK → profiles (SQL, cascade)
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+
+export type CliAuthSession = typeof cliAuthSessions.$inferSelect;
