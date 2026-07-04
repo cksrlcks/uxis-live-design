@@ -2,7 +2,6 @@ import "server-only";
 import { eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { aiSettings } from "@drizzle/schema";
-import { requireAdmin } from "@/shared/auth/guards.server";
 
 // DB에 행이 없을 때 생성을 중단시키지 않기 위한 안전장치.
 const FALLBACK_SYSTEM_PROMPT =
@@ -15,15 +14,4 @@ export async function getAiSystemPrompt(): Promise<string> {
     .where(eq(aiSettings.key, "system_prompt"))
     .limit(1);
   return rows[0]?.value ?? FALLBACK_SYSTEM_PROMPT;
-}
-
-export async function updateAiSystemPrompt(content: string): Promise<void> {
-  await requireAdmin();
-  await db
-    .insert(aiSettings)
-    .values({ key: "system_prompt", value: content })
-    .onConflictDoUpdate({
-      target: aiSettings.key,
-      set: { value: content, updatedAt: new Date() },
-    });
 }

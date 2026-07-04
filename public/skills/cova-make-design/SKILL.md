@@ -16,8 +16,8 @@ HTML 시안 한 장을 직접 생성한다. **COVA 레포를 clone할 필요가 
 
 ```bash
 export COVA_API_URL="https://<배포된-COVA-주소>"
-# (선택) 4단계 실서비스 저장을 쓸 때만 필요. 관리자에게 받은 토큰을 넣는다.
-export COVA_DESIGN_TOKEN="<관리자에게 받은 토큰>"
+# (선택) 4단계 실서비스 저장을 쓸 때만 필요. COVA studio → "API 토큰"에서 본인 토큰을 발급해 넣는다.
+export COVA_DESIGN_TOKEN="<studio에서 발급한 내 토큰>"
 ```
 
 ## 순서
@@ -54,8 +54,8 @@ export COVA_DESIGN_TOKEN="<관리자에게 받은 토큰>"
      -d @payload.json
    ```
    → `{ id, viewerPath }`. 뷰어는 `"$COVA_API_URL""$viewerPath"`.
-   저장 API는 **관리자가 토큰을 설정한 경우에만** 열린다(기본 비활성). `COVA_DESIGN_TOKEN`이 없으면
-   3단계의 로컬 HTML 생성까지만 하고 이 저장 단계는 건너뛴다.
+   저장은 **studio에서 발급한 본인 API 토큰**(`COVA_DESIGN_TOKEN`)으로 인증한다. 토큰이 없으면
+   3단계의 로컬 HTML 생성까지만 하고 이 저장 단계는 건너뛴다. 저장된 시안은 토큰 소유자에게 귀속된다.
 
 5. **결과 안내.** 생성한 로컬 파일 경로와(저장했다면) `ai_designs` id·뷰어 URL을 사용자에게 알린다.
 

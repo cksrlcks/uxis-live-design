@@ -328,3 +328,24 @@ export const proposalSectionAnalysis = pgTable(
 );
 
 export type ProposalSectionAnalysis = typeof proposalSectionAnalysis.$inferSelect;
+
+// === API 토큰 (스킬 저장 인증) ===
+// 사용자당 1개. studio에서 발급/열람/재발급하며, 스킬(cova-make-design)이 이 토큰으로 저장 API를 호출한다.
+// "자기 토큰 열람"이 요구사항이라 token을 평문으로 저장한다(ai_designs 쓰기만 여는 저위험 토큰, 서버·RLS 뒤).
+// FK·CASCADE·RLS는 SQL 마이그레이션에서 추가.
+export const apiTokens = pgTable(
+  "api_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: uuid("owner_id").notNull(), // FK → profiles (SQL, cascade). 사용자당 1개
+    token: text("token").notNull(), // 평문(열람용)
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  },
+  (t) => [
+    unique("api_tokens_owner_unique").on(t.ownerId),
+    unique("api_tokens_token_unique").on(t.token),
+  ],
+);
+
+export type ApiToken = typeof apiTokens.$inferSelect;

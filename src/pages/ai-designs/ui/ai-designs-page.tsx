@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
-import { ArrowUpRight, Download, MoreVertical, RotateCw, Settings, Sparkles, Trash2 } from "lucide-react";
+import { ArrowUpRight, Download, MoreVertical, RotateCw, Sparkles, Trash2 } from "lucide-react";
 import { PageHeader, Toolbar } from "@/widgets/studio-shell";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
@@ -120,19 +120,7 @@ export function AiDesignsPage() {
       <PageHeader
         title="AI 시안"
         description="Claude Code 스킬로 만든 HTML 시안 목록입니다."
-        actions={
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              nativeButton={false}
-              render={<Link href="/studio/ai-designs/settings" aria-label="AI 생성 설정" />}
-            >
-              <Settings />
-            </Button>
-            <SkillDownloadButton />
-          </>
-        }
+        actions={<SkillDownloadButton />}
       />
 
       <Card size="sm" className="mb-4">

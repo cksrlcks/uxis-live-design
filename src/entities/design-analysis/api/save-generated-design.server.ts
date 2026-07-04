@@ -15,6 +15,7 @@ export type SaveDesignInput = {
   analysis?: string | null;
   approach?: string | null;
   model?: string;
+  createdBy?: string | null; // 토큰 소유자(profiles.id). 라우트에서 주입.
 };
 
 const PAGE_TYPES = ["main", "dashboard", "subpage"];
@@ -38,6 +39,7 @@ export async function saveGeneratedDesign(input: SaveDesignInput): Promise<{ id:
       analysis: input.analysis ?? null,
       approach: input.approach ?? null,
       model: input.model ?? "claude-code",
+      createdBy: input.createdBy ?? null,
     })
     .returning({ id: aiDesigns.id });
   const aiDesignId = row.id;

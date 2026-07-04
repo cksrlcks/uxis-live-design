@@ -1,4 +1,4 @@
-import { Layers, Users, Tags, Sparkles } from "lucide-react";
+import { Layers, Users, Tags, Sparkles, KeyRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { isAdmin, type Role } from "@/shared/auth/roles";
 
@@ -13,6 +13,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/studio/proposals", label: "시안", icon: Layers },
   { href: "/studio/tags", label: "태그 설정", icon: Tags, adminOnly: true },
   { href: "/studio/ai-designs", label: "AI 시안", icon: Sparkles, adminOnly: true },
+  { href: "/studio/api-tokens", label: "API 토큰", icon: KeyRound, adminOnly: true },
   { href: "/studio/users", label: "사용자 관리", icon: Users, adminOnly: true },
 ];
 
