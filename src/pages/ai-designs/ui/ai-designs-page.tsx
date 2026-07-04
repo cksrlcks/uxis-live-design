@@ -48,7 +48,7 @@ import {
 const menuItem = "gap-2.5 px-2.5 py-2";
 
 // 시안 생성은 Claude Code 스킬(cova-make-design)로 이관됨 — npm 패키지로 배포한다.
-const SKILL_INSTALL_COMMAND = "npx cova-make-design@latest";
+const SKILL_INSTALL_COMMAND = "npx @uxis-cova/make-design@latest";
 
 function SkillInstallButton({ className }: { className?: string }) {
   async function onCopy() {
@@ -122,11 +122,7 @@ export function AiDesignsPage() {
 
   return (
     <div>
-      <PageHeader
-        title="AI 시안"
-        description="Claude Code 스킬로 만든 HTML 시안 목록입니다."
-        actions={<SkillInstallButton />}
-      />
+      <PageHeader title="AI 시안" description="Claude Code 스킬로 만든 HTML 시안 목록입니다." />
 
       <Card size="sm" className="mb-4">
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -225,7 +221,6 @@ export function AiDesignsPage() {
                   <EmptyState
                     title="아직 생성한 시안이 없습니다"
                     description="Claude Code 스킬을 설치해 첫 AI 시안을 만들어 보세요."
-                    action={<SkillInstallButton />}
                   />
                 ) : (
                   <p className="text-body text-muted-foreground">검색 결과가 없습니다.</p>
