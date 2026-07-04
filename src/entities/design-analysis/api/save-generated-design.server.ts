@@ -19,7 +19,7 @@ export type SaveDesignInput = {
 };
 
 const PAGE_TYPES = ["main", "dashboard", "subpage"];
-const MAX_HTML_CHARS = 2_000_000; // 단일 HTML 시안 상한(방어). 정상 시안은 보통 수십~수백 KB.
+const MAX_HTML_CHARS = 10 * 1024 * 1024; // 단일 HTML 시안 상한 10MB(방어). 정상 시안은 보통 수십~수백 KB.
 
 export async function saveGeneratedDesign(input: SaveDesignInput): Promise<{ id: string }> {
   // 에러 코드는 toErrorResponse의 STATUS_BY_CODE와 맞춘다(OBJECT_MISSING/BAD_QUERY → 400).
