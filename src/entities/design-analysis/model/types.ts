@@ -27,3 +27,24 @@ export type AnalyzedPatterns = {
   patternSnippets: string[];
   sections: RetrievedSection[];
 };
+
+// studio 분석 데이터 뷰어용 — 분석된 페이지 1건 + 그 섹션들(중첩).
+export type AnalysisOverviewSection = {
+  sectionType: string;
+  layoutType: string | null;
+  summary: string | null;
+  promptSnippet: string | null;
+};
+
+export type AnalysisOverviewPage = {
+  id: string;
+  proposalId: string;
+  proposalTitle: string;
+  industry: string | null;
+  tone: string | null;
+  styleKeywords: string[];
+  summary: string | null;
+  model: string | null;
+  analyzedAt: string | null;
+  sections: AnalysisOverviewSection[];
+};
