@@ -54,7 +54,12 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
 
 // 참고 이미지 최대 장수. 적을수록 비전 prefill 토큰↓ → 첫 토큰까지 빨라짐(참고 다양성 트레이드오프).
 // 매칭수 정렬이라 상위 N개가 가장 관련도 높은 시안이다. 기본 6.
+// 분석 데이터가 없어 폴백(이미지만)으로 생성할 때 쓰는 장수.
 export const AI_MAX_REFERENCE_IMAGES = parsePositiveInt(process.env.AI_MAX_REFERENCE_IMAGES, 6);
+
+// 하이브리드 생성(분석 패턴 텍스트 + 대표 이미지)에서 첨부할 이미지 장수.
+// 분석 패턴이 있으면 이미지는 시각적 근거용으로 소량만 넣는다. 기본 2.
+export const AI_HYBRID_REFERENCE_IMAGES = parsePositiveInt(process.env.AI_HYBRID_REFERENCE_IMAGES, 2);
 
 // 출력 토큰 상한. 단일 HTML 시안은 보통 3~8k면 충분. (추론 모델은 추론 토큰도 이 상한에 포함되므로
 // reasoning effort를 낮게 유지해야 출력이 잘리지 않는다.) 기본 16000.

@@ -16,6 +16,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:ping": "tsx --env-file=.env.local scripts/db-ping.mts",
     "db:check": "tsx --env-file=.env.local scripts/check-profiles.mts",
+    "analyze:designs": "tsx --env-file=.env.local scripts/analyze-designs.mts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

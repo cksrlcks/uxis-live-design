@@ -43,3 +43,6 @@ next-env.d.ts
 
 # superpowers brainstorming scratch (mockups) — NOT docs/superpowers (tracked specs)
 /.superpowers/
+
+# COVA 시안 분석/생성 로컬 캐시(다운로드 이미지·배치 JSON·생성 HTML)
+/.analyze-cache/

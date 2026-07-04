@@ -253,3 +253,78 @@ export const aiSettings = pgTable("ai_settings", {
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// === 시안 사전 분석 (Design Analysis) ===
+// proposal_pages 이미지를 1회 vision 분석해 재사용 가능한 디자인 패턴으로 저장한다.
+// 시안=proposals, 이미지=proposal_pages, 태그=정규화 택소노미를 그대로 쓰고 이 위에 분석 레이어만 얹는다.
+// 재분석 방지 키는 (page_id, analysis_version). 페이지는 버전 내 불변이라 page_id가 안정적 이미지 식별자다.
+// 태그는 분석에 넣지 않고 검색 시점에 proposal_tags를 라이브 조인한다(태그 수정 즉시 반영).
+// FK·CASCADE·RLS는 레포 컨벤션대로 SQL 마이그레이션에서 추가한다.
+export const proposalPageAnalysis = pgTable(
+  "proposal_page_analysis",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    pageId: uuid("page_id").notNull(), // FK → proposal_pages (SQL, cascade). 분석 대상 페이지
+    proposalId: uuid("proposal_id").notNull(), // 검색 조인용 비정규화. FK → proposals (SQL, cascade)
+    versionId: uuid("version_id").notNull(), // 무효화/추적용 비정규화. FK → proposal_versions (SQL, cascade)
+    industry: text("industry"), // 추론 업종
+    tone: text("tone"), // 톤앤매너
+    styleKeywords: jsonb("style_keywords").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    summary: text("summary"), // 페이지 전체 요약
+    promptSnippet: text("prompt_snippet"), // 생성 프롬프트용 요약 문장
+    analysisVersion: text("analysis_version").notNull(), // 분석 기준 버전(재분석 판단)
+    status: text("status").notNull().default("pending"), // 'pending' | 'analyzed' | 'failed' | 'skipped'
+    model: text("model"), // 분석에 사용한 모델
+    errorMessage: text("error_message"),
+    analyzedAt: timestamp("analyzed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("proposal_page_analysis_page_version_unique").on(t.pageId, t.analysisVersion),
+    index("proposal_page_analysis_proposal_idx").on(t.proposalId),
+    index("proposal_page_analysis_status_idx").on(t.status),
+    check(
+      "proposal_page_analysis_status_check",
+      sql`${t.status} in ('pending', 'analyzed', 'failed', 'skipped')`,
+    ),
+  ],
+);
+
+export type ProposalPageAnalysis = typeof proposalPageAnalysis.$inferSelect;
+
+// 페이지 내 섹션 단위 분석. 컴포넌트는 별도 테이블 없이 components(jsonb)에 인라인한다.
+// section_type enum은 SECTION_TYPES(entities/design-analysis/model/constants.ts)와 동기화 유지.
+export const proposalSectionAnalysis = pgTable(
+  "proposal_section_analysis",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    pageAnalysisId: uuid("page_analysis_id").notNull(), // FK → proposal_page_analysis (SQL, cascade)
+    proposalId: uuid("proposal_id").notNull(), // 검색 비정규화. FK → proposals (SQL, cascade)
+    sectionType: text("section_type").notNull(), // 고정 enum(check)
+    orderIndex: integer("order_index").notNull(), // 페이지 내 섹션 순서
+    layoutType: text("layout_type"), // 레이아웃 패턴(예: left-text-right-image)
+    tone: text("tone"),
+    backgroundType: text("background_type"),
+    colorPalette: jsonb("color_palette").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    // 컴포넌트를 별도 테이블 없이 인라인: { type, styleKeywords[], usage }[]
+    components: jsonb("components")
+      .$type<{ type: string; styleKeywords: string[]; usage?: string | null }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    summary: text("summary"),
+    promptSnippet: text("prompt_snippet"), // 생성 프롬프트용 섹션 요약
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("proposal_section_analysis_page_idx").on(t.pageAnalysisId),
+    index("proposal_section_analysis_section_type_idx").on(t.sectionType),
+    index("proposal_section_analysis_proposal_idx").on(t.proposalId),
+    check(
+      "proposal_section_analysis_section_type_check",
+      sql`${t.sectionType} in ('hero','intro','about','service','product','portfolio','gallery','process','pricing','review','faq','contact','cta','footer')`,
+    ),
+  ],
+);
+
+export type ProposalSectionAnalysis = typeof proposalSectionAnalysis.$inferSelect;

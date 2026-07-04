@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  COVA 시안 사전 분석 야간 자동 실행(macOS launchd).
+
+  매일 오전 9시에 `npm run analyze:designs`를 실행한다. Mac이 꺼져 있으면 실행되지 않는다
+  (대안: Vercel Cron — 레포에 아직 없음, 이후 로드맵).
+
+  설치:
+    cp ops/launchd/com.cova.analyze-designs.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.cova.analyze-designs.plist
+
+  해제:
+    launchctl unload ~/Library/LaunchAgents/com.cova.analyze-designs.plist
+
+  로그: /tmp/cova-analyze.log (StandardOut/Error)
+  주의: WorkingDirectory/경로는 이 기기 기준. 다른 기기에선 경로를 바꿔야 한다.
+        DISCORD_WEBHOOK_URL 등은 프로젝트의 .env.local에서 읽는다(analyze:designs가 --env-file 사용).
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.cova.analyze-designs</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>cd /Users/heavybear/Documents/project/uxis-live-design &amp;&amp; npm run analyze:designs</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/heavybear/Documents/project/uxis-live-design</string>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>9</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/cova-analyze.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/cova-analyze.log</string>
+</dict>
+</plist>

@@ -4,9 +4,10 @@ import { db } from "@/shared/db";
 import { aiDesigns, aiDesignReferenceProposals, aiDesignTags } from "@drizzle/schema";
 import { getTagMatchedImages } from "./get-tag-matched-images.server";
 import type { TagMatchedImage } from "./get-tag-matched-images.server";
+import { getAnalyzedPatterns } from "@/entities/design-analysis/api/get-analyzed-patterns.server";
 import type { GenerationInput, GeneratedDesign } from "../model/types";
 import type { PageType } from "../model/constants";
-import { AI_DESIGN_MODEL, AI_MAX_REFERENCE_IMAGES } from "../model/constants";
+import { AI_DESIGN_MODEL, AI_MAX_REFERENCE_IMAGES, AI_HYBRID_REFERENCE_IMAGES } from "../model/constants";
 
 export async function resolveReferences(
   id: string,
@@ -22,7 +23,13 @@ export async function resolveReferences(
     .where(eq(aiDesignTags.aiDesignId, id));
 
   const optionIds = tagRows.map((t) => t.optionId).filter((x): x is string => !!x);
-  const images = await getTagMatchedImages(optionIds, AI_MAX_REFERENCE_IMAGES);
+
+  // 사전 분석된 섹션 패턴을 검색한다. 패턴이 있으면 하이브리드(패턴 텍스트 + 대표 이미지 소량),
+  // 없으면 기존 이미지 방식으로 폴백(점진 전환).
+  const patterns = await getAnalyzedPatterns(optionIds);
+  const hybrid = patterns.patternSnippets.length > 0;
+  const imageLimit = hybrid ? AI_HYBRID_REFERENCE_IMAGES : AI_MAX_REFERENCE_IMAGES;
+  const images = await getTagMatchedImages(optionIds, imageLimit);
 
   if (images.length > 0) {
     await saveReferences(id, images);
@@ -35,6 +42,7 @@ export async function resolveReferences(
       pageType: row.pageType as PageType,
       tagLabels: tagRows.map((t) => t.label),
       extraNotes: row.extraNotes,
+      referencePatterns: patterns.patternSnippets,
     },
     imageUrls: images.map((i) => i.url),
     // 생성 시 선택된 모델. 과거 행(null)은 환경 기본 모델로 폴백.

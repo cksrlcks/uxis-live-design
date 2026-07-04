@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
-import { ArrowUpRight, MoreVertical, Plus, RotateCw, Settings, Trash2 } from "lucide-react";
+import { ArrowUpRight, Download, MoreVertical, RotateCw, Settings, Sparkles, Trash2 } from "lucide-react";
 import { PageHeader, Toolbar } from "@/widgets/studio-shell";
 import { Button } from "@/shared/ui/button";
+import { Card, CardContent } from "@/shared/ui/card";
 import { useConfirm } from "@/shared/ui/confirm";
 import { StatusPill } from "@/shared/ui/status-pill";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -43,9 +44,23 @@ import {
   useDeleteAiDesign,
   useRetryAiDesign,
 } from "@/entities/ai-design/api/use-ai-design-mutations";
-import { CreateAiDesignModal } from "./create-ai-design-modal";
 
 const menuItem = "gap-2.5 px-2.5 py-2";
+
+// 시안 생성은 Claude Code 스킬(cova-make-design)로 이관됨 — 스킬 파일은 public/에서 다운로드.
+function SkillDownloadButton({ className }: { className?: string }) {
+  return (
+    <Button
+      variant="outline"
+      nativeButton={false}
+      className={className}
+      render={<a href="/skills/cova-make-design/SKILL.md" download="SKILL.md" />}
+    >
+      <Download />
+      스킬 다운로드
+    </Button>
+  );
+}
 
 const COL_COUNT = 7;
 
@@ -82,7 +97,6 @@ export function AiDesignsPage() {
   const { data, isPending, isError, isPlaceholderData } = useQuery(aiDesignQueries.list(page, q));
   const del = useDeleteAiDesign();
   const retry = useRetryAiDesign();
-  const [createOpen, setCreateOpen] = useState(false);
   const confirm = useConfirm();
 
   // 검색어 변경 시 1페이지로 — 빈 값은 URL에서 q 파라미터를 제거(null)한다.
@@ -104,8 +118,8 @@ export function AiDesignsPage() {
   return (
     <div>
       <PageHeader
-        title="AI 시안 생성"
-        description="요구사항을 입력하면 AI가 참고 시안을 바탕으로 HTML 시안을 생성합니다."
+        title="AI 시안"
+        description="Claude Code 스킬로 만든 HTML 시안 목록입니다."
         actions={
           <>
             <Button
@@ -116,13 +130,34 @@ export function AiDesignsPage() {
             >
               <Settings />
             </Button>
-            <Button type="button" onClick={() => setCreateOpen(true)}>
-              <Plus />
-              생성하기
-            </Button>
+            <SkillDownloadButton />
           </>
         }
       />
+
+      <Card size="sm" className="mb-4">
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg">
+              <Sparkles className="size-4.5" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="font-heading text-sm font-medium">
+                AI 시안 생성은 Claude Code 스킬로 합니다
+              </p>
+              <p className="text-muted-foreground mt-1 text-sm break-keep">
+                스킬을 내려받아{" "}
+                <code className="bg-muted rounded px-1 py-0.5 text-xs">
+                  ~/.claude/skills/cova-make-design/SKILL.md
+                </code>
+                에 저장하고 <code className="bg-muted rounded px-1 py-0.5 text-xs">COVA_API_URL</code>
+                을 설정하면, 빈 폴더에서도 축적된 분석 데이터로 HTML 시안을 생성할 수 있습니다.
+              </p>
+            </div>
+          </div>
+          <SkillDownloadButton className="shrink-0" />
+        </CardContent>
+      </Card>
 
       <Toolbar
         trailing={
@@ -196,13 +231,8 @@ export function AiDesignsPage() {
                 {total === 0 && !q ? (
                   <EmptyState
                     title="아직 생성한 시안이 없습니다"
-                    description="‘생성하기’로 첫 AI 시안을 만들어 보세요."
-                    action={
-                      <Button type="button" onClick={() => setCreateOpen(true)}>
-                        <Plus />
-                        생성하기
-                      </Button>
-                    }
+                    description="Claude Code 스킬을 설치해 첫 AI 시안을 만들어 보세요."
+                    action={<SkillDownloadButton />}
                   />
                 ) : (
                   <p className="text-body text-muted-foreground">검색 결과가 없습니다.</p>
@@ -369,8 +399,6 @@ export function AiDesignsPage() {
           </Pagination>
         </div>
       )}
-
-      <CreateAiDesignModal open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

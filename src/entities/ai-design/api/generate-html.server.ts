@@ -46,7 +46,17 @@ function buildUserText(input: GenerationInput): string {
   ];
   if (input.tagLabels.length) lines.push(`태그/방향성: ${input.tagLabels.join(", ")}`);
   if (input.extraNotes) lines.push(`추가 요청사항: ${input.extraNotes}`);
-  lines.push("", "위 요구사항과 첨부된 참고 시안 이미지를 바탕으로 HTML 시안을 생성하세요.");
+  if (input.referencePatterns.length) {
+    lines.push(
+      "",
+      "[참고 섹션 패턴] — COVA에 축적된 실제 시안 분석 데이터입니다. 이미지를 직접 모방하지 말고 섹션 구성·레이아웃 패턴만 참고하세요.",
+      ...input.referencePatterns,
+    );
+  }
+  lines.push(
+    "",
+    "위 요구사항과 참고 자료(섹션 패턴 및 첨부 이미지)를 바탕으로 HTML 시안을 생성하세요.",
+  );
   return lines.join("\n");
 }
 

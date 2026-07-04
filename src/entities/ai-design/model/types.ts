@@ -7,6 +7,8 @@ export type GenerationInput = {
   pageType: PageType;
   tagLabels: string[];
   extraNotes: string | null;
+  // 사전 분석된 섹션 패턴(프롬프트에 넣을 텍스트 줄). 분석 데이터가 없으면 빈 배열(이미지 폴백).
+  referencePatterns: string[];
 };
 
 // 생성 결과 — HTML 본문 + AI 분석글/참고 시안 도입 설명.

@@ -26,7 +26,14 @@ describe("generateHtml", () => {
         "<분석>참고 시안은 미니멀합니다.</분석>\n<도입>여백과 그리드를 반영했습니다.</도입>\n```html\n<!DOCTYPE html><html></html>\n```",
     });
     const result = await generateHtml(
-      { title: "ACME", company: null, pageType: "main", tagLabels: ["미니멀"], extraNotes: null },
+      {
+        title: "ACME",
+        company: null,
+        pageType: "main",
+        tagLabels: ["미니멀"],
+        extraNotes: null,
+        referencePatterns: [],
+      },
       ["https://x/img.png"],
       "gpt-5.5",
     );
@@ -46,7 +53,7 @@ describe("generateHtml", () => {
   it("태그가 없으면 분석/도입은 null이고 HTML만 파싱한다(하위호환)", async () => {
     create.mockResolvedValue({ output_text: "```html\n<!DOCTYPE html><body>x</body></html>\n```" });
     const result = await generateHtml(
-      { title: "A", company: null, pageType: "main", tagLabels: [], extraNotes: null },
+      { title: "A", company: null, pageType: "main", tagLabels: [], extraNotes: null, referencePatterns: [] },
       [],
       "gpt-5.5",
     );
@@ -55,10 +62,31 @@ describe("generateHtml", () => {
     expect(result.approach).toBeNull();
   });
 
+  it("referencePatterns가 있으면 [참고 섹션 패턴] 블록을 user 텍스트에 넣는다(하이브리드)", async () => {
+    create.mockResolvedValue({ output_text: "<!DOCTYPE html><html></html>" });
+    await generateHtml(
+      {
+        title: "ACME",
+        company: null,
+        pageType: "main",
+        tagLabels: [],
+        extraNotes: null,
+        referencePatterns: ["- [hero] (centered-visual) 큰 비주얼 중심 히어로"],
+      },
+      ["https://x/img.png"],
+      "gpt-5.5",
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const arg = (create.mock.calls as any[][])[0][0];
+    const userText = arg.input[0].content.at(-1).text as string;
+    expect(userText).toContain("[참고 섹션 패턴]");
+    expect(userText).toContain("- [hero] (centered-visual) 큰 비주얼 중심 히어로");
+  });
+
   it("빈 응답이면 EMPTY_GENERATION을 던진다", async () => {
     create.mockResolvedValue({ output_text: "   " });
     await expect(
-      generateHtml({ title: "A", company: null, pageType: "main", tagLabels: [], extraNotes: null }, [], "gpt-5.5"),
+      generateHtml({ title: "A", company: null, pageType: "main", tagLabels: [], extraNotes: null, referencePatterns: [] }, [], "gpt-5.5"),
     ).rejects.toThrow("EMPTY_GENERATION");
   });
 });
