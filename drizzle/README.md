@@ -34,3 +34,9 @@ Consequences:
 - `profiles.approved_by` has no FK yet — add `→ profiles.id` when the approval flow is finalized.
 - `profiles.email` has no unique constraint (currently written once from the signup trigger;
   `auth.users.email` is already unique).
+- **Snapshot gap**: `drizzle/migrations/meta/*.json` snapshots are missing for migrations
+  0009–0021, 0023–0029, and 0030 (intentionally — these were hand-written). The snapshot chain
+  is therefore out of sync with the actual applied migrations. Consequence: the next
+  `npm run db:generate` will diff against a stale snapshot and may re-emit CREATE statements for
+  tables that already exist (including `cli_auth_sessions`). Review the generated SQL carefully
+  before running `npm run db:migrate` — do not apply blindly.

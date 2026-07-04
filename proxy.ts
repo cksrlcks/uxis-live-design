@@ -14,8 +14,10 @@ const PLUGIN_CORS: Record<string, string> = {
   "Access-Control-Max-Age": "86400",
 };
 
-// 읽기전용 공개 표면(/api/public/*). 인증 없이 노출(exposed) 시안만 반환한다.
-// 쿠키 자격증명을 받지 않으니 와일드카드 Origin(*)이 안전하다. 읽기 전용이라 GET/OPTIONS만 허용.
+// 공개 표면(/api/public/*). 대부분 인증 없이 노출(exposed) 시안·패턴을 반환하는 GET이지만,
+// 일부는 무인증/토큰 게이트 POST도 포함한다(cli-auth 세션 생성, 토큰 인증 designs 업로드).
+// 어느 쪽도 쿠키 자격증명을 받지 않으니 와일드카드 Origin(*)이 안전하다 — 단, 이는 서버 간
+// 호출(curl 등) 기준이며 브라우저 cross-origin POST를 지원 대상으로 삼는다는 뜻은 아니다.
 const PUBLIC_CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",

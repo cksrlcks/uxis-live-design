@@ -62,6 +62,8 @@ export async function getOrCreateMyToken(): Promise<{ token: string }> {
     .from(apiTokens)
     .where(eq(apiTokens.ownerId, me.id))
     .limit(1);
+  // 왜: 경쟁 승자의 토큰이 그 사이 폐기된 극단 케이스 — row가 없으면 재조회로도 복구 불가.
+  if (!row) throw new Error("NOT_FOUND");
   return { token: row.token };
 }
 

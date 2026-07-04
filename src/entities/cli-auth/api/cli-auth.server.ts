@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { apiTokens, cliAuthSessions } from "@drizzle/schema";
 import { requireEditor } from "@/shared/auth/guards.server";
@@ -11,6 +11,8 @@ const SESSION_TTL_MS = 10 * 60 * 1000;
 
 // 스킬(무인증)이 호출: 승인 대기 세션 생성.
 export async function createCliAuthSession(): Promise<{ authId: string; expiresIn: number }> {
+  // 만료 row 기회적 정리 — 폴링이 끊긴 세션이 무한 누적되지 않게 생성 시점에 쓸어낸다.
+  await db.delete(cliAuthSessions).where(lt(cliAuthSessions.expiresAt, new Date()));
   const [row] = await db
     .insert(cliAuthSessions)
     .values({ expiresAt: new Date(Date.now() + SESSION_TTL_MS) })
@@ -40,17 +42,25 @@ export async function pollCliAuthSession(authId: string): Promise<CliAuthPollRes
   if (!row) return null;
   if (row.status === "pending") return { status: "pending" };
   if (row.status === "denied") {
-    await db.delete(cliAuthSessions).where(eq(cliAuthSessions.id, row.id));
+    // 조건부 delete-returning이 게이트 — 동시 폴링이 와도 한쪽만 denied를 수령한다.
+    const [consumed] = await db
+      .delete(cliAuthSessions)
+      .where(and(eq(cliAuthSessions.id, row.id), eq(cliAuthSessions.status, "denied")))
+      .returning({ id: cliAuthSessions.id });
+    if (!consumed) return null;
     return { status: "denied" };
   }
-  // approved: 승인자 토큰 조회 → 세션 폐기(1회 수령)
-  if (!row.ownerId) return null; // 방어: approved인데 승인자 없음 — 만료와 동일 취급
+  // approved: 세션 소비(1회 수령)를 원자적으로 확정한 쪽만 토큰을 받는다.
+  const [consumed] = await db
+    .delete(cliAuthSessions)
+    .where(and(eq(cliAuthSessions.id, row.id), eq(cliAuthSessions.status, "approved")))
+    .returning({ ownerId: cliAuthSessions.ownerId });
+  if (!consumed?.ownerId) return null;
   const [tokenRow] = await db
     .select({ token: apiTokens.token })
     .from(apiTokens)
-    .where(eq(apiTokens.ownerId, row.ownerId))
+    .where(eq(apiTokens.ownerId, consumed.ownerId))
     .limit(1);
-  await db.delete(cliAuthSessions).where(eq(cliAuthSessions.id, row.id));
   if (!tokenRow) return null; // 방어: 승인 후 토큰이 폐기된 경우
   return { status: "approved", token: tokenRow.token };
 }
@@ -70,10 +80,12 @@ export async function approveCliAuthSession(authId: string): Promise<void> {
   const row = await getLiveSession(authId);
   if (!row || row.status !== "pending") throw new Error("NOT_FOUND");
   await getOrCreateMyToken();
-  await db
+  const [updated] = await db
     .update(cliAuthSessions)
     .set({ status: "approved", ownerId: me.id })
-    .where(and(eq(cliAuthSessions.id, row.id), eq(cliAuthSessions.status, "pending")));
+    .where(and(eq(cliAuthSessions.id, row.id), eq(cliAuthSessions.status, "pending")))
+    .returning({ id: cliAuthSessions.id });
+  if (!updated) throw new Error("NOT_FOUND");
 }
 
 // 거부(에디터): denied로 전환 — 폴링이 만료(404)와 구분해 "취소"로 안내할 수 있게 삭제하지 않는다.
@@ -81,8 +93,10 @@ export async function denyCliAuthSession(authId: string): Promise<void> {
   await requireEditor();
   const row = await getLiveSession(authId);
   if (!row || row.status !== "pending") throw new Error("NOT_FOUND");
-  await db
+  const [updated] = await db
     .update(cliAuthSessions)
     .set({ status: "denied" })
-    .where(and(eq(cliAuthSessions.id, row.id), eq(cliAuthSessions.status, "pending")));
+    .where(and(eq(cliAuthSessions.id, row.id), eq(cliAuthSessions.status, "pending")))
+    .returning({ id: cliAuthSessions.id });
+  if (!updated) throw new Error("NOT_FOUND");
 }
