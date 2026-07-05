@@ -21,14 +21,14 @@ function argValue(name: string): string | undefined {
 const hasFlag = (name: string) => process.argv.includes(`--${name}`);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const limit = Number(argValue("limit")) || 200;
+const limit = Math.max(1, Number(argValue("limit")) || 200);
 const onlyExposed = hasFlag("exposed");
 const force = hasFlag("force");
 const dryRun = hasFlag("dry-run");
 const proposalId = argValue("proposal");
 const out = argValue("out") ?? join(process.cwd(), ".analyze-cache");
 
-if (proposalId && !UUID_RE.test(proposalId)) {
+if (proposalId !== undefined && !UUID_RE.test(proposalId)) {
   console.error(`[export] --proposal 값이 uuid가 아닙니다: ${proposalId}`);
   process.exit(1);
 }
