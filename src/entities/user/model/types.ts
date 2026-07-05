@@ -10,6 +10,7 @@ export type AdminUser = {
   name: string | null;
   email: string;
   role: Role;
+  allowAnalyze: boolean;
   providers: AuthProvider[];
   createdAt: string;
 };

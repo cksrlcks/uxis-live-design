@@ -10,6 +10,7 @@ type Row = {
   name: string | null;
   email: string;
   role: string;
+  allow_analyze: boolean;
   providers: string[];
   created_at: Date;
 };
@@ -26,6 +27,7 @@ export async function getUsers(): Promise<AdminUser[]> {
            p.display_name AS name,
            p.email,
            p.role,
+           p.allow_analyze,
            p.created_at,
            coalesce(
              array_agg(i.provider ORDER BY i.provider)
@@ -42,6 +44,7 @@ export async function getUsers(): Promise<AdminUser[]> {
     name: r.name,
     email: r.email,
     role: r.role as Role,
+    allowAnalyze: r.allow_analyze,
     providers: r.providers as AuthProvider[],
     createdAt: new Date(r.created_at).toISOString(),
   }));
