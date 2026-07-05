@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";
 import { ProviderIcons, userQueries } from "@/entities/user";
-import { UserRowActions } from "@/features/manage-users";
+import { UserRowActions, UserAnalyzeToggle } from "@/features/manage-users";
 import { PageHeader, Toolbar } from "@/widgets/studio-shell";
 import { cn } from "@/shared/lib/utils";
 import { SearchInput } from "@/shared/ui/search-input";
@@ -12,7 +12,7 @@ import { DataTableShell, DataTableState, dataHeadCell, dataBodyCell } from "@/sh
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Skeleton } from "@/shared/ui/skeleton";
 
-const COL_COUNT = 5;
+const COL_COUNT = 6;
 
 // BFF JSON으로 넘어온 날짜는 문자열 — Date로 감싸 안전하게 포맷한다.
 function formatDate(value: string) {
@@ -62,6 +62,7 @@ export function AdminUsersPage() {
               <TableHead className={dataHeadCell}>이메일</TableHead>
               <TableHead className={dataHeadCell}>가입수단</TableHead>
               <TableHead className={cn(dataHeadCell, "whitespace-nowrap")}>가입일</TableHead>
+              <TableHead className={dataHeadCell}>분석</TableHead>
               <TableHead className={dataHeadCell}>권한</TableHead>
             </TableRow>
           </TableHeader>
@@ -83,6 +84,9 @@ export function AdminUsersPage() {
                   </TableCell>
                   <TableCell className={dataBodyCell}>
                     <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className={dataBodyCell}>
+                    <Skeleton className="h-5 w-9 rounded-full" />
                   </TableCell>
                   <TableCell className={dataBodyCell}>
                     <Skeleton className="rounded-control h-8 w-28" />
@@ -122,6 +126,9 @@ export function AdminUsersPage() {
                   )}
                 >
                   {formatDate(u.createdAt)}
+                </TableCell>
+                <TableCell className={dataBodyCell}>
+                  <UserAnalyzeToggle id={u.id} allowAnalyze={u.allowAnalyze} />
                 </TableCell>
                 <TableCell className={dataBodyCell}>
                   <UserRowActions id={u.id} role={u.role} />
