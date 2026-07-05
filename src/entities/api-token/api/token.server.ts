@@ -4,46 +4,13 @@ import { eq } from "drizzle-orm";
 import { db } from "@/shared/db";
 import { apiTokens } from "@drizzle/schema";
 import { requireEditor } from "@/shared/auth/guards.server";
-import type { MyToken } from "../model/types";
 
 // "cova_" 접두 + 24바이트 랜덤(48 hex). 식별 쉽고 충분한 엔트로피.
 function generateToken(): string {
   return `cova_${randomBytes(24).toString("hex")}`;
 }
 
-// 현재 사용자의 토큰(없으면 null). studio에서 열람용.
-export async function getMyToken(): Promise<MyToken> {
-  const me = await requireEditor();
-  const [row] = await db.select().from(apiTokens).where(eq(apiTokens.ownerId, me.id)).limit(1);
-  if (!row) return null;
-  return {
-    token: row.token,
-    createdAt: row.createdAt.toISOString(),
-    lastUsedAt: row.lastUsedAt?.toISOString() ?? null,
-  };
-}
-
-// 발급/재발급 — 사용자당 1개(owner_id unique)라 upsert로 교체. 새 토큰 문자열을 반환.
-export async function regenerateMyToken(): Promise<{ token: string }> {
-  const me = await requireEditor();
-  const token = generateToken();
-  await db
-    .insert(apiTokens)
-    .values({ ownerId: me.id, token })
-    .onConflictDoUpdate({
-      target: apiTokens.ownerId,
-      set: { token, createdAt: new Date(), lastUsedAt: null },
-    });
-  return { token };
-}
-
-// 폐기.
-export async function revokeMyToken(): Promise<void> {
-  const me = await requireEditor();
-  await db.delete(apiTokens).where(eq(apiTokens.ownerId, me.id));
-}
-
-// CLI 승인용: 있으면 그대로, 없을 때만 생성. regenerate와 달리 기존 토큰을 무효화하지 않는다.
+// CLI 승인용: 있으면 그대로, 없을 때만 생성. 기존 토큰을 무효화하지 않는다.
 export async function getOrCreateMyToken(): Promise<{ token: string }> {
   const me = await requireEditor();
   const [existing] = await db
