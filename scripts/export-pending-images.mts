@@ -1,10 +1,12 @@
-// COVA 시안 사전 분석 — Claude Code(로컬 vision) 경로 1/2: 대기 페이지 이미지를 로컬로 내려받고 매니페스트를 만든다.
+// COVA 시안 사전 분석 — Claude Code(로컬 vision) 경로 1/2: 대상 페이지 이미지를 로컬로 내려받고 매니페스트를 만든다.
 // 이후 Workflow/서브에이전트가 이 이미지들을 vision으로 읽어 분석하고, save-analysis.mts로 DB에 저장한다.
 // (API 과금 대신 Claude Code 사용량으로 분석하는 방식. 야간 자동화는 기존 analyze-designs.mts 사용.)
 //
 // 사용:
-//   tsx --env-file=.env.local scripts/export-pending-images.mts --out=/abs/dir --limit=200
-//   tsx --env-file=.env.local scripts/export-pending-images.mts --out=/abs/dir --exposed
+//   tsx --env-file=.env.local scripts/export-pending-images.mts --out=/abs/dir --limit=200          # 미분석 전체
+//   tsx --env-file=.env.local scripts/export-pending-images.mts --out=/abs/dir --exposed              # 노출 시안만
+//   tsx --env-file=.env.local scripts/export-pending-images.mts --out=/abs/dir --proposal=<uuid> --force  # 특정 시안 재분석
+//   tsx --env-file=.env.local scripts/export-pending-images.mts --out=/abs/dir --dry-run            # 대상만 출력(내려받지 않음)
 
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -16,13 +18,38 @@ function argValue(name: string): string | undefined {
   const p = process.argv.find((a) => a.startsWith(`--${name}=`));
   return p?.slice(name.length + 3);
 }
+const hasFlag = (name: string) => process.argv.includes(`--${name}`);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const limit = Number(argValue("limit")) || 200;
-const onlyExposed = process.argv.includes("--exposed");
+const onlyExposed = hasFlag("exposed");
+const force = hasFlag("force");
+const dryRun = hasFlag("dry-run");
+const proposalId = argValue("proposal");
 const out = argValue("out") ?? join(process.cwd(), ".analyze-cache");
 
+if (proposalId && !UUID_RE.test(proposalId)) {
+  console.error(`[export] --proposal 값이 uuid가 아닙니다: ${proposalId}`);
+  process.exit(1);
+}
+if (force && !proposalId) {
+  console.error("[export] --force는 --proposal=<uuid>와 함께 써야 합니다(특정 시안 재분석).");
+  process.exit(1);
+}
+
 await mkdir(out, { recursive: true });
-const pending = await listPendingPages({ limit, onlyExposed });
-console.log(`[export] 대기 페이지: ${pending.length} → ${out}`);
+const pending = await listPendingPages({ limit, onlyExposed, proposalId, force });
+console.log(
+  `[export] 대상 페이지: ${pending.length} → ${out}` +
+    (proposalId ? ` (proposal=${proposalId}${force ? ", force" : ""})` : ""),
+);
+
+if (dryRun) {
+  for (const p of pending) console.log(`  - ${p.proposalTitle} :: ${p.storagePath}`);
+  console.log("(dry-run) 실제 내려받기는 --dry-run 없이 실행하세요.");
+  await db.$client.end();
+  process.exit(0);
+}
 
 type ManifestItem = {
   pageId: string;
