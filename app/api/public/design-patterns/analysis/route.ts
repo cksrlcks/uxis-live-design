@@ -15,14 +15,18 @@ export async function POST(req: NextRequest) {
     let saved = 0;
     const skipped: { pageId: string; reason: string }[] = [];
     for (const item of analyses) {
-      const page = await getPageIdentity(item.pageId);
-      if (!page) {
-        skipped.push({ pageId: item.pageId, reason: "unknown pageId" });
-        continue;
+      try {
+        const page = await getPageIdentity(item.pageId);
+        if (!page) {
+          skipped.push({ pageId: item.pageId, reason: "unknown pageId" });
+          continue;
+        }
+        const result = parsePageAnalysis({ overall: item.overall, sections: item.sections });
+        await saveAnalysis(page, result, model);
+        saved += 1;
+      } catch {
+        skipped.push({ pageId: item.pageId, reason: "invalid analysis" });
       }
-      const result = parsePageAnalysis({ overall: item.overall, sections: item.sections });
-      await saveAnalysis(page, result, model);
-      saved += 1;
     }
     return Response.json({ saved, skipped });
   } catch (error) {
