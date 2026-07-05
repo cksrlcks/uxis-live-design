@@ -6,6 +6,7 @@ export const profiles = pgTable("profiles", {
   email: text("email").notNull(),
   displayName: text("display_name"),
   role: text("role").notNull().default("pending"), // 'pending' | 'editor' | 'admin'
+  allowAnalyze: boolean("allow_analyze").notNull().default(false), // 분석 스킬 사용 권한(관리자가 부여)
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   approvedBy: uuid("approved_by"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

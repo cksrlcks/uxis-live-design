@@ -218,6 +218,13 @@
       "when": 1784500000000,
       "tag": "0030_cli_auth_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1784600000000,
+      "tag": "0031_profiles_allow_analyze",
+      "breakpoints": true
     }
   ]
 }
