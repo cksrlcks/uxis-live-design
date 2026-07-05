@@ -8,7 +8,7 @@ import { aiDesigns, aiDesignTags, tagOptions, tagGroups } from "@drizzle/schema"
 export type SaveDesignInput = {
   title: string;
   company?: string | null;
-  pageType: "main" | "dashboard" | "subpage";
+  pageType: "main" | "dashboard" | "subpage" | "product";
   extraNotes?: string | null;
   optionIds?: string[];
   html: string;
@@ -18,7 +18,7 @@ export type SaveDesignInput = {
   createdBy?: string | null; // 토큰 소유자(profiles.id). 라우트에서 주입.
 };
 
-const PAGE_TYPES = ["main", "dashboard", "subpage"];
+const PAGE_TYPES = ["main", "dashboard", "subpage", "product"];
 const MAX_HTML_CHARS = 10 * 1024 * 1024; // 단일 HTML 시안 상한 10MB(방어). 정상 시안은 보통 수십~수백 KB.
 
 export async function saveGeneratedDesign(input: SaveDesignInput): Promise<{ id: string }> {

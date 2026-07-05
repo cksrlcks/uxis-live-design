@@ -1,10 +1,11 @@
-export const PAGE_TYPES = ["main", "dashboard", "subpage"] as const;
+export const PAGE_TYPES = ["main", "dashboard", "subpage", "product"] as const;
 export type PageType = (typeof PAGE_TYPES)[number];
 
 export const PAGE_TYPE_LABELS: Record<PageType, string> = {
   main: "메인",
   dashboard: "대시보드",
   subpage: "서브페이지",
+  product: "제품",
 };
 
 export const AI_DESIGN_STATUSES = ["working", "done", "failed"] as const;

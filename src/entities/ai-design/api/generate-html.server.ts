@@ -11,6 +11,7 @@ const PAGE_TYPE_LABEL: Record<GenerationInput["pageType"], string> = {
   main: "메인/랜딩 페이지",
   dashboard: "대시보드(좌측 사이드바 + 상단 KPI 카드 + 차트/표)",
   subpage: "서브페이지(헤더 + 본문 + 사이드)",
+  product: "제품/앱 화면(마케팅 랜딩이 아니라 실제 제품 UI — 리스트·상세·폼·모달 등 실제 제품 화면 구조를 참고)",
 };
 
 // 태그(<분석>/<도입>)에서 내용 추출. 없으면 null.

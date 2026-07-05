@@ -54,6 +54,28 @@ const META: Record<PageType, { label: string; desc: string; thumb: React.ReactNo
       </svg>
     ),
   },
+  product: {
+    label: "제품",
+    desc: "실제 제품/앱 화면",
+    thumb: (
+      <svg viewBox="0 0 120 80" className="h-full w-full" role="img" aria-label="제품/앱 화면 와이어프레임">
+        <rect x="0" y="0" width="120" height="80" rx="4" className="fill-muted" />
+        <rect x="0" y="0" width="120" height="12" rx="4" className="fill-foreground/20" />
+        <rect x="8" y="4" width="20" height="4" rx="2" className="fill-foreground/45" />
+        <rect x="98" y="3.5" width="14" height="5" rx="2.5" className="fill-primary/50" />
+        <rect x="10" y="17" width="40" height="5" rx="2.5" className="fill-primary/25" />
+        <rect x="10" y="28" width="12" height="12" rx="2" className="fill-foreground/20" />
+        <rect x="28" y="29" width="60" height="3" rx="1.5" className="fill-foreground/35" />
+        <rect x="28" y="35" width="40" height="3" rx="1.5" className="fill-foreground/15" />
+        <rect x="10" y="44" width="12" height="12" rx="2" className="fill-foreground/20" />
+        <rect x="28" y="45" width="60" height="3" rx="1.5" className="fill-foreground/35" />
+        <rect x="28" y="51" width="40" height="3" rx="1.5" className="fill-foreground/15" />
+        <rect x="10" y="60" width="12" height="12" rx="2" className="fill-foreground/20" />
+        <rect x="28" y="61" width="60" height="3" rx="1.5" className="fill-foreground/35" />
+        <rect x="28" y="67" width="40" height="3" rx="1.5" className="fill-foreground/15" />
+      </svg>
+    ),
+  },
 };
 
 export function PageTypeCards({
@@ -69,7 +91,7 @@ export function PageTypeCards({
   const types = readOnly ? PAGE_TYPES.filter((pt) => pt === value) : PAGE_TYPES;
 
   return (
-    <div className={cn(readOnly ? "flex" : "grid grid-cols-3 gap-3")}>
+    <div className={cn(readOnly ? "flex" : "grid grid-cols-2 gap-3 sm:grid-cols-4")}>
       {types.map((pt) => {
         const m = META[pt];
         const active = value === pt;
