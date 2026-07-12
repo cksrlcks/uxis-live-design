@@ -3,7 +3,7 @@
 import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { PageHeader } from "@/widgets/studio-shell";
+import { PageHeader, StatBarSkeleton } from "@/widgets/studio-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { DataTableShell, DataTableState, dataHeadCell, dataBodyCell } from "@/shared/ui/data-table";
 import { EmptyState } from "@/shared/ui/empty-state";
@@ -128,7 +128,9 @@ export function DesignAnalysisPage() {
         description="cova-analyze-designs 스킬로 수집한 시안 분석(페이지·섹션 패턴)입니다."
       />
 
-      {data && <CoverageBar coverage={data.coverage} />}
+      {/* 로딩 중에도 커버리지 바 자리를 예약해(loading.tsx의 StatBarSkeleton과 동일)
+          로딩 → 마운트 → 로드 사이에 표가 위아래로 밀리지 않게 한다. */}
+      {isPending ? <StatBarSkeleton /> : data ? <CoverageBar coverage={data.coverage} /> : null}
 
       <DataTableShell>
         <Table>

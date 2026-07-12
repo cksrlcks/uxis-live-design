@@ -23,6 +23,24 @@ export function ToolbarSkeleton({ widths = ["w-full max-w-xs"] }: { widths?: str
   );
 }
 
+/** 상단 통계 요약 바(예: 분석 커버리지) 자리. count개의 "라벨 + 진행바" 블록을 그린다.
+ *  실제 요약 바(CoverageBar)와 높이·간격을 맞춰, 본문이 아래로 밀리지 않게 자리를 예약한다. */
+export function StatBarSkeleton({ count = 2 }: { count?: number }) {
+  return (
+    <div className="mb-4 flex flex-wrap gap-x-8 gap-y-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="min-w-40">
+          <div className="flex items-baseline justify-between gap-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+          <Skeleton className="mt-1 h-1.5 w-full rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** 표 스켈레톤 — cols 열 × rows 행의 빈 셀. 실제 표와 열 수를 맞추면 전환 시 밀림이 없다. */
 export function TableSkeleton({ cols, rows = 5 }: { cols: number; rows?: number }) {
   return (
