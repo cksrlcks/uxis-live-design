@@ -9,10 +9,14 @@
   "networkAccess": {
     "allowedDomains": [
       "https://uxis-cova.vercel.app",
-      "https://*.supabase.co",
+      "https://cova-supabase.heavybear.cloud",
       "https://cdn.jsdelivr.net"
     ],
     "reasoning": "cova 운영 API + Supabase Storage(서명 URL 업로드/이미지) + Pretendard 폰트 CDN.",
-    "devAllowedDomains": ["http://localhost:3000", "https://*.supabase.co", "https://cdn.jsdelivr.net"]
+    "devAllowedDomains": [
+      "http://localhost:3000",
+      "https://cova-supabase.heavybear.cloud",
+      "https://cdn.jsdelivr.net"
+    ]
   }
 }
