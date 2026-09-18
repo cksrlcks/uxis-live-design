@@ -3,7 +3,7 @@ import { API_BASE } from './config';
 import { createApiClient } from './lib/api';
 import { humanize } from './lib/errors';
 import { confirmPages, filesMeta, uploadAll } from './lib/upload';
-import { useSession } from './hooks/useSession';
+import { useSession, type SessionConfig } from './hooks/useSession';
 import { usePairingLogin } from './hooks/usePairingLogin';
 import { useFigmaBridge } from './hooks/useFigmaBridge';
 import { useUploadRunner } from './hooks/useUploadRunner';
@@ -24,16 +24,6 @@ export function App() {
   const [openProposalId, setOpenProposalId] = useState<string | null>(null);
   const [createKey, setCreateKey] = useState(0);
 
-  const bridge = useFigmaBridge(session.hydrate);
-  const { selectionCount, exportSelection, notify, openUrl } = bridge;
-
-  const runner = useUploadRunner({
-    exportSelection,
-    notify,
-    onBeforeRun: () => setOpenProposalId(null), // hideOpen
-  });
-  const { busy, status, setStatus, run, runAction } = runner;
-
   // api 클라이언트는 1회 생성. 토큰은 useSession ref로 항상 최신 읽기.
   // 리프레시까지 실패하면 세션을 비워 로그인 화면으로 되돌린다(만료 토큰으로 멈춰 있지 않게).
   const api = useMemo(
@@ -46,6 +36,29 @@ export function App() {
       }),
     [session.getTokens, session.setTokens, session.logout],
   );
+
+  // 부팅: 저장된 세션을 그대로 믿지 않는다. 리프레시 1회로 서버 기준 생존을 확인하고,
+  // 서버가 거부하면(만료/폐기) 세션을 비운다. 이게 없으면 죽은 토큰으로 로그인된 화면이 계속 남는다.
+  const bridge = useFigmaBridge(async (stored) => {
+    session.hydrate(stored);
+    const s = stored as SessionConfig | null;
+    if (!s?.refreshToken) return;
+    try {
+      const t = await api.refreshWith(s.refreshToken);
+      if (t) session.setTokens(t);
+      else session.logout();
+    } catch {
+      /* 네트워크 실패(오프라인 등)는 세션 유지. 실제 요청 시 401에서 걸러진다. */
+    }
+  });
+  const { selectionCount, exportSelection, notify, openUrl } = bridge;
+
+  const runner = useUploadRunner({
+    exportSelection,
+    notify,
+    onBeforeRun: () => setOpenProposalId(null), // hideOpen
+  });
+  const { busy, status, setStatus, run, runAction } = runner;
 
   const pairing = usePairingLogin({ api, openUrl: bridge.openUrl, onSuccess: session.setSession });
 

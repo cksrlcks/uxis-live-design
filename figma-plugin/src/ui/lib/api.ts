@@ -67,18 +67,30 @@ export function createApiClient(opts: {
 }) {
   const { baseUrl } = opts;
 
+  // 리프레시 토큰으로 새 토큰 발급. 서버가 거부하면(만료/폐기) null.
+  // 네트워크 실패는 그대로 throw 한다 — "서버가 세션을 거부함"과 "지금 통신이 안 됨"은 다르게 다뤄야 한다.
+  async function refreshWith(refreshToken: string): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: unknown;
+  } | null> {
+    const res = await fetch(joinUrl(baseUrl, '/api/plugin/auth/refresh'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    return { accessToken: j.accessToken, refreshToken: j.refreshToken, expiresAt: j.expiresAt };
+  }
+
   async function tryRefresh(): Promise<boolean> {
     const { refreshToken } = opts.getTokens();
     if (!refreshToken) return false;
     try {
-      const res = await fetch(joinUrl(baseUrl, '/api/plugin/auth/refresh'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
-      if (!res.ok) return false;
-      const j = await res.json();
-      opts.onTokens({ accessToken: j.accessToken, refreshToken: j.refreshToken, expiresAt: j.expiresAt });
+      const t = await refreshWith(refreshToken);
+      if (!t) return false;
+      opts.onTokens(t);
       return true;
     } catch {
       return false;
@@ -124,6 +136,8 @@ export function createApiClient(opts: {
   }
 
   return {
+    // 저장된 세션이 서버에서 아직 살아있는지 부팅 시 확인용.
+    refreshWith,
     pollPairing: (key: string) =>
       request<PairingPollResponse>('/api/plugin/auth/poll', {
         method: 'POST',
