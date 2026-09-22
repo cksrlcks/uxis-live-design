@@ -16,6 +16,7 @@ import {
   Share2,
 } from "lucide-react";
 import { proposalQueries } from "@/entities/proposal";
+import { downloadOfflinePackage } from "@/entities/proposal/lib/download-offline-package";
 import { PROPOSALS_PAGE_SIZE } from "@/entities/proposal/model/types";
 import { NewProposalDialog } from "@/features/create-proposal";
 import { cn } from "@/shared/lib/utils";
@@ -75,21 +76,18 @@ async function copyViewerLink(path: string) {
   }
 }
 
-// 오프라인 패키지(zip = index.html + img/) 내려받기. 이미지를 다 모으는 데 시간이
-// 걸려서 링크 이동 대신 fetch로 받고 진행/실패를 토스트로 알린다.
-// ponytail: blob으로 한 번에 받으므로 큰 시안(수백 MB)은 브라우저 메모리를 그만큼 쓴다.
-// 그게 문제되면 이 함수를 지우고 라우트로 직접 이동시켜 디스크로 스트리밍하면 된다.
-async function downloadOfflinePackage(id: string, title: string) {
-  const res = await fetch(`/api/proposals/${id}/export`);
-  if (!res.ok) throw new Error("EXPORT_FAILED");
-
-  const url = URL.createObjectURL(await res.blob());
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${title}.zip`;
-  a.click();
-  // 즉시 해제하면 일부 브라우저에서 다운로드가 취소된다 — 다음 태스크로 미룬다.
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+// 오프라인 패키지(zip = index.html + img/) 내려받기.
+// 이미지를 브라우저가 직접 받아 조립하므로 시간이 걸린다 — 진행률을 토스트로 갱신한다.
+async function runOfflineDownload(id: string) {
+  const toastId = toast.loading("오프라인 파일을 준비하는 중…");
+  try {
+    await downloadOfflinePackage(id, (done, total) =>
+      toast.loading(`이미지 받는 중 ${done}/${total}`, { id: toastId }),
+    );
+    toast.success("다운로드를 시작했습니다", { id: toastId });
+  } catch {
+    toast.error("다운로드에 실패했습니다", { id: toastId });
+  }
 }
 
 function pageItems(current: number, count: number): (number | "ellipsis")[] {
@@ -420,13 +418,7 @@ export function ProposalsListPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className={menuItem}
-                              onClick={() =>
-                                toast.promise(downloadOfflinePackage(p.id, p.title), {
-                                  loading: "오프라인 파일을 만드는 중…",
-                                  success: "다운로드를 시작했습니다",
-                                  error: "다운로드에 실패했습니다",
-                                })
-                              }
+                              onClick={() => runOfflineDownload(p.id)}
                             >
                               <Download />
                               오프라인 HTML
