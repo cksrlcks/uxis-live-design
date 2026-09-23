@@ -16,7 +16,10 @@ import {
   Share2,
 } from "lucide-react";
 import { proposalQueries } from "@/entities/proposal";
-import { downloadOfflinePackage } from "@/entities/proposal/lib/download-offline-package";
+import {
+  downloadOfflinePackage,
+  DownloadAbortedError,
+} from "@/entities/proposal/lib/download-offline-package";
 import { PROPOSALS_PAGE_SIZE } from "@/entities/proposal/model/types";
 import { NewProposalDialog } from "@/features/create-proposal";
 import { cn } from "@/shared/lib/utils";
@@ -77,16 +80,34 @@ async function copyViewerLink(path: string) {
 }
 
 // 오프라인 패키지(zip = index.html + img/) 내려받기.
-// 이미지를 브라우저가 직접 받아 조립하므로 시간이 걸린다 — 진행률을 토스트로 갱신한다.
+// 이미지를 브라우저가 직접 받아 조립하므로 시간이 걸린다 — 진행률을 토스트로 갱신하고,
+// 같은 토스트의 취소 버튼으로 중단할 수 있게 한다.
 async function runOfflineDownload(id: string) {
-  const toastId = toast.loading("오프라인 파일을 준비하는 중…");
+  const controller = new AbortController();
+  const cancel = {
+    label: "취소",
+    // sonner는 action을 누르면 토스트를 지운다 — 막아두고 아래 catch에서 같은 토스트를
+    // "취소했습니다"로 바꿔 보여준다. loading 타입은 자동으로 안 닫히므로 duration은 불필요.
+    onClick: (event: { preventDefault: () => void }) => {
+      event.preventDefault();
+      controller.abort();
+    },
+  };
+
+  const toastId = toast.loading("오프라인 파일을 준비하는 중…", { action: cancel });
   try {
-    await downloadOfflinePackage(id, (done, total) =>
-      toast.loading(`이미지 받는 중 ${done}/${total}`, { id: toastId }),
-    );
-    toast.success("다운로드를 시작했습니다", { id: toastId });
-  } catch {
-    toast.error("다운로드에 실패했습니다", { id: toastId });
+    await downloadOfflinePackage(id, {
+      signal: controller.signal,
+      onProgress: (done, total) =>
+        toast.loading(`이미지 받는 중 ${done}/${total}`, { id: toastId, action: cancel }),
+    });
+    toast.success("다운로드를 시작했습니다", { id: toastId, action: undefined });
+  } catch (error) {
+    if (error instanceof DownloadAbortedError) {
+      toast.info("다운로드를 취소했습니다", { id: toastId, action: undefined });
+    } else {
+      toast.error("다운로드에 실패했습니다", { id: toastId, action: undefined });
+    }
   }
 }
 
