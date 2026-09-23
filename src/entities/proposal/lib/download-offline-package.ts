@@ -5,15 +5,18 @@ import type { OfflinePackagePlan } from "./offline-package";
 //
 // 이미지는 서버를 거치지 않고 스토리지에서 직접 받는다(proposals 버킷이 public이고
 // CORS가 열려 있다). 그래서 Vercel 함수는 설계도만 주고 1초 안에 끝나며, 이미지 바이트가
-// Vercel 대역폭을 전혀 쓰지 않는다. 덤으로 몇 장 받았는지 알 수 있어 진행률을 띄운다.
+// Vercel 대역폭을 전혀 쓰지 않는다.
 //
 // ZIP은 "쓰는" 순서가 고정이지만(바이트 스트림이라) "받는" 순서는 상관없다. 그래서
-// zipStream이 한 장씩 당겨가는 동안, 뒤쪽 이미지를 미리 받아둔다 → 대기시간이
-// N×왕복에서 (N/WINDOW)×왕복으로 줄어든다.
+// zipStream이 한 장씩 당겨가는 동안 뒤쪽 이미지를 미리 받아둔다.
+//
+// onProgress는 "완료"가 아니라 "시작"(= 다운로드 시도) 시점에 부른다. 완료 기준으로 하면
+// 첫 장을 다 받을 때까지 카운터가 0에 멈춰 있어 멈춘 것처럼 보인다.
 
-// 동시에 받아둘 이미지 수. 무제한으로 열지 않는 이유는 스토리지가 셀프호스팅이라
-// 페이지 수백 장짜리 시안에서 요청이 한꺼번에 몰리면 그 부하를 그대로 받기 때문이다.
-const FETCH_WINDOW = 6;
+// 동시에 받아둘 이미지 수. 무제한으로 열지 않는 이유는 두 가지다 — 스토리지가
+// 셀프호스팅이라 요청이 몰리면 부하를 그대로 받고, 동시에 많이 받을수록 대역폭을 나눠 써서
+// 한 장이 끝나는 시점이 밀린다(= 진행률이 뚝뚝 끊겨 보인다).
+const FETCH_WINDOW = 3;
 
 export class DownloadAbortedError extends Error {
   constructor() {
@@ -43,7 +46,7 @@ export async function downloadOfflinePackage(
   proposalId: string,
   opts: {
     signal?: AbortSignal;
-    onProgress?: (done: number, total: number) => void;
+    onProgress?: (current: number, total: number) => void;
   } = {},
 ): Promise<void> {
   const { signal, onProgress } = opts;
@@ -52,16 +55,15 @@ export async function downloadOfflinePackage(
   if (!res.ok) throw new Error("EXPORT_FAILED");
   const plan: OfflinePackagePlan = await res.json();
 
-  let done = 0;
+  let started = 0;
   const inflight = new Map<number, Promise<Uint8Array>>();
 
   function start(i: number) {
     if (i >= plan.files.length || inflight.has(i)) return;
+    // 받기 "시작"할 때 카운터를 올린다 — 설계도가 도착하자마자 숫자가 움직인다.
+    onProgress?.(++started, plan.files.length);
     // signal을 fetch까지 내려보내야 취소가 실제로 통신을 끊는다 — UI만 닫는 게 아니다.
-    const pending = fetchImage(plan.files[i].url, signal).then((bytes) => {
-      onProgress?.(++done, plan.files.length);
-      return bytes;
-    });
+    const pending = fetchImage(plan.files[i].url, signal);
     // 앞선 장이 먼저 실패하거나 취소되면 뒤쪽 장들은 await되지 않은 채 남는다 —
     // 미처리 거부 경고를 막으려고 여기서 한 번 삼킨다. 원래 promise는 그대로라
     // await하면 정상적으로 throw한다.
@@ -75,8 +77,8 @@ export async function downloadOfflinePackage(
     ...plan.files.map((file, i) => ({
       name: file.name,
       load: async () => {
-        // 지금 필요한 장 + 뒤이어 쓸 WINDOW장을 미리 띄워둔다.
-        for (let k = i; k <= i + FETCH_WINDOW; k++) start(k);
+        // 항상 WINDOW장이 동시에 떠 있도록 유지한다.
+        for (let k = i; k < i + FETCH_WINDOW; k++) start(k);
         const bytes = await inflight.get(i)!;
         inflight.delete(i); // 다 쓴 항목은 지워 맵이 계속 커지지 않게 한다.
         return bytes;

@@ -94,7 +94,9 @@ async function runOfflineDownload(id: string) {
     },
   };
 
-  const toastId = toast.loading("오프라인 파일을 준비하는 중…", { action: cancel });
+  // 첫 메시지는 이미지가 아니라 "설계도 API 호출" 구간이다 — 단계를 구분해 두면
+  // 느릴 때 어디가 느린지(API냐 이미지냐) 화면만 보고 알 수 있다.
+  const toastId = toast.loading("시안 정보를 가져오는 중…", { action: cancel });
   try {
     await downloadOfflinePackage(id, {
       signal: controller.signal,
